@@ -8,7 +8,7 @@
 #define TOP_MAX 1
 
 #define IMG_HEIGHT 256
-#define IMG_WIDTH 768
+#define IMG_WIDTH 384
 #define BLOCK_WIDTH 32
 #define BLOCK_HEIGHT 16
 
