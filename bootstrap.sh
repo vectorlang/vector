@@ -18,3 +18,7 @@ else
 fi
 python build.py --install
 ldconfig
+
+cd ..
+cp /vagrant/profile.sh .profile
+chown vagrant:vagrant .profile
