@@ -7,8 +7,8 @@
 #define BOTTOM_MIN -1
 #define TOP_MAX 1
 
-#define IMG_HEIGHT 512
-#define IMG_WIDTH 1526
+#define IMG_HEIGHT 256
+#define IMG_WIDTH 768
 #define BLOCK_WIDTH 32
 #define BLOCK_HEIGHT 32
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	uchar3 colors[IMG_WIDTH * IMG_HEIGHT], colorMap[MAX_ITER + 1];
 	uchar3 *d_colors = NULL, *d_colorMap;
 	cudaError_t err;
-	dim3 grid_dim(IMG_WIDTH / BLOCK_WIDTH, IMG_HEIGHT / IMG_WIDTH, 1);
+	dim3 grid_dim(IMG_WIDTH / BLOCK_WIDTH, IMG_HEIGHT / BLOCK_HEIGHT, 1);
 	dim3 block_dim(BLOCK_WIDTH, BLOCK_HEIGHT, 1);
 	int i;
 
