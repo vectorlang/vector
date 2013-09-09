@@ -1,6 +1,6 @@
-NVCC_FLAGS=-arch=sm_11 -g
+NVCC_FLAGS=-arch=sm_20 -g
 NVCC=nvcc
-LDFLAGS=-g -L/opt/cuda/lib64 -lcudart
+LDFLAGS=-g -locelot
 
 all: vecmult
 
