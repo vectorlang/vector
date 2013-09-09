@@ -24,7 +24,7 @@ void mandelbrot(uchar3 *colors, uchar3 *colorMap,
 	yi = threadIdx.y + blockDim.y * blockIdx.y;
 	xn = blockDim.x * gridDim.x;
 	yn = blockDim.y * gridDim.y;
-	i = yn * yi + xi;
+	i = xn * yi + xi;
 
 	x0 = left + (right - left) / xn * xi;
 	y0 = bottom + (top - bottom) / yn * yi;
