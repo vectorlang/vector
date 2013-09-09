@@ -1,0 +1,6 @@
+{
+	"ocelot": "ocelot",
+	"executive": {
+		"devices": ["llvm"]
+	}
+}
