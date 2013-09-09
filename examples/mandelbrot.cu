@@ -7,12 +7,10 @@
 #define BOTTOM_MIN -1
 #define TOP_MAX 1
 
-#define POINT_HEIGHT 1024
-#define POINT_WIDTH 3072
+#define IMG_HEIGHT 512
+#define IMG_WIDTH 1526
 #define BLOCK_WIDTH 32
 #define BLOCK_HEIGHT 32
-
-static const char *stat_string = "Hello, World!";
 
 __global__
 void mandelbrot(uchar3 *colors, uchar3 *colorMap,
@@ -57,10 +55,10 @@ static void _check(cudaError_t err, const char *file, int line)
 int main(int argc, char *argv[])
 {
 	float left, right, top, bottom;
-	uchar3 colors[POINT_WIDTH * POINT_HEIGHT], colorMap[MAX_ITER + 1];
+	uchar3 colors[IMG_WIDTH * IMG_HEIGHT], colorMap[MAX_ITER + 1];
 	uchar3 *d_colors = NULL, *d_colorMap;
 	cudaError_t err;
-	dim3 grid_dim(POINT_WIDTH / BLOCK_WIDTH, POINT_HEIGHT / POINT_WIDTH, 1);
+	dim3 grid_dim(IMG_WIDTH / BLOCK_WIDTH, IMG_HEIGHT / IMG_WIDTH, 1);
 	dim3 block_dim(BLOCK_WIDTH, BLOCK_HEIGHT, 1);
 	int i;
 
