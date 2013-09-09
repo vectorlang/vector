@@ -52,6 +52,29 @@ static void _check(cudaError_t err, const char *file, int line)
 
 #define checkError(err) _check((err), __FILE__, __LINE__)
 
+int write_ppm(const char *fname, uchar3 *colors, size_t width, size_t height)
+{
+	FILE *f = fopen(fname, "w");
+	size_t x, y, i;
+	if (f == NULL) {
+		perror("fopen");
+		return -1;
+	}
+
+	fprintf(f, "P3\n");
+	fprintf(f, "%d %d\n", width, height);
+	fprintf(f, "255\n");
+
+	for (y = 0; y < height; y++) {
+		for (x = 0; x < width; x++) {
+			i = y * width + x;
+			fprintf(f, "%d %d %d ", colors[i].x, colors[i].y, colors[i].z);
+		}
+		fprintf(f, "\n");
+	}
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	float left, right, top, bottom;
@@ -97,6 +120,9 @@ int main(int argc, char *argv[])
 
 	err = cudaMemcpy(colors, d_colors, sizeof(colors), cudaMemcpyDeviceToHost);
 	checkError(err);
+
+	if (write_ppm("mandelbrot.ppm", colors, IMG_WIDTH, IMG_HEIGHT))
+		exit(EXIT_FAILURE);
 
 	cudaFree(d_colors);
 	cudaFree(d_colorMap);
