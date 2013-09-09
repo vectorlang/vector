@@ -52,7 +52,8 @@ static void _check(cudaError_t err, const char *file, int line)
 
 #define checkError(err) _check((err), __FILE__, __LINE__)
 
-int write_ppm(const char *fname, uchar3 *colors, size_t width, size_t height)
+int write_ppm(const char *fname, uchar3 *colors, 
+		unsigned int width, unsigned int height)
 {
 	FILE *f = fopen(fname, "w");
 	size_t x, y, i;
@@ -62,7 +63,7 @@ int write_ppm(const char *fname, uchar3 *colors, size_t width, size_t height)
 	}
 
 	fprintf(f, "P3\n");
-	fprintf(f, "%d %d\n", width, height);
+	fprintf(f, "%u %u\n", width, height);
 	fprintf(f, "255\n");
 
 	for (y = 0; y < height; y++) {
