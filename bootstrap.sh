@@ -22,3 +22,5 @@ ldconfig
 cd ..
 cp /vagrant/profile.sh .profile
 chown vagrant:vagrant .profile
+
+apt-get -y install gdb valgrind
