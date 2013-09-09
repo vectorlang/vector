@@ -1,4 +1,6 @@
 /.vagrant
 *.o
+*.json
+*.ppm
 /examples/vecmult
 /examples/mandelbrot
