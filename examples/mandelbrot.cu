@@ -115,8 +115,8 @@ int main(int argc, char *argv[])
 
 	mandelbrot<<<grid_dim, block_dim>>>(d_colors, d_colorMap, 
 			left, right, top, bottom);
-	err = cudaDeviceSynchronize();
-	checkError(err);
+	cudaDeviceSynchronize();
+	checkError(cudaGetLastError());
 
 	err = cudaMemcpy(colors, d_colors, sizeof(colors), cudaMemcpyDeviceToHost);
 	checkError(err);
