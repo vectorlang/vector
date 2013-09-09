@@ -101,11 +101,20 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	for (i = 0; i <= MAX_ITER; i++)
-		colorMap[i].x = colorMap[i].y = colorMap[i].z = (MAX_ITER - i);
+	for (i = 0; i < MAX_ITER; i++) {
+		colorMap[i].x = 255 * i / MAX_ITER;
+		colorMap[i].y = 255 * i / MAX_ITER;
+		colorMap[i].z = 255;
+	}
+
+	colorMap[MAX_ITER].x = 0;
+	colorMap[MAX_ITER].y = 0;
+	colorMap[MAX_ITER].z = 0;
 
 	err = cudaMalloc(&d_colors, sizeof(colors));
 	checkError(err);
+
+	err = cudaMemset(d_colors, 0, sizeof(colors));
 
 	err = cudaMalloc(&d_colorMap, sizeof(colorMap));
 	checkError(err);
