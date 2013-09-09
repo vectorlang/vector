@@ -10,7 +10,7 @@
 #define IMG_HEIGHT 256
 #define IMG_WIDTH 768
 #define BLOCK_WIDTH 32
-#define BLOCK_HEIGHT 32
+#define BLOCK_HEIGHT 16
 
 __global__
 void mandelbrot(uchar3 *colors, uchar3 *colorMap,
