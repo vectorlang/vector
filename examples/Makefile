@@ -1,8 +1,11 @@
-NVCC_FLAGS=-arch=sm_20 -g
+CFLAGS=-Wall -O2
+NVCC_FLAGS=-arch=sm_20 -g -Xcompiler $(CFLAGS)
 NVCC=nvcc
 LDFLAGS=-g -locelot
 
-all: vecmult
+EXAMPLES=vecmult mandelbrot
+
+all: $(EXAMPLES)
 
 %.o: %.cu
 	$(NVCC) -c $(NVCC_FLAGS) $< -o $@
@@ -11,4 +14,4 @@ all: vecmult
 	$(CXX) $< -o $@ $(LDFLAGS)
 
 clean:
-	rm -f *.o vecmult
+	rm -f *.o $(EXAMPLES)

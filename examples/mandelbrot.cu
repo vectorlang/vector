@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_ITER 1000
+#define LEFT_MIN -2.5
+#define RIGHT_MAX 1
+#define BOTTOM_MIN -1
+#define TOP_MAX 1
+
+#define POINT_HEIGHT 1024
+#define POINT_WIDTH 3072
+#define BLOCK_WIDTH 32
+#define BLOCK_HEIGHT 32
+
+static const char *stat_string = "Hello, World!";
+
+__global__
+void mandelbrot(uchar3 *colors, uchar3 *colorMap,
+		float left, float right, float top, float bottom)
+{
+	size_t xi, yi, xn, yn, i;
+	float x0, y0, x, y, xtemp;
+	int iter = 0;
+	
+	xi = threadIdx.x + blockDim.x * blockIdx.x;
+	yi = threadIdx.y + blockDim.y * blockIdx.y;
+	xn = blockDim.x * gridDim.x;
+	yn = blockDim.y * gridDim.y;
+	i = yn * yi + xi;
+
+	x0 = left + (right - left) / xn * xi;
+	y0 = bottom + (top - bottom) / yn * yi;
+
+	x = y = 0;
+
+	while (iter < MAX_ITER && (x * x + y * y) < 4) {
+		xtemp = x * x - y * y + x0;
+		y = 2 * x * y + y0;
+		x = xtemp;
+		iter++;
+	}
+
+	colors[i] = colorMap[iter];
+}
+
+static void _check(cudaError_t err, const char *file, int line)
+{
+	if (err != cudaSuccess) {
+		fprintf(stderr, "CUDA error at %s:%d\n", file, line);
+		fprintf(stderr, "%s\n", cudaGetErrorString(err));
+		exit(err);
+	}
+}
+
+#define checkError(err) _check((err), __FILE__, __LINE__)
+
+int main(int argc, char *argv[])
+{
+	float left, right, top, bottom;
+	uchar3 colors[POINT_WIDTH * POINT_HEIGHT], colorMap[MAX_ITER + 1];
+	uchar3 *d_colors = NULL, *d_colorMap;
+	cudaError_t err;
+	dim3 grid_dim(POINT_WIDTH / BLOCK_WIDTH, POINT_HEIGHT / POINT_WIDTH, 1);
+	dim3 block_dim(BLOCK_WIDTH, BLOCK_HEIGHT, 1);
+	int i;
+
+	if (argc < 5) {
+		fprintf(stderr, "Usage: %s left right top bottom\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
+	left = atof(argv[1]);
+	right = atof(argv[2]);
+	top = atof(argv[3]);
+	bottom = atof(argv[4]);
+
+	if (left < LEFT_MIN || right > RIGHT_MAX 
+			|| top > TOP_MAX || bottom < BOTTOM_MIN) {
+		fprintf(stderr, "Window out of bounds\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (i = 0; i <= MAX_ITER; i++)
+		colorMap[i].x = colorMap[i].y = colorMap[i].z = (MAX_ITER - i);
+
+	err = cudaMalloc(&d_colors, sizeof(colors));
+	checkError(err);
+
+	err = cudaMalloc(&d_colorMap, sizeof(colorMap));
+	checkError(err);
+
+	err = cudaMemcpy(d_colorMap, colorMap, sizeof(colorMap), cudaMemcpyHostToDevice);
+	checkError(err);
+
+	mandelbrot<<<grid_dim, block_dim>>>(d_colors, d_colorMap, 
+			left, right, top, bottom);
+	err = cudaDeviceSynchronize();
+	checkError(err);
+
+	err = cudaMemcpy(colors, d_colors, sizeof(colors), cudaMemcpyDeviceToHost);
+	checkError(err);
+
+	cudaFree(d_colors);
+	cudaFree(d_colorMap);
+
+	return 0;
+}

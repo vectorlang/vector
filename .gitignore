@@ -1,3 +1,4 @@
 /.vagrant
 *.o
 /examples/vecmult
+/examples/mandelbrot
