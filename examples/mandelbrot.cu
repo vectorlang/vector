@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define MAX_ITER 1000
 #define LEFT_MIN -2.5
@@ -85,6 +86,7 @@ int main(int argc, char *argv[])
     dim3 grid_dim(IMG_WIDTH / BLOCK_WIDTH, IMG_HEIGHT / BLOCK_HEIGHT, 1);
     dim3 block_dim(BLOCK_WIDTH, BLOCK_HEIGHT, 1);
     int i;
+    long ran;
 
     if (argc < 5) {
         fprintf(stderr, "Usage: %s left right top bottom\n", argv[0]);
@@ -102,10 +104,13 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    srandom(time(0));
+
     for (i = 0; i < MAX_ITER; i++) {
-        colorMap[i].x = 255 * i / MAX_ITER;
-        colorMap[i].y = 255 * i / MAX_ITER;
-        colorMap[i].z = 255;
+        ran = random();
+        colorMap[i].x = (ran >> 16) & 0xff;
+        colorMap[i].y = (ran >> 8) & 0xff;
+        colorMap[i].z = ran & 0xff;
     }
 
     colorMap[MAX_ITER].x = 0;
