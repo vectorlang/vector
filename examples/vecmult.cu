@@ -70,7 +70,7 @@ int main(void)
             goto cleanup;
         }
     }
-	printf("Computation was correct\n");
+    printf("Computation was correct\n");
 
 cleanup:
     if (err != cudaSuccess && err > 0)
