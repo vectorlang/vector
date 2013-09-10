@@ -4,3 +4,4 @@
 *.ppm
 /examples/vecmult
 /examples/mandelbrot
+.sconsign.dblite
