@@ -9,15 +9,17 @@ AddOption('--cuda_arch', dest='cuda_arch', default='sm_20',
             help='CUDA architecture')
 AddOption('--cuda_lib', dest='cuda_lib', default='/usr/local/cuda/lib', 
             help='Cuda lib directory')
-AddOption('--howie_desktop', dest='howie_desktop',
+AddOption('--8400gs', dest='8400gs',
             default=False, action="store_true", 
-            help="Building on howie's desktop")
+            help="Build for the GeForce 8400 GS")
 
 rtlib = GetOption('rtlib')
 cuda_lib = GetOption('cuda_lib')
 cuda_arch = GetOption('cuda_arch')
 
-if GetOption('howie_desktop'):
+# This is just a convenience for me to quickly choose the options for my GPU
+# If you're using ocelot, don't use this flag
+if GetOption('8400gs'):
     rtlib = 'cudart'
     cuda_lib = '/opt/cuda/lib64'
     cuda_arch = 'sm_11'
@@ -29,6 +31,7 @@ env.Append(CCFLAGS = '-Wall -O2')
 env.Append(NVCC = 'nvcc', NVCC_FLAGS = '-arch=$CUDA_ARCH -Xcompiler $CCFLAGS')
 env.Append(BUILDERS = {'CudaObject' : cuda_object})
 
+# Add the name of your example to this list to get it compiled
 examples = ['vecmult', 'mandelbrot']
 
 for ex in examples:
