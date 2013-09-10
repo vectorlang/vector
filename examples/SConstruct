@@ -1,0 +1,36 @@
+import os
+
+cuda_object = Builder(action = '$NVCC -c $NVCC_FLAGS $SOURCE -o $TARGET')
+env = Environment(ENV = os.environ)
+
+AddOption('--rtlib', dest='rtlib', default='ocelot',
+            help='CUDA runtime library (ocelot or cudart)')
+AddOption('--cuda_arch', dest='cuda_arch', default='sm_20',
+            help='CUDA architecture')
+AddOption('--cuda_lib', dest='cuda_lib', default='/usr/local/cuda/lib', 
+            help='Cuda lib directory')
+AddOption('--howie_desktop', dest='howie_desktop',
+            default=False, action="store_true", 
+            help="Building on howie's desktop")
+
+rtlib = GetOption('rtlib')
+cuda_lib = GetOption('cuda_lib')
+cuda_arch = GetOption('cuda_arch')
+
+if GetOption('howie_desktop'):
+    rtlib = 'cudart'
+    cuda_lib = '/opt/cuda/lib64'
+    cuda_arch = 'sm_11'
+
+env.Append(LIBS = [rtlib])
+env.Append(LIBPATH = [cuda_lib])
+env.Append(CUDA_ARCH = cuda_arch)
+env.Append(CCFLAGS = '-Wall -O2')
+env.Append(NVCC = 'nvcc', NVCC_FLAGS = '-arch=$CUDA_ARCH -Xcompiler $CCFLAGS')
+env.Append(BUILDERS = {'CudaObject' : cuda_object})
+
+examples = ['vecmult', 'mandelbrot']
+
+for ex in examples:
+    env.CudaObject(ex + '.o', ex + '.cu')
+    env.Program(ex, ex + '.o')
