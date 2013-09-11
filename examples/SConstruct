@@ -35,5 +35,5 @@ env.Append(BUILDERS = {'CudaObject' : cuda_object})
 examples = ['vecmult', 'mandelbrot']
 
 for ex in examples:
-    env.CudaObject(ex + '.o', ex + '.cu')
+    env.CudaObject(ex + '.o', [ex + '.cu', 'utils.h'])
     env.Program(ex, ex + '.o')

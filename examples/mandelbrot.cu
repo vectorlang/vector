@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "utils.h"
 
 #define MAX_ITER 1000
 #define LEFT_MIN -2.5
@@ -41,17 +42,6 @@ void mandelbrot(uchar3 *colors, uchar3 *colorMap,
 
     colors[i] = colorMap[iter];
 }
-
-static void _check(cudaError_t err, const char *file, int line)
-{
-    if (err != cudaSuccess) {
-        fprintf(stderr, "CUDA error at %s:%d\n", file, line);
-        fprintf(stderr, "%s\n", cudaGetErrorString(err));
-        exit(err);
-    }
-}
-
-#define checkError(err) _check((err), __FILE__, __LINE__)
 
 int write_ppm(const char *fname, uchar3 *colors, 
         unsigned int width, unsigned int height)
