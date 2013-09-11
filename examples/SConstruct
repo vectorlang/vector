@@ -24,7 +24,7 @@ if GetOption('8400gs'):
     cuda_lib = '/opt/cuda/lib64'
     cuda_arch = 'sm_11'
 
-env.Append(LIBS = [rtlib])
+env.Append(LIBS = [rtlib, 'm'])
 env.Append(LIBPATH = [cuda_lib])
 env.Append(CUDA_ARCH = cuda_arch)
 env.Append(CCFLAGS = '-Wall -O2')
@@ -32,7 +32,7 @@ env.Append(NVCC = 'nvcc', NVCC_FLAGS = '-arch=$CUDA_ARCH -Xcompiler $CCFLAGS')
 env.Append(BUILDERS = {'CudaObject' : cuda_object})
 
 # Add the name of your example to this list to get it compiled
-examples = ['vecmult', 'mandelbrot']
+examples = ['vecmult', 'mandelbrot', 'firfilter']
 
 for ex in examples:
     env.CudaObject(ex + '.o', [ex + '.cu', 'utils.h'])
