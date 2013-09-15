@@ -33,14 +33,14 @@ Our strategy for implementing this language is to generate CUDA code, which can 
         kfor i in 0:len(x) {
             z[i] = x[i] * y[i]
             sync()
-            for s=1; s < len(x); s*=2 {
+            for s := 1; s < len(x); s*=2 {
                 if i % (2 * s) == 0 {
                     z[i] *= z[i+s]
                 }
                 sync()
             }
         }
-        s := z[0]
+        dp := z[0]
     }
 
 or, using language built-in map/reduce (these need to happen at compile time because we have no GPU support for first-class functions at runtime):
@@ -50,7 +50,7 @@ or, using language built-in map/reduce (these need to happen at compile time bec
         x := int[]{1,2,3,4}
         y := int[]{3,5,7,9}
         z := map((*), x, y)
-        s := reduce((+), z)
+        dp := reduce((+), z)
     }
 
 ## References
