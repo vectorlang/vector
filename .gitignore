@@ -3,3 +3,4 @@
 *.json
 *.ppm
 .sconsign.dblite
+*.pdf
