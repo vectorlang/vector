@@ -32,7 +32,7 @@ env.Append(NVCC = 'nvcc', NVCC_FLAGS = '-arch=$CUDA_ARCH -Xcompiler $CCFLAGS')
 env.Append(BUILDERS = {'CudaObject' : cuda_object})
 
 # Add the name of your example to this list to get it compiled
-examples = ['vecmult', 'mandelbrot', 'firfilter']
+examples = ['vecmult', 'mandelbrot', 'firfilter', 'dotprod']
 
 for ex in examples:
     env.CudaObject(ex + '.o', [ex + '.cu', 'utils.h'])
