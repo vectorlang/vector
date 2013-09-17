@@ -47,5 +47,9 @@ int main(void)
     cudaMemcpy(&dp, d_dp, sizeof(dp), cudaMemcpyDeviceToHost);
     printf("Dot product: %d\n", dp);
 
+    cudaFree(d_x);
+    cudaFree(d_y);
+    cudaFree(d_dp);
+
     return 0;
 }

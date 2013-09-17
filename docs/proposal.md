@@ -119,6 +119,10 @@ The equivalent CUDA program would look like this.
         // copy the result into dp
         cudaMemcpy(&dp, d_dp, sizeof(dp), cudaMemcpyDeviceToHost);
 
+        cudaFree(d_x);
+        cudaFree(d_y);
+        cudaFree(d_dp);
+
         return 0;
     }
 
