@@ -1,5 +1,5 @@
 # Vector: A High-Level Programming Language for the GPU
-_Daron Lin (<dl2573@columbia.edu>), Howard Mao (<zm2169@columbia.edu>), Zachary Newman (<zjn2101@columbia.edu>), Sidharth Shanker (<sps2133@columbia.edu>), Jonathan Yu (<jy2432@columbia.edu>)_
+_Howard Mao (<zm2169@columbia.edu>), Zachary Newman (<zjn2101@columbia.edu>), Sidharth Shanker (<sps2133@columbia.edu>), Jonathan Yu (<jy2432@columbia.edu>)_
 
 ## Introduction
 
