@@ -12,8 +12,8 @@ Our strategy for implementing this language is to generate CUDA code, which can 
 ## Language Features
 
 * basic type inference for assignments
-* parallel for ("kernel for" or `kfor`) loops: generate a kernel (or multiple kernels) to run on the GPU on lots of data
-* map/reduce: syntactic sugar built on top of `kfor` (because these generate kernels, we need to implement them as primitives)
+* parallel for ("kernel for" or `pfor`) loops: generate a kernel (or multiple kernels) to run on the GPU on lots of data
+* map/reduce: syntactic sugar built on top of `pfor` (because these generate kernels, we need to implement them as primitives)
 * first-class functions (sort of): we can only implement these at compile-time (unless we compile kernels dynamically)
 * anonymous functions
 * easy FFI: call C functions using the same syntax as for Vector functions
@@ -30,7 +30,7 @@ Our strategy for implementing this language is to generate CUDA code, which can 
         x := int[]{1,2,3,4}
         y := int[]{3,5,7,9}
         int z[len(x)]
-        kfor i in 0:len(x) {
+        pfor i in 0:len(x) {
             z[i] = x[i] * y[i]
             sync()
             for s := 1; s < len(x); s*=2 {
