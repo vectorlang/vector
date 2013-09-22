@@ -12,7 +12,7 @@ Our strategy for implementing this language is to generate CUDA code, which can 
 ## Language Features
 
 * basic type inference for assignments
-* parallel for ("kernel for" or `pfor`) loops: generate a kernel (or multiple kernels) to run on the GPU on lots of data
+* parallel for (`pfor`) loops: generate a CUDA `kernel` (or multiple `kernel`s) for CUDA to compile into PTX and run on the GPU on lots of data
 * map/reduce: syntactic sugar built on top of `pfor` (because these generate kernels, we need to implement them as primitives)
 * first-class functions (sort of): we can only implement these at compile-time (unless we compile kernels dynamically)
 * anonymous functions
@@ -43,7 +43,7 @@ Our strategy for implementing this language is to generate CUDA code, which can 
         dp := z[0]
     }
 
-or, using language built-in map/reduce (these need to happen at compile time because we have no GPU support for first-class functions at runtime):
+or, using language built-ins map/reduce (these need to happen at compile time because we have no GPU support for first-class functions at runtime):
 
     // Compute the dot product of two vectors
     int main(void) {
@@ -57,7 +57,7 @@ The equivalent CUDA program would look like this.
 
     #include <stdlib.h>
     #include <stdio.h>
-    
+
     static inline void _check(cudaError_t err, const char *file, int line)
     {
         if (err != cudaSuccess) {
@@ -78,7 +78,7 @@ The equivalent CUDA program would look like this.
         // map
         if (i < n)
             dotprod[i] = x[i] * y[i];
-        
+
         // reduce
         for (s = 1; s < n; s *= 2) {
             if (i % (2 * s) == 0 && i + s < n)
@@ -94,9 +94,9 @@ The equivalent CUDA program would look like this.
         int dp;
 
         int *d_x, *d_y, *d_dp;
-        
+
         cudaError_t err;
-        
+
         // allocate GPU memory
         err = cudaMalloc(&d_x, sizeof(x));
         checkError(err);
