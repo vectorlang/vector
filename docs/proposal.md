@@ -32,6 +32,9 @@ Our strategy for implementing this language is to generate CUDA code, which can 
         int z[len(x)]
         pfor i in 0:len(x) {
             z[i] = x[i] * y[i]
+            // each iteration of the for loop runs on a different thread in the
+            // GPU; sync() pauses execution of the thread until all other
+            // threads reach the same point
             sync()
             for s := 1; s < len(x); s*=2 {
                 if i % (2 * s) == 0 {
@@ -45,7 +48,9 @@ Our strategy for implementing this language is to generate CUDA code, which can 
 
 or, using language built-ins map/reduce (these need to happen at compile time because we have no GPU support for first-class functions at runtime):
 
-    // Compute the dot product of two vectors
+    /*
+     * Compute the dot product of two vectors
+     */
     int main(void) {
         x := int[]{1,2,3,4}
         y := int[]{3,5,7,9}
