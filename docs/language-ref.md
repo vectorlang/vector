@@ -166,7 +166,7 @@ If you wish to specify the exact type of the identifier, use an explicit cast.
 ### Array Declarations
 
 > *array-declaration* ::= *primitive-type-specifier* *identifier* `[]`
->
+
 > > | *primitive-type-specifier* *identifier* `[` *expression* `]`
 
 > > | *identifier* `:=` *primitive-type-specifier* `[]` `{` *member-list* `}`
@@ -194,7 +194,7 @@ is identical to the initializing declaration for primitives.
 
 > *function-declaration* ::=
 > *type-specifier* *identifier* `(` *parameter-list* `)` *compound-statement*
->
+
 > > | *type-specifier* *identifier* `()` *compound-statement*
 
 > *parameter-list* ::= *parameter-list*, *declaration* | *declaration*
@@ -211,15 +211,15 @@ available in the function body.
 ## Statements
 
 > *statement* ::= *expression-statement*
->
+
 > > | *compound-statement*
->
+
 > > | *selection-statement*
->
+
 > > | *iteration-statement*
->
+
 > > | *jump-statement*
->
+
 > > | &lt;epsilon&gt;
 
 Statements in Vector are executed in sequence except as described as part of
@@ -238,7 +238,7 @@ side effects of the expression still occur.
 > *compound-statement* ::= `{` *statement-list* `}`
 
 > *statement-list* ::= *statement*
->
+
 > > | *statement-list* &lt;EOL&gt; *statement*
 
 A compound statement is also called a *block*. When a block is executed, each of
