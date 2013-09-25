@@ -220,7 +220,11 @@ an else clause, its substatement is executed.
 >
 > > \| `do` *compound-statement* `while` *expression* \<EOL\>
 >
-> > \| `for` *expression* *expression* *expression* *compound-statement*
+> > \| `for` *expression*; *expression*; *expression* *compound-statement*
+>
+> > \| `for` *identifier* `in` *expression* *compound-statement*
+>
+> > \| `pfor` *identifier* `in` *expression* *compound-statement*
 
 When a while statement is reached, the expression is evaluated (with all side
 effects). If its value is nonzero, its block is executed, and after the
@@ -231,13 +235,22 @@ A do-while statement behaves identically to the while statement, except that its
 block is executed before the expression is checked. This means that the block
 executes unconditionally at least once.
 
-A for statement has three expressions. When the for statement is executed, the
-first expression (also known as the initialization) is evaluated with all side
-effects, and the result is discarded. Then, the second expression (also known as
-the condition) is checked. If its value is nonzero, the block of the for
-statement executes. Otherwise, the execution of the for statement is finished.
-After each time the block executes, the third expression is evaluated with all
-side effects, and the result is discarded.
+A for statement using the first syntax has three expressions. When the for
+statement is executed, the first expression (also known as the initialization)
+is evaluated with all side effects, and the result is discarded. Then, the
+second expression (also known as the condition) is checked. If its value is
+nonzero, the block of the for statement executes (the statements in the block
+may refer to the identifier). Otherwise, the execution of the for statement is
+finished.  After each time the block executes, the third expression is evaluated
+with all side effects, and the result is discarded.
+
+The second syntax iterates through the block once for each of the elements of the
+expression, which is evaluated once (with side effects) and must be an array
+type. In the block, the identifier refers to the current element of the array.
+
+A pfor statement is identical to the second syntax of for statements, but the
+iterations happen in parallel on the GPU. The first syntax is not allowed for
+pfor loops.
 
 ### Jump Statements
 
