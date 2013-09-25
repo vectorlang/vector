@@ -88,7 +88,7 @@ For instance,
 
     int arr[]
 
-This does not initialize the array or allocate any storage for it. 
+This does not initialize the array or allocate any storage for it.
 You can declare an array of a specific size with uninitialized members using
 
     primitive-type-specifier variable-name[array-size]
@@ -103,7 +103,7 @@ You can also declare an array and initialize its members using
 
 For instance,
 
-    int arr[]{1, 2, 3, 4};
+    int arr[]{1, 2, 3, 4}
 
 ### Function declarations
 
@@ -113,14 +113,14 @@ Function declarations take the following form
 
 The parameter list is a series of primitive or array declarations separated
 by commas. Only the non-initializing primitive declarations and non-sizing
-array declarations are allowed. 
-The function body is just a series of statements. 
+array declarations are allowed.
+The function body is just a series of statements.
 
 So, for instance, the following is a valid function declaration.
 
     float scale_and_sum(float scale, float array[]) {
         float sum = 0.0
-        
+
         for i in 0:len(array) {
             sum += array[i]
         }
@@ -131,6 +131,6 @@ So, for instance, the following is a valid function declaration.
 ## Scope
 
 Vector uses block-level scoping. A block, loosely defined, is a section of
-code contained by a function, conditional, or looping construct. 
-Each nested block creates a new scope, and variables declared in the new 
+code contained by a function, conditional, or looping construct.
+Each nested block creates a new scope, and variables declared in the new
 scope supersede variables declared in higher scopes.
