@@ -87,9 +87,32 @@ TODO: Sid by 9/29. We only cast explicitly.
 
 TODO: Sid by 10/6
 
-### Function calls
+### Function Calls
 
-TODO: Zack by 10/6
+> *function-call* ::= *identifier* `(` *argument-list* `)` | *identifier* `()`
+
+> *argument-list* ::= *argument-list* `,` *expression* \| *expression*
+
+The type of the identifier must be a function. When a function call is
+encountered, each of the expressions in its argument list (if it has one) is
+evaluated (with side effects); the order of evaluation is unspecified. Then,
+control of execution is given to the function specified by the identifier, with
+the a copy of the result of each of the expressions available in the scope of
+the function block as *parameters*.
+
+The types of the each of the expressions in the argument list must match exactly
+the types of the parameters of the function.
+
+All argument passing is done by-value; that is, a copy of each argument is made
+before the function has access to it as a parameter. A function may change the
+value of its parameters without affecting the value of the arguments in the
+calling function.
+
+However, if an array type is passed to a function, the array is not copied, but
+merely the reference to the array. Therefore, any modifications the function
+makes to the array affect the value of the array in the calling context.
+
+A function may call itself.
 
 ### Assignment
 
@@ -190,7 +213,7 @@ side effects of the expression still occur.
 >
 > > \| *statement-list* \<EOL\> *statement*
 
-A compound statement is also called a "block." When a block is executed, each of
+A compound statement is also called a *block*. When a block is executed, each of
 the statements in its statement list are executed in order. Blocks allow the
 grouping of multiple statements, especially where only one is expected. In
 addition, scoping is based on blocks; see the "Scope" section for more details.
