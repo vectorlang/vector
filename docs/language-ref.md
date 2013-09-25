@@ -15,12 +15,22 @@ string. Backus-Naur Form is used to express the grammar of Vector.
 
 ## Types
 
+> *type-specifier* ::=
+> *primitive-type* \| *array-type* \| *function-type* \| `void`
+
+Each identifier is associated with a type that determines how it is interpreted.
+A void type has no value.
+
 ### Primitive Types
+
+> *primitive-type* ::= *integer-type* \| *floating-point-type* \| *complex-type*
 
 Vector supports three categories of primitive types: integers, floating
 point numbers, and complex numbers.
 
 #### Integer Types
+
+Integer types are given by the following literals:
 
  * `bool`, `char`, `int8`
  * `byte`, `uint8`
@@ -31,10 +41,12 @@ point numbers, and complex numbers.
  * `int64`
  * `uint64`
 
-The types starting with `u` are unsigned types. The number at the end of some
-type names indicates the size of the type in bits.
+The types starting with `u` are unsigned types. The number at the end of a
+type name indicates the size of that type and equivalent types in bits.
 
 #### Floating Point Types
+
+Floating-point types are given by the following literals:
 
  * `float`, `float32`
  * `double`, `float64`
@@ -43,6 +55,8 @@ These two types correspond to IEEE single-precision and double-precision
 floating point numbers, respectively, as defined in [IEEE 754][].
 
 #### Complex Number Types
+
+Complext number types are given by the following literals:
 
  * `complex`, `complex64`
  * `complex128`
@@ -57,6 +71,8 @@ or assigned by appending `.re` or `.im` to the identifier.
 
 ### Array Types
 
+> *array-type* ::= *primitive-type* `[]`
+
 Arrays are composed of multiple instances of primitive types laid out
 side-by-side in memory.
 
@@ -69,6 +85,8 @@ returns the element at index 4 of array `a` (arrays are zero-indexed). The
 built-in `len` function returns an `int` representing the length of an array.
 
 ### Function Types
+
+> *function-type* ::= *primitive-type* `()` \| *array-type* `()`
 
 Functions take in zero or more variables of primitive or array types and
 optionally return a variable of primitive or array type.
@@ -89,7 +107,7 @@ TODO: Sid by 10/6
 
 ### Function Calls
 
-> *function-call* ::= *identifier* `(` *argument-list* `)` | *identifier* `()`
+> *function-call* ::= *identifier* `(` *argument-list* `)` \| *identifier* `()`
 
 > *argument-list* ::= *argument-list* `,` *expression* \| *expression*
 
@@ -114,71 +132,70 @@ makes to the array affect the value of the array in the calling context.
 
 A function may call itself.
 
+The result of evaluating the function call is the value returned by the function
+called.
+
 ### Assignment
 
 TODO: Jon by 10/6
 
 ## Declarations
 
+> *declaration* ::= *primitive-declaration* \| *array-declaration* \|
+> *function-declaration*
+
+A declaration specifies the type of an identifier; it may or may not allocate
+memory for the identifier.
+
 ### Primitive Type Declarations
 
-A primitive type variable can be declared unintialized using the syntax
+> *primitive-declaration* ::= *primitive-type-specifier* *identifier*
+>
+> > \| *identifier* `:=` *primtitive-type-specifier* *expression*
 
-    type-specifier variable-name
+The first primitive declaration declares a primitive type variable unintialize.
+In this case, the value of the identifier before first assignment is
+unspecified.
 
-For instance,
-
-    int x
+The second declaration declares a primitive variable with the given identifier with its initial value set to the result of the expression. The expression will be converted to the type of the variable as if explicitly cast.
 
 ### Array Declarations
 
-An array type can be declared using the syntax
+> *array-declaration* ::= *primitive-type-specifier* *identifier* `[]`
+>
+> > \| *primitive-type-specifier* *identifier* `[` *expression* `]`
+>
+> > \| *identifier* `:=` *primitive-type-specifier* `[]` *array-constant*
 
-    primitive-type-specifier variable-name[]
+The first syntax does not initialize the array or allocate any storage for it.
 
-For instance,
+The second syntax declares an array and allocates storage but does not
+initialize its members. The expression is evaluated (with side effects) and the
+result is the number of members the array will have (and the size of the array
+is the size of the primitive type multiplied by the number of members). The type
+of the expression must be an integer.
 
-    int arr[]
-
-This does not initialize the array or allocate any storage for it.
-You can declare an array of a specific size with uninitialized members using
-
-    primitive-type-specifier variable-name[array-size]
-
-For instance,
-
-    int arr[3]
-
-You can also declare an array and initialize its members using
-
-    primitive-type-specifier variable-name[]{member-list}
-
-For instance,
-
-    int arr[]{1, 2, 3, 4}
+The third syntax declares the array, allocates storage for it to hold the number
+of members given in the array constant, and initializes its members to the
+values given in the array constant..
 
 ### Function Declarations
 
-Function declarations take the following form
+> *function-declaration* ::=
+> *type-specifier* *identifier* `(` *parameter-list* `)` *compound-statement*
+>
+> > \| *type-specifier* *identifier* `()` *compound-statement*
 
-    return-type function-name(parameter-list) { function-body }
+> *parameter-list* ::= *parameter-list*, *declaration* \| *declaration*
 
-The parameter list is a series of primitive or array declarations separated
-by commas. Only the non-initializing primitive declarations and non-sizing
-array declarations are allowed.
-The function body is just a series of statements.
+A function declaration declares a function that accepts the parameters given by
+the parameter list and, when called, evaluates the given block (also known as a
+*function body*). A function may not be modified after declaration.
 
-So, for instance, the following is a valid function declaration.
-
-    float scale_and_sum(float scale, float array[]) {
-        float sum = 0.0
-
-        for i in 0:len(array) {
-            sum += array[i]
-        }
-
-        return scale * sum
-    }
+The parameter list is a series of primitive or array declarations separated by
+commas. Only the non-initializing primitive declarations and non-sizing array
+declarations are allowed. The identifiers specified by the parameter list are
+available in the function body.
 
 ## Statements
 
