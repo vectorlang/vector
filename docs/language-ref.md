@@ -153,11 +153,12 @@ memory for the identifier.
 >
 > > \| *identifier* `:=` *primtitive-type-specifier* *expression*
 
-The first primitive declaration declares a primitive type variable unintialize.
-In this case, the value of the identifier before first assignment is
-unspecified.
+The first primitive declaration declares a primitive type variable unintialized.
+In this case, the value of the identifier before first assignment is unspecified.
 
-The second declaration declares a primitive variable with the given identifier with its initial value set to the result of the expression. The expression will be converted to the type of the variable as if explicitly cast.
+The second declaration declares a primitive variable with the given identifier 
+with its initial value set to the result of the expression. The expression will 
+be converted to the type of the variable as if explicitly cast.
 
 ### Array Declarations
 
