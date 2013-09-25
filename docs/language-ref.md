@@ -11,7 +11,7 @@ An *italic* typeface indicates a category with special meaning. Lists are
 presented either inline or using bullets. If two items are presented on same
 line of a bulleted list separated by commas, they are equivalent. \<EOL\> is
 used to indicate the end of a line; \<epsilon\> is used to indicate the empty
-string. We use Backus-Naur Form to indicate the grammar of our language.
+string. Backus-Naur Form is used to express the grammar of Vector.
 
 ## Types
 
