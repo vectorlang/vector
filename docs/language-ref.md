@@ -9,21 +9,21 @@ This is the reference manual for Vector, a programming language for the GPU.
 In this manual, a `typewriter` typeface indicates literal words and characters.
 An *italic* typeface indicates a category with special meaning. Lists are
 presented either inline or using bullets. If two items are presented on same
-line of a bulleted list separated by commas, they are equivalent. \<EOL\> is
-used to indicate the end of a line; \<epsilon\> is used to indicate the empty
+line of a bulleted list separated by commas, they are equivalent. &lt;EOL&gt; is
+used to indicate the end of a line; &lt;epsilon&gt; is used to indicate the empty
 string. Backus-Naur Form is used to express the grammar of Vector.
 
 ## Types
 
 > *type-specifier* ::=
-> *primitive-type* \| *array-type* \| *function-type* \| `void`
+> *primitive-type* | *array-type* | *function-type* | `void`
 
 Each identifier is associated with a type that determines how it is interpreted.
 A void type has no value.
 
 ### Primitive Types
 
-> *primitive-type* ::= *integer-type* \| *floating-point-type* \| *complex-type*
+> *primitive-type* ::= *integer-type* | *floating-point-type* | *complex-type*
 
 Vector supports three categories of primitive types: integers, floating
 point numbers, and complex numbers.
@@ -86,7 +86,7 @@ built-in `len` function returns an `int` representing the length of an array.
 
 ### Function Types
 
-> *function-type* ::= *primitive-type* `()` \| *array-type* `()`
+> *function-type* ::= *primitive-type* `()` | *array-type* `()`
 
 Functions take in zero or more variables of primitive or array types and
 optionally return a variable of primitive or array type.
@@ -107,9 +107,9 @@ TODO: Sid by 10/6
 
 ### Function Calls
 
-> *function-call* ::= *identifier* `(` *argument-list* `)` \| *identifier* `()`
+> *function-call* ::= *identifier* `(` *argument-list* `)` | *identifier* `()`
 
-> *argument-list* ::= *argument-list* `,` *expression* \| *expression*
+> *argument-list* ::= *argument-list* `,` *expression* | *expression*
 
 The type of the identifier must be a function. When a function call is
 encountered, each of the expressions in its argument list (if it has one) is
@@ -141,7 +141,7 @@ TODO: Jon by 10/6
 
 ## Declarations
 
-> *declaration* ::= *primitive-declaration* \| *array-declaration* \|
+> *declaration* ::= *primitive-declaration* | *array-declaration* |
 > *function-declaration*
 
 A declaration specifies the type of an identifier; it may or may not allocate
@@ -151,7 +151,7 @@ memory for the identifier.
 
 > *primitive-declaration* ::= *primitive-type-specifier* *identifier*
 >
-> > \| *identifier* `:=` *primtitive-type-specifier* *expression*
+> > | *identifier* `:=` *primtitive-type-specifier* *expression*
 
 The first primitive declaration declares a primitive type variable unintialized.
 In this case, the value of the identifier before first assignment is unspecified.
@@ -164,9 +164,9 @@ be converted to the type of the variable as if explicitly cast.
 
 > *array-declaration* ::= *primitive-type-specifier* *identifier* `[]`
 >
-> > \| *primitive-type-specifier* *identifier* `[` *expression* `]`
+> > | *primitive-type-specifier* *identifier* `[` *expression* `]`
 >
-> > \| *identifier* `:=` *primitive-type-specifier* `[]` *array-constant*
+> > | *identifier* `:=` *primitive-type-specifier* `[]` *array-constant*
 
 The first syntax does not initialize the array or allocate any storage for it.
 
@@ -185,9 +185,9 @@ values given in the array constant..
 > *function-declaration* ::=
 > *type-specifier* *identifier* `(` *parameter-list* `)` *compound-statement*
 >
-> > \| *type-specifier* *identifier* `()` *compound-statement*
+> > | *type-specifier* *identifier* `()` *compound-statement*
 
-> *parameter-list* ::= *parameter-list*, *declaration* \| *declaration*
+> *parameter-list* ::= *parameter-list*, *declaration* | *declaration*
 
 A function declaration declares a function that accepts the parameters given by
 the parameter list and, when called, evaluates the given block (also known as a
@@ -202,15 +202,15 @@ available in the function body.
 
 > *statement* ::= *expression-statement*
 >
-> > \| *compound-statement*
+> > | *compound-statement*
 >
-> > \| *selection-statement*
+> > | *selection-statement*
 >
-> > \| *iteration-statement*
+> > | *iteration-statement*
 >
-> > \| *jump-statement*
+> > | *jump-statement*
 >
-> > \| \<epsilon\>
+> > | &lt;epsilon&gt;
 
 Statements in Vector are executed in sequence except as described as part of
 compound statements, selection statements, iteration statements, and jump
@@ -229,7 +229,7 @@ side effects of the expression still occur.
 
 > *statement-list* ::= *statement*
 >
-> > \| *statement-list* \<EOL\> *statement*
+> > | *statement-list* &lt;EOL&gt; *statement*
 
 A compound statement is also called a *block*. When a block is executed, each of
 the statements in its statement list are executed in order. Blocks allow the
@@ -242,9 +242,9 @@ addition, scoping is based on blocks; see the "Scope" section for more details.
 > `if` *expression* *compound-statement* *elseifs* *else*
 
 > *elseifs* ::=
-> *elseifs* `else if` *expression* *compound-statement* \| \<epsilon\>
+> *elseifs* `else if` *expression* *compound-statement* | &lt;epsilon&gt;
 
-> *else* ::= `else` *compound-statement* | \<epsilon\>
+> *else* ::= `else` *compound-statement* | &lt;epsilon&gt;
 
 When a selection statement is executed, first the expression associated with the
 `if` is evaluated (with all side effects). If the resulting value is nonzero,
@@ -259,13 +259,13 @@ an else clause, its substatement is executed.
 
 > *iteration-statement* ::= `while` *expression* *compound-statement*
 >
-> > \| `do` *compound-statement* `while` *expression* \<EOL\>
+> > | `do` *compound-statement* `while` *expression* &lt;EOL&gt;
 >
-> > \| `for` *expression*; *expression*; *expression* *compound-statement*
+> > | `for` *expression*; *expression*; *expression* *compound-statement*
 >
-> > \| `for` *identifier* `in` *expression* *compound-statement*
+> > | `for` *identifier* `in` *expression* *compound-statement*
 >
-> > \| `pfor` *identifier* `in` *expression* *compound-statement*
+> > | `pfor` *identifier* `in` *expression* *compound-statement*
 
 When a while statement is reached, the expression is evaluated (with all side
 effects). If its value is nonzero, its block is executed, and after the
@@ -295,7 +295,7 @@ pfor loops.
 
 ### Jump Statements
 
-> *jump-statement* ::= `return` *expression* \<EOL\> | `return` \<EOL\>
+> *jump-statement* ::= `return` *expression* &lt;EOL&gt; | `return` &lt;EOL&gt;
 
 A return statement returns control of execution to the caller of the current
 function. If the statement has an expression, the expression is evaluated (with
