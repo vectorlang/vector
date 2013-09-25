@@ -13,7 +13,7 @@ line of a bulleted list separated by commas, they are equivalent.
 
 ## Types
 
-### Primitive types
+### Primitive Types
 
 Vector supports three categories of primitive types: integers, floating
 point numbers, and complex numbers.
@@ -53,7 +53,7 @@ or assigned by appending `.re` or `.im` to the identifier.
     b := a.re // b is 3.1
     a.im = 1.2 // a is now #(3.1, 1.2)
 
-### Array types
+### Array Types
 
 Arrays are composed of multiple instances of primitive types laid out
 side-by-side in memory.
@@ -66,7 +66,7 @@ You can index into an array using a square-bracket notation. So, for instance
 `a[4]` returns the element at index 4 of the array (arrays are zero-indexed).
 You can determine the length of an array using the builtin `len` function.
 
-### Function types
+### Function Types
 
 Functions take in one or more array- or primitive- typed variables and
 optionally return an array- or primitie- typed variable.
@@ -132,7 +132,7 @@ For instance,
 
     int arr[]{1, 2, 3, 4}
 
-### Function declarations
+### Function Declarations
 
 Function declarations take the following form
 
