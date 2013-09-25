@@ -4,45 +4,50 @@
 
 This is the reference manual for Vector, a programming language for the GPU.
 
+## Syntax Notation
+
+In this manual, a `typewriter` typeface indicates literal words and characters.
+An *italic* typeface indicates a category with special meaning. Lists are
+presented either inline or using bullets. If two items are presented on same
+line of a bulleted list separated by commas, they are equivalent.
+
 ## Types
 
 ### Primitive types
 
-Vector supports three categories of primitive types: integers, floating point
-numbers, and complex numbers.
+Vector supports three categories of primitive types: integers, floating
+point numbers, and complex numbers.
 
 #### Integer Types
 
-Equivalent type names are listed together and separated by commas
+ * `bool`, `char`, `int8`
+ * `byte`, `uint8`
+ * `int16`
+ * `uint16`
+ * `int`, `int32`
+ * `uint`, `uint32`
+ * `int64`
+ * `uint64`
 
- * bool, char, int8
- * byte, uint8
- * int16
- * uint16
- * int, int32
- * uint, uint32
- * int64
- * uint64
-
-The types starting with "u" are unsigned types. The size (in bits) of each
+The types starting with `u` are unsigned types. The size (in bits) of each
 type is self-explanatory.
 
 #### Floating Point Types
 
- * float, float32
- * double, float64
+ * `float`, `float32`
+ * `double`, `float64`
 
 These two types correspond to IEEE single-precision and double-precision
 floating point numbers, respectively.
 
 #### Complex Number Types
 
- * complex, complex64
- * complex128
+ * `complex`, `complex64`
+ * `complex128`
 
-These two complex types are constructed from two float32 or two float64 types,
-respectively. The real and imaginary parts of the numbers can be accessed
-or assigned by appending ".re" or ".im" to the identifier.
+These two complex types are constructed from two `float32` or two `float64`
+types, respectively. The real and imaginary parts of the numbers can be accessed
+or assigned by appending `.re` or `.im` to the identifier.
 
     a := #(3.1, 2.1)
     b := a.re // b is 3.1
@@ -53,7 +58,7 @@ or assigned by appending ".re" or ".im" to the identifier.
 Arrays are composed of multiple instances of primitive types laid out
 side-by-side in memory.
 
-Arrays are a very important part of the vector language, as they are the
+Arrays are a very important part of the Vector language, as they are the
 only type that can be modified on both the CPU and GPU. Allocation of arrays
 on the GPU and transfer of data between CPU and GPU are handled automatically.
 
