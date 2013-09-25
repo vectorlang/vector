@@ -131,4 +131,6 @@ So, for instance, the following is a valid function declaration.
 ## Scope
 
 Vector uses block-level scoping. A block, loosely defined, is a section of
-code contained by a function, conditional, or looping construct.
+code contained by a function, conditional, or looping construct. 
+Each nested block creates a new scope, and variables declared in the new 
+scope supersede variables declared in higher scopes.
