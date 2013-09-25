@@ -71,6 +71,28 @@ You can determine the length of an array using the builtin `len` function.
 Functions take in one or more array- or primitive- typed variables and
 optionally return an array- or primitie- typed variable.
 
+## Objects and LValues
+
+TODO: Jon by 9/29
+
+## Conversions
+
+TODO: Sid by 9/29. We only cast explicitly.
+
+## Expressions
+
+### Operators
+
+TODO: Sid by 10/6
+
+### Function calls
+
+TODO: Zack by 10/6
+
+### Assignment
+
+TODO: Jon by 10/6
+
 ## Declarations
 
 ### Primitive Type Declarations
@@ -133,9 +155,25 @@ So, for instance, the following is a valid function declaration.
         return scale * sum
     }
 
+## Statements
+
+TODO: Zack by 10/6
+
+## External Declarations
+
+TODO: Jon by 10/6. Includes function definitions.
+
 ## Scope
 
 Vector uses block-level scoping. A block, loosely defined, is a section of
 code contained by a function, conditional, or looping construct.
 Each nested block creates a new scope, and variables declared in the new
 scope supersede variables declared in higher scopes.
+
+## Preprocessing
+
+TODO: Decide whether we need this by 10/6
+
+## Grammar
+
+TODO: all by 10/13
