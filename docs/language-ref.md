@@ -66,7 +66,7 @@ You can determine the length of an array using the builtin `len` function.
 Functions take in several variables of the other types and return a variable
 of one of the other types.
 
-## Declarations and Assignment
+## Declarations
 
 ### Primitive Type Declarations
 
@@ -77,29 +77,6 @@ A primitive type variable can be declared unintialized using the syntax
 For instance,
 
     int x
-
-It can also be declared and initialized using the syntax
-
-    type-specifier variable-name = expression
-
-For instance,
-
-    int x = 3
-
-You can also use type-inferenced declaration and assignment
-
-    variable-name := expression
-
-So, for instance,
-
-    x := 3
-
-Integer constants will have an int32 type by default. Floating point constants
-will have a float32 type by default.
-
-An already-declared variable can be assigned to simply using
-
-    variable-name = expression
 
 ### Array Declarations
 
@@ -127,9 +104,6 @@ You can also declare an array and initialize its members using
 For instance,
 
     int arr[]{1, 2, 3, 4};
-
-Arrays can also use the type-inferenced declaration/assignment in the same
-way that primitive types do
 
 ### Function declarations
 
