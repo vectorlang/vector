@@ -97,7 +97,9 @@ TODO: Jon by 9/29
 
 ## Conversions
 
-TODO: Sid by 9/29. We only cast explicitly.
+TODO: Sid by 9/29. We only cast explicitly. Preferred syntax is
+
+> *explicit-cast* ::= *primitive-type-specifier* `(` *identifier* `)`
 
 ## Expressions
 
@@ -150,23 +152,28 @@ memory for the identifier.
 ### Primitive Type Declarations
 
 > *primitive-declaration* ::= *primitive-type-specifier* *identifier*
->
-> > | *identifier* `:=` *primtitive-type-specifier* *expression*
+
+> > | *identifier* `:=` *expression*
 
 The first primitive declaration declares a primitive type variable unintialized.
 In this case, the value of the identifier before first assignment is unspecified.
 
-The second declaration declares a primitive variable with the given identifier 
-with its initial value set to the result of the expression. The expression will 
-be converted to the type of the variable as if explicitly cast.
+The second declaration declares a primitive variable with the given 
+identifier with its initial value set to the result of the expression. 
+The type of the identifier will be inferenced from the expression. 
+If you wish to specify the exact type of the identifier, use an explicit cast.
 
 ### Array Declarations
 
 > *array-declaration* ::= *primitive-type-specifier* *identifier* `[]`
 >
 > > | *primitive-type-specifier* *identifier* `[` *expression* `]`
->
-> > | *identifier* `:=` *primitive-type-specifier* `[]` *array-constant*
+
+> > | *identifier* `:=` *primitive-type-specifier* `[]` `{` *member-list* `}`
+
+> > | *identifier* `:=` *expression*
+
+> *member-list* ::= *member-list* `,` *expression* | *expression*
 
 The first syntax does not initialize the array or allocate any storage for it.
 
@@ -174,11 +181,14 @@ The second syntax declares an array and allocates storage but does not
 initialize its members. The expression is evaluated (with side effects) and the
 result is the number of members the array will have (and the size of the array
 is the size of the primitive type multiplied by the number of members). The type
-of the expression must be an integer.
+of the expression must be an unsigned integer.
 
 The third syntax declares the array, allocates storage for it to hold the number
 of members given in the array constant, and initializes its members to the
-values given in the array constant..
+values given in the member list..
+
+The fourth syntax inferences the type of the array from the expression and
+is identical to the initializing declaration for primitives.
 
 ### Function Declarations
 
