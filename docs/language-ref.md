@@ -68,8 +68,8 @@ You can determine the length of an array using the builtin `len` function.
 
 ### Function types
 
-Functions take in several variables of the other types and return a variable
-of one of the other types.
+Functions take in one or more array- or primitive- typed variables and
+optionally return an array- or primitie- typed variable.
 
 ## Declarations
 
