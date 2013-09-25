@@ -29,8 +29,8 @@ point numbers, and complex numbers.
  * `int64`
  * `uint64`
 
-The types starting with `u` are unsigned types. The size (in bits) of each
-type is self-explanatory.
+The types starting with `u` are unsigned types. The number at the end of some
+type names indicates the size of the type in bits.
 
 #### Floating Point Types
 
@@ -38,7 +38,7 @@ type is self-explanatory.
  * `double`, `float64`
 
 These two types correspond to IEEE single-precision and double-precision
-floating point numbers, respectively.
+floating point numbers, respectively, as defined in [IEEE 754][].
 
 #### Complex Number Types
 
@@ -62,14 +62,14 @@ Arrays are a very important part of the Vector language, as they are the
 only type that can be modified on both the CPU and GPU. Allocation of arrays
 on the GPU and transfer of data between CPU and GPU are handled automatically.
 
-You can index into an array using a square-bracket notation. So, for instance
-`a[4]` returns the element at index 4 of the array (arrays are zero-indexed).
-You can determine the length of an array using the builtin `len` function.
+Array elements are accessed using square-bracket notation. For instance `a[4]`
+returns the element at index 4 of array `a` (arrays are zero-indexed). The
+built-in `len` function returns an `int` representing the length of an array.
 
 ### Function Types
 
-Functions take in one or more array- or primitive- typed variables and
-optionally return an array- or primitie- typed variable.
+Functions take in zero or more variables of primitive or array types and
+optionally return a variable of primitive or array type.
 
 ## Objects and LValues
 
@@ -177,3 +177,5 @@ TODO: Decide whether we need this by 10/6
 ## Grammar
 
 TODO: all by 10/13
+
+[IEEE 754]: http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=57469
