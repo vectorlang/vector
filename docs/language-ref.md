@@ -9,8 +9,8 @@ This is the reference manual for Vector, a programming language for the GPU.
 In this manual, a `typewriter` typeface indicates literal words and characters.
 An *italic* typeface indicates a category with special meaning. Lists are
 presented either inline or using bullets. If two items are presented on same
-line of a bulleted list separated by commas, they are equivalent. &lt;EOL&gt; is
-used to indicate the end of a line; &lt;epsilon&gt; is used to indicate the empty
+line of a bulleted list separated by commas, they are equivalent. <EOL> is
+used to indicate the end of a line; <epsilon> is used to indicate the empty
 string. Backus-Naur Form is used to express the grammar of Vector.
 
 ## Types
@@ -220,7 +220,7 @@ available in the function body.
 
 > > | *jump-statement*
 
-> > | &lt;epsilon&gt;
+> > | <epsilon>
 
 Statements in Vector are executed in sequence except as described as part of
 compound statements, selection statements, iteration statements, and jump
@@ -239,7 +239,7 @@ side effects of the expression still occur.
 
 > *statement-list* ::= *statement*
 
-> > | *statement-list* &lt;EOL&gt; *statement*
+> > | *statement-list* <EOL> *statement*
 
 A compound statement is also called a *block*. When a block is executed, each of
 the statements in its statement list are executed in order. Blocks allow the
@@ -252,9 +252,9 @@ addition, scoping is based on blocks; see the "Scope" section for more details.
 > `if` *expression* *compound-statement* *elseifs* *else*
 
 > *elseifs* ::=
-> *elseifs* `else if` *expression* *compound-statement* | &lt;epsilon&gt;
+> *elseifs* `else if` *expression* *compound-statement* | <epsilon>
 
-> *else* ::= `else` *compound-statement* | &lt;epsilon&gt;
+> *else* ::= `else` *compound-statement* | <epsilon>
 
 When a selection statement is executed, first the expression associated with the
 `if` is evaluated (with all side effects). If the resulting value is nonzero,
@@ -269,7 +269,7 @@ an else clause, its substatement is executed.
 
 > *iteration-statement* ::= `while` *expression* *compound-statement*
 >
-> > | `do` *compound-statement* `while` *expression* &lt;EOL&gt;
+> > | `do` *compound-statement* `while` *expression* <EOL>
 >
 > > | `for` *expression*; *expression*; *expression* *compound-statement*
 >
@@ -305,7 +305,7 @@ pfor loops.
 
 ### Jump Statements
 
-> *jump-statement* ::= `return` *expression* &lt;EOL&gt; | `return` &lt;EOL&gt;
+> *jump-statement* ::= `return` *expression* <EOL> | `return` <EOL>
 
 A return statement returns control of execution to the caller of the current
 function. If the statement has an expression, the expression is evaluated (with
