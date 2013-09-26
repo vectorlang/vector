@@ -169,8 +169,6 @@ If you wish to specify the exact type of the identifier, use an explicit cast.
 
 > > | *primitive-type-specifier* *identifier* `[` *expression* `]`
 
-> > | *identifier* `:=` *primitive-type-specifier* `[]` `{` *member-list* `}`
-
 > > | *identifier* `:=` *expression*
 
 > *member-list* ::= *member-list* `,` *expression* | *expression*
@@ -183,11 +181,7 @@ result is the number of members the array will have (and the size of the array
 is the size of the primitive type multiplied by the number of members). The type
 of the expression must be an unsigned integer.
 
-The third syntax declares the array, allocates storage for it to hold the number
-of members given in the array constant, and initializes its members to the
-values given in the member list..
-
-The fourth syntax inferences the type of the array from the expression and
+The third syntax inferences the type of the array from the expression and
 is identical to the initializing declaration for primitives.
 
 ### Function Declarations
