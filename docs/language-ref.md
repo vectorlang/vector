@@ -103,7 +103,7 @@ following code:
 
     a := 4
     b := 5
-    a := b
+    a = b
 
 a and b are LValues, because they have a value that can be assigned. 4 and 5
 are RValues, because they cannot have new values assigned to them.
