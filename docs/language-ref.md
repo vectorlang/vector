@@ -93,7 +93,24 @@ optionally return a variable of primitive or array type.
 
 ## Objects and LValues
 
-TODO: Jon by 9/29
+An object is a named region in memory whose value can be read and modified. An
+LValue is an expression referring to an object. It has a value, and a
+corresponding region in memory where the value is stored.
+
+An expression is an RValue if it only has a value, but not a corresponding
+region in memory, i.e., it cannot have a new value assigned to it. In the
+following code:
+
+    a := 4
+    b := 5
+    a := b
+
+a and b are LValues, because they have a value that can be assigned. 4 and 5
+are RValues, because they cannot have new values assigned to them.
+
+LValues are named because they can appear on the left side of an assignment (or
+also on the right), whereas RValues can appear only on the right side. All
+expressions in Vector are either RValues or LValues.
 
 ## Conversions
 
