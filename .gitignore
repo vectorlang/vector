@@ -4,3 +4,9 @@
 *.ppm
 .sconsign.dblite
 *.pdf
+*.cmi
+*.cmx
+*.cmo
+/compiler/parser.ml
+/compiler/parser.mli
+/compiler/scanner.ml

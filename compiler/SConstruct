@@ -28,9 +28,9 @@ env.Append(BUILDERS = {'OcamlObject': ocaml_object,
                        'Ocamllex': ocamllex,
                        'Ocamlyacc': ocamlyacc})
 
-parsers = []
-lexers = []
-source_files = []
+parsers = ['parser']
+lexers = ['scanner']
+source_files = ['ast', 'parser', 'scanner']
 
 for name in parsers:
     env.Ocamlyacc([name + '.ml', name + '.mli'], name + '.mly')
