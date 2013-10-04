@@ -1,0 +1,50 @@
+import os
+
+ocaml_object = Builder(action = '$OCAMLC -c $OCAML_FLAGS $SOURCE')
+ocaml_program = Builder(action = '$OCAMLC $OCAML_FLAGS $SOURCES -o $TARGET')
+ocamllex = Builder(action = 'ocamllex $SOURCE')
+ocamlyacc = Builder(action = 'ocamlyacc $SOURCE')
+
+AddOption('--ocamlc', dest='ocamlc', default='ocamlc',
+          help = 'Ocaml compiler to use')
+AddOption('--ocaml_flags', dest='ocaml_flags', default='',
+          help = 'Ocaml compiler flags')
+AddOption('--native', dest='native', default=False, action='store_true',
+          help = 'Compile native code instead of bytecode')
+
+obj_ext = '.cmo'
+ocamlc = GetOption('ocamlc')
+ocaml_flags = GetOption('ocaml_flags')
+
+if GetOption('native'):
+    ocamlc = 'ocamlopt'
+    obj_ext = '.cmx'
+
+env = Environment(ENV = os.environ)
+
+env.Append(OCAMLC = ocamlc, OCAML_FLAGS = ocaml_flags)
+env.Append(BUILDERS = {'OcamlObject': ocaml_object,
+                       'OcamlProgram': ocaml_program,
+                       'Ocamllex': ocamllex,
+                       'Ocamlyacc': ocamlyacc})
+
+parsers = []
+lexers = []
+source_files = []
+
+for name in parsers:
+    env.Ocamlyacc([name + '.ml', name + '.mli'], name + '.mly')
+    env.OcamlObject(name + '.cmi', name + '.mli')
+
+for name in lexers:
+    env.Ocamllex(name + '.ml', name + '.mll')
+    env.OcamlObject(name + obj_ext, name + '.ml')
+
+for name in source_files:
+    if name in parsers:
+        target = name + obj_ext
+        deps = [name + '.ml', name + '.cmi']
+    else:
+        target = [name + '.cmi', name + obj_ext]
+        deps = name + '.ml'
+    env.OcamlObject(target, deps)
