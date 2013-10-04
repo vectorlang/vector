@@ -4,6 +4,88 @@
 
 This is the reference manual for Vector, a programming language for the GPU.
 
+## Lexical Conventions
+
+### Comments
+
+The characters `/*` introduce a comment, and the first `*/` ends the comment.
+Single-line comments are also supported and denoted with `//` at the beginning
+of a line
+
+### Identifiers
+An identifier is a sequence of letters and digits; the first character must be
+alphabetic. The underscore `_` counts as alphabetic. Identifiers are
+case-sensitive.
+
+### Keywords
+
+The following identifiers are reserved for language keywords
+
+`int`
+`char`
+`float`
+`bool`
+`char`
+`int8`
+`byte`
+`uint8`
+`int16`
+`uint16`
+`int`
+`int32`
+`uint`
+`uint32`
+`int64`
+`uint64`
+`double`
+`float`
+`float32`
+`double`
+`float64`
+`complex`
+`complex64`
+`complex128`
+`if`
+`else`
+`while`
+`for`
+`pfor`
+`do`
+`return`
+
+### Constants
+
+Vector has the following constants:
+
+#### Integer Constants
+
+An integer constant is a sequence of digits.
+
+#### Character Constants
+
+A character constant is a single character enclosed in single quotes `' '`.
+Single quotes must be preceded by a backslash `\`. The `\` character, along with
+some non-graphic characters, can be escaped according to the following rules:
+
+ * Backspace `\b`
+ * Newline `\n`
+ * Carriage Return `\r`
+ * Tab `\t`
+ * `\` `\\`
+
+Character constants behave like integers.  Characters are stored in two bytes,
+with the integer code for the character stored in the lower-order byte and
+0 in the higher-order byte.  For characters of length 2, for example if an
+escaped character is used, the integer code for the first character is stored
+in the lower-order byte and the integer code for the second character is stored
+in the higher-order byte.
+
+#### Floating Constants
+
+Floating constants consist of an integer part, a decimal point, a fraction part,
+an `e` and a signed exponent. If decimal point is not included, then the `e`
+and signed exponent must be included, otherwise, they are optional.
+
 ## Syntax Notation
 
 In this manual, a `typewriter` typeface indicates literal words and characters.
@@ -114,7 +196,25 @@ expressions in Vector are either RValues or LValues.
 
 ## Conversions
 
-TODO: Sid by 9/29. We only cast explicitly. Preferred syntax is
+#### Scalar types
+
+Any scalar type can be converted to another scalar type.  For any conversion
+from a narrower to a wider type, for example from a `int16` to `int32`, or from
+`float` to `double`, the conversion can be done with no loss of
+precision. If a `double` is converted to a `float`, then the `double` will be rounded
+and then truncated to be the length of the `float` type that it is converted to.
+For conversions between signed types and unsigned types, if the
+signed type had a negative number, the maximum unsigned int + 1 will be added
+to it so that the value is a valid unsigned type.
+
+For conversions between any integer and floating-point type, everything up to
+16 bits can be cast to `float` with no loss of precision, and everything up to 32
+bits can be cast to `double` with no loss of precision. For any floating-point
+to integer type conversions, the fraction portion of the floating-point type is 
+discarded.
+
+When a `char` object is converted to an int, its sign is propagated through
+the upper 8 bits of the resulting int object.
 
 > *explicit-cast* ::= *primitive-type-specifier* `(` *identifier* `)`
 
