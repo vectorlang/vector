@@ -12,6 +12,21 @@ rule token =
         | '-' { MINUS }
         | '*' { TIMES }
         | '/' { DIVIDE }
+        | '%' { MODULO }
+        | "<<" { LSHIFT }
+        | ">>" { RSHIFT }
+        | '<' { LT }
+        | "<=" { LTE }
+        | '>' { GT }
+        | ">=" { GTE }
+        | "==" { EE }
+        | "!=" { NE }
+        | '&' { BITAND }
+        | '^' { BITXOR }
+        | '|' { BITOR }
+        | "&&" { LOGAND }
+        | "||" { LOGOR }
+
         | ['0'-'9']+ | "0x" ['0'-'9' 'a'-'f' 'A'-'F']
             as lit { INT_LITERAL(int_of_string lit) }
         | "bool" | "char" | "byte" | "int" | "uint"
