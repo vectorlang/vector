@@ -5,6 +5,8 @@ rule token =
         | ';' { SEMICOLON }
         | '(' { LPAREN }
         | ')' { RPAREN }
+        | '{' { LCURLY }
+        | '}' { RCURLY }
         | '=' { EQUAL }
         | '+' { PLUS }
         | '-' { MINUS }
@@ -12,5 +14,11 @@ rule token =
         | '/' { DIVIDE }
         | ['0'-'9']+ | "0x" ['0'-'9' 'a'-'f' 'A'-'F']
             as lit { INT_LITERAL(int_of_string lit) }
+        | "bool" | "char" | "byte" | "int" | "uint"
+        | "int8" | "uint8" | "int16" | "uint16"
+        | "int32" | "uint32" | "int64" | "uint64"
+        | "float" | "float32" | "double" | "float64"
+        | "complex" | "complex64" | "complex128"
+            as primtype { PRIMITIVE_TYPE(primtype) }
         | ['a'-'z' 'A'-'Z' '_']+ as ident { IDENTIFIER(ident) }
         | eof { EOF }
