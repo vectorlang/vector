@@ -33,6 +33,11 @@ rule token =
         | "&&" { LOGAND }
         | "||" { LOGOR }
 
+        | '!' { LOGNOT }
+        | '~' { BITNOT }
+        | "++" { INC }
+        | "--" { DEC }
+
         | ['0'-'9']+ | "0x" ['0'-'9' 'a'-'f' 'A'-'F']
             as lit { INT_LITERAL(int_of_string lit) }
         | "bool" | "char" | "byte" | "int" | "uint"

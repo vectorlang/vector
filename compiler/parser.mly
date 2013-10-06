@@ -6,6 +6,7 @@
 %token LSHIFT RSHIFT BITAND BITOR BITXOR LOGAND LOGOR
 %token LT LTE GT GTE EE NE
 %token PLUS MINUS TIMES DIVIDE MODULO
+%token LOGNOT BITNOT DEC INC
 %token EOF
 %token <int> INT_LITERAL
 %token <string> IDENT TYPE
@@ -22,6 +23,7 @@
 %left LSHIFT RSHIFT
 %left PLUS MINUS
 %left TIMES DIVIDE MODULO
+%nonassoc UMINUS LOGNOT BITNOT DEC INC
 %nonassoc LPAREN RPAREN LSQUARE RSQUARE
 
 %start statement_seq
@@ -50,6 +52,15 @@ expr:
   | expr BITOR expr { Binop($1, BitOr, $3) }
   | expr LOGAND expr { Binop($1, LogAnd, $3) }
   | expr LOGOR expr { Binop($1, LogOr, $3) }
+
+  | MINUS expr %prec UMINUS { Preop(Neg, $2) }
+  | LOGNOT expr { Preop(LogNot, $2) }
+  | BITNOT expr { Preop(BitNot, $2) }
+  | DEC expr { Preop(PreDec, $2) }
+  | INC expr { Preop(PreInc, $2) }
+
+  | expr DEC { Postop($1, PostDec) }
+  | expr INC { Postop($1, PostInc) }
 
   | IDENT EQUAL expr { Assign($1, $3) }
   | LPAREN expr RPAREN { $2 }

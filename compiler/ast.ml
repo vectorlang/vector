@@ -1,10 +1,16 @@
-type operator = Add | Sub | Mul | Div | Mod
+type binop = Add | Sub | Mul | Div | Mod
     | Lshift | Rshift
     | Less | LessEq | Greater | GreaterEq | Eq | NotEq
     | BitAnd | BitXor | BitOr | LogAnd | LogOr ;;
 
+type preop = Neg | LogNot | BitNot | PreDec | PreInc ;;
+
+type postop = PostDec | PostInc ;;
+
 type expr =
-    Binop of expr * operator * expr
+    Binop of expr * binop * expr
+  | Preop of preop * expr
+  | Postop of expr * postop
   | Assign of string * expr
   | IntLit of int
   | Ident of string ;;
