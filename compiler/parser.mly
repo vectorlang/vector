@@ -8,8 +8,7 @@
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token EOF
 %token <int> INT_LITERAL
-%token <string> IDENTIFIER
-%token <string> PRIMITIVE_TYPE
+%token <string> IDENTIFIER PRIMITIVE_TYPE
 
 %left SEMICOLON
 %left DECL_EQUAL EQUAL
@@ -25,8 +24,10 @@
 %left TIMES DIVIDE MODULO
 %nonassoc LPAREN RPAREN LSQUARE RSQUARE
 
-%start expr
+%start statement_seq
 %type <Ast.expr> expr
+%type <unit> statement
+%type <unit> statement_seq
 
 %%
 
@@ -59,10 +60,13 @@ statement:
     LCURLY RCURLY {}
   | LCURLY statement_seq RCURLY {}
   | expr SEMICOLON {}
+  | expr DECL_EQUAL SEMICOLON {}
+  | PRIMITIVE_TYPE IDENTIFIER SEMICOLON {}
+  | PRIMITIVE_TYPE IDENTIFIER EQUAL expr SEMICOLON {}
   | SEMICOLON {}
 
 statement_seq:
-    statement_seq statement {}
+    statement statement_seq {}
   | statement {}
 
 %%

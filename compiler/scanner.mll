@@ -3,11 +3,17 @@
 rule token =
     parse [' ' '\t' '\r' '\n'] { token lexbuf }
         | ';' { SEMICOLON }
+        | '.' { DOT }
+        | ',' { COMMA }
         | '(' { LPAREN }
         | ')' { RPAREN }
         | '{' { LCURLY }
         | '}' { RCURLY }
+        | '[' { LSQUARE }
+        | ']' { RSQUARE }
         | '=' { EQUAL }
+        | ":=" { DECL_EQUAL }
+
         | '+' { PLUS }
         | '-' { MINUS }
         | '*' { TIMES }
