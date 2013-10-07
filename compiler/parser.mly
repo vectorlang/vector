@@ -96,7 +96,7 @@ expr_list:
 argument_list:
     expr_list { $1 }
 
-declaration:
+decl:
   | ident DECL_EQUAL expr SC               { AssigningDecl($1, $3) }
   | datatype ident SC                      { PrimitiveDecl($1, $2) }
   | datatype ident LSQUARE RSQUARE SC      { ArrayDecl($1, $2, IntLit(0l)) }
@@ -107,7 +107,17 @@ statement:
   | LCURLY statement_seq RCURLY { CompoundStatement($2) }
   | expr SC { Expression($1) }
   | SC { EmptyStatement }
-  | declaration { Declaration($1) }
+  | decl { Declaration($1) }
+  | datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
+      { FunctionDecl($1, $2, $4, $7) }
+
+param_list:
+  | datatype ident COMMA param_list { PrimitiveDecl($1, $2) :: $4 }
+  | datatype ident                  { PrimitiveDecl($1, $2) :: [] }
+  | datatype ident LSQUARE RSQUARE COMMA param_list
+      { ArrayDecl($1, $2, IntLit(0l)) :: $6 }
+  | datatype ident LSQUARE RSQUARE
+      { ArrayDecl($1, $2, IntLit(0l)) :: [] }
 
 statement_seq:
     statement statement_seq { $1 :: $2 }

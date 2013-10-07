@@ -62,6 +62,7 @@ rule token =
         | "int32" | "uint32" | "int64" | "uint64"
         | "float" | "float32" | "double" | "float64"
         | "complex" | "complex64" | "complex128"
+        | "void"
             as primtype { TYPE(primtype) }
 
         | ['a'-'z' 'A'-'Z' '_']+ as ident { IDENT(ident) }

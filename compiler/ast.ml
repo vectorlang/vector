@@ -39,3 +39,4 @@ type statement =
   | Declaration of decl
   | Expression of expr
   | EmptyStatement
+  | FunctionDecl of datatype * ident * decl list * statement list
