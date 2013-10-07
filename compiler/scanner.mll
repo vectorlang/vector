@@ -1,5 +1,8 @@
 { open Parser }
 
+let decdigit = ['0'-'9']
+let hexdigit = ['0'-'9' 'a'-'f' 'A'-'Z']
+
 rule token =
     parse [' ' '\t' '\r' '\n'] { token lexbuf }
         | ';' { SC }
@@ -38,10 +41,10 @@ rule token =
         | "++" { INC }
         | "--" { DEC }
 
-        | ['0'-'9']+ | "0x" ['0'-'9' 'a'-'f' 'A'-'F']+
+        | decdigit+ | "0x" hexdigit+
             as lit { INT_LITERAL(Int64.of_string lit) }
-        | ['0'-'9']+ '.' ['0'-'9']* | '.' ['0'-'9']+
-        | ['0'-'9']+ ('.' ['0'-'9']*)? 'e' '-'? ['0'-'9']+
+        | decdigit+ '.' decdigit* | '.' decdigit+
+        | decdigit+ ('.' decdigit*)? 'e' '-'? decdigit+
             as lit { FLOAT_LITERAL(float_of_string lit) }
 
         | "bool" | "char" | "byte" | "int" | "uint"
