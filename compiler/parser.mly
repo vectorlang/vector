@@ -8,7 +8,8 @@
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token LOGNOT BITNOT DEC INC
 %token EOF
-%token <int64> INT_LITERAL
+%token <int32> INT_LITERAL
+%token <int64> INT64_LITERAL
 %token <float> FLOAT_LITERAL
 %token <string> IDENT TYPE STRING_LITERAL
 %token <char> CHAR_LITERAL
@@ -69,6 +70,7 @@ expr:
   | IDENT         { Ident($1) }
 
   | INT_LITERAL   { IntLit($1) }
+  | INT64_LITERAL { Int64Lit($1) }
   | FLOAT_LITERAL { FloatLit($1) }
   | STRING_LITERAL { StringLit($1) }
   | CHAR_LITERAL { CharLit($1) }
@@ -79,7 +81,7 @@ statement:
   | expr SC { Expression($1) }
   | IDENT DECL_EQUAL expr SC { AssigningDecl($1, $3) }
   | TYPE IDENT SC { PrimitiveDecl($1, $2) }
-  | TYPE IDENT LSQUARE RSQUARE SC { ArrayDecl($1, $2, IntLit(0L)) }
+  | TYPE IDENT LSQUARE RSQUARE SC { ArrayDecl($1, $2, IntLit(0l)) }
   | TYPE IDENT LSQUARE expr RSQUARE SC { ArrayDecl($1, $2, $4) }
   | SC { EmptyStatement }
 

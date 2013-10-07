@@ -12,7 +12,8 @@ type expr =
   | Preop of preop * expr
   | Postop of expr * postop
   | Assign of string * expr
-  | IntLit of int64
+  | IntLit of int32
+  | Int64Lit of int64
   | FloatLit of float
   | StringLit of string
   | CharLit of char

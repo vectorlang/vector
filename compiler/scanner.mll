@@ -42,7 +42,9 @@ rule token =
         | "--" { DEC }
 
         | decdigit+ | "0x" hexdigit+
-            as lit { INT_LITERAL(Int64.of_string lit) }
+            as lit { INT_LITERAL(Int32.of_string lit) }
+        | (decdigit+ | "0x" hexdigit+ as lit) 'L'
+            { INT64_LITERAL(Int64.of_string lit) }
         | decdigit+ '.' decdigit* | '.' decdigit+
         | decdigit+ ('.' decdigit*)? 'e' '-'? decdigit+
             as lit { FLOAT_LITERAL(float_of_string lit) }
