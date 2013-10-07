@@ -19,7 +19,8 @@ type expr =
   | StringLit of string
   | CharLit of char
   | Cast of string * expr
-  | Ident of string ;;
+  | Ident of string
+  | FunctionCall of string * expr list;;
 
 type statement =
     CompoundStatement of statement list

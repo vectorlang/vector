@@ -78,6 +78,13 @@ expr:
   | STRING_LITERAL  { StringLit($1) }
   | CHAR_LITERAL    { CharLit($1) }
 
+  | IDENT LPAREN RPAREN               { FunctionCall($1, []) }
+  | IDENT LPAREN argument_list RPAREN { FunctionCall ($1, $3) }
+
+argument_list:
+    expr COMMA argument_list { $1 :: $3 }
+  | expr                     { $1 :: [] }
+
 statement:
     LCURLY RCURLY { CompoundStatement([]) }
   | LCURLY statement_seq RCURLY { CompoundStatement($2) }
