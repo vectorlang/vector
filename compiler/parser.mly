@@ -13,6 +13,7 @@
 %token <float> FLOAT_LITERAL
 %token <string> IDENT TYPE STRING_LITERAL
 %token <char> CHAR_LITERAL
+%token <Complex.t> COMPLEX_LITERAL
 
 %left SC
 %left DECL_EQUAL EQUAL
@@ -70,11 +71,12 @@ expr:
   | IDENT EQUAL expr { Assign($1, $3) }
   | IDENT            { Ident($1) }
 
-  | INT_LITERAL    { IntLit($1) }
-  | INT64_LITERAL  { Int64Lit($1) }
-  | FLOAT_LITERAL  { FloatLit($1) }
-  | STRING_LITERAL { StringLit($1) }
-  | CHAR_LITERAL   { CharLit($1) }
+  | INT_LITERAL     { IntLit($1) }
+  | INT64_LITERAL   { Int64Lit($1) }
+  | FLOAT_LITERAL   { FloatLit($1) }
+  | COMPLEX_LITERAL { ComplexLit($1) }
+  | STRING_LITERAL  { StringLit($1) }
+  | CHAR_LITERAL    { CharLit($1) }
 
 statement:
     LCURLY RCURLY { CompoundStatement([]) }

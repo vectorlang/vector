@@ -2,6 +2,8 @@
 
 let decdigit = ['0'-'9']
 let hexdigit = ['0'-'9' 'a'-'f' 'A'-'Z']
+let floating = decdigit+ '.' decdigit* | '.' decdigit+
+        | decdigit+ ('.' decdigit*)? 'e' '-'? decdigit+
 
 rule token =
     parse [' ' '\t' '\r' '\n'] { token lexbuf }
@@ -45,9 +47,11 @@ rule token =
             as lit { INT_LITERAL(Int32.of_string lit) }
         | (decdigit+ | "0x" hexdigit+ as lit) 'L'
             { INT64_LITERAL(Int64.of_string lit) }
-        | decdigit+ '.' decdigit* | '.' decdigit+
-        | decdigit+ ('.' decdigit*)? 'e' '-'? decdigit+
-            as lit { FLOAT_LITERAL(float_of_string lit) }
+        | floating as lit { FLOAT_LITERAL(float_of_string lit) }
+        | "#(" (floating as real) ',' ' '? (floating as imag) ')'
+            { COMPLEX_LITERAL(
+                {Complex.re = float_of_string real;
+                 Complex.im = float_of_string imag}) }
         | '"' (('\\' _ | [^ '"'])* as str) '"'
             { STRING_LITERAL(Scanf.unescaped(str)) }
         | '\'' ('\\' _ | [^ '\''] | "\\x" hexdigit hexdigit as lit) '\''
