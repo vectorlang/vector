@@ -1,16 +1,16 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE
-%token DOT COMMA SEMICOLON
+%token DOT COMMA SC
 %token EQUAL DECL_EQUAL
 %token LSHIFT RSHIFT BITAND BITOR BITXOR LOGAND LOGOR
 %token LT LTE GT GTE EE NE
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token EOF
 %token <int> INT_LITERAL
-%token <string> IDENTIFIER PRIMITIVE_TYPE
+%token <string> IDENT TYPE
 
-%left SEMICOLON
+%left SC
 %left DECL_EQUAL EQUAL
 %left LOGOR
 %left LOGAND
@@ -51,10 +51,10 @@ expr:
   | expr LOGAND expr { Binop($1, LogAnd, $3) }
   | expr LOGOR expr { Binop($1, LogOr, $3) }
 
-  | IDENTIFIER EQUAL expr { Assign($1, $3) }
+  | IDENT EQUAL expr { Assign($1, $3) }
   | LPAREN expr RPAREN { $2 }
   | INT_LITERAL        { IntLit($1) }
-  | IDENTIFIER         { Ident($1) }
+  | IDENT         { Ident($1) }
 
 statement:
     LCURLY RCURLY {}

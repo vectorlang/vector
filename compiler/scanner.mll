@@ -2,7 +2,7 @@
 
 rule token =
     parse [' ' '\t' '\r' '\n'] { token lexbuf }
-        | ';' { SEMICOLON }
+        | ';' { SC }
         | '.' { DOT }
         | ',' { COMMA }
         | '(' { LPAREN }
@@ -40,6 +40,6 @@ rule token =
         | "int32" | "uint32" | "int64" | "uint64"
         | "float" | "float32" | "double" | "float64"
         | "complex" | "complex64" | "complex128"
-            as primtype { PRIMITIVE_TYPE(primtype) }
-        | ['a'-'z' 'A'-'Z' '_']+ as ident { IDENTIFIER(ident) }
+            as primtype { TYPE(primtype) }
+        | ['a'-'z' 'A'-'Z' '_']+ as ident { IDENT(ident) }
         | eof { EOF }
