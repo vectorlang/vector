@@ -38,13 +38,19 @@ rule token =
         | "++" { INC }
         | "--" { DEC }
 
-        | ['0'-'9']+ | "0x" ['0'-'9' 'a'-'f' 'A'-'F']
-            as lit { INT_LITERAL(int_of_string lit) }
+        | ['0'-'9']+ | "0x" ['0'-'9' 'a'-'f' 'A'-'F']+
+            as lit { INT_LITERAL(Int64.of_string lit) }
+        | ['0'-'9']+ '.' ['0'-'9']* | '.' ['0'-'9']+
+        | ['0'-'9']+ ('.' ['0'-'9']*)? 'e' '-'? ['0'-'9']+
+            as lit { FLOAT_LITERAL(float_of_string lit) }
+
         | "bool" | "char" | "byte" | "int" | "uint"
         | "int8" | "uint8" | "int16" | "uint16"
         | "int32" | "uint32" | "int64" | "uint64"
         | "float" | "float32" | "double" | "float64"
         | "complex" | "complex64" | "complex128"
             as primtype { TYPE(primtype) }
+
         | ['a'-'z' 'A'-'Z' '_']+ as ident { IDENT(ident) }
+
         | eof { EOF }

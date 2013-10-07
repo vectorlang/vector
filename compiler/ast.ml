@@ -12,7 +12,8 @@ type expr =
   | Preop of preop * expr
   | Postop of expr * postop
   | Assign of string * expr
-  | IntLit of int
+  | IntLit of int64
+  | FloatLit of float
   | Ident of string ;;
 
 type statement =

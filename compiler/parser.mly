@@ -8,7 +8,8 @@
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token LOGNOT BITNOT DEC INC
 %token EOF
-%token <int> INT_LITERAL
+%token <int64> INT_LITERAL
+%token <float> FLOAT_LITERAL
 %token <string> IDENT TYPE
 
 %left SC
@@ -64,8 +65,10 @@ expr:
 
   | IDENT EQUAL expr { Assign($1, $3) }
   | LPAREN expr RPAREN { $2 }
-  | INT_LITERAL        { IntLit($1) }
   | IDENT         { Ident($1) }
+
+  | INT_LITERAL   { IntLit($1) }
+  | FLOAT_LITERAL { FloatLit($1) }
 
 statement:
     LCURLY RCURLY { CompoundStatement([]) }
@@ -73,7 +76,7 @@ statement:
   | expr SC { Expression($1) }
   | IDENT DECL_EQUAL expr SC { AssigningDecl($1, $3) }
   | TYPE IDENT SC { PrimitiveDecl($1, $2) }
-  | TYPE IDENT LSQUARE RSQUARE SC { ArrayDecl($1, $2, IntLit(0)) }
+  | TYPE IDENT LSQUARE RSQUARE SC { ArrayDecl($1, $2, IntLit(0L)) }
   | TYPE IDENT LSQUARE expr RSQUARE SC { ArrayDecl($1, $2, $4) }
   | SC { EmptyStatement }
 
