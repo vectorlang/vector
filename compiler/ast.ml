@@ -18,6 +18,7 @@ type expr =
   | ComplexLit of Complex.t
   | StringLit of string
   | CharLit of char
+  | ArrayLit of expr list
   | Cast of string * expr
   | Ident of string
   | FunctionCall of string * expr list;;

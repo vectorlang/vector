@@ -71,19 +71,23 @@ expr:
   | IDENT EQUAL expr { Assign($1, $3) }
   | IDENT            { Ident($1) }
 
-  | INT_LITERAL     { IntLit($1) }
-  | INT64_LITERAL   { Int64Lit($1) }
-  | FLOAT_LITERAL   { FloatLit($1) }
-  | COMPLEX_LITERAL { ComplexLit($1) }
-  | STRING_LITERAL  { StringLit($1) }
-  | CHAR_LITERAL    { CharLit($1) }
+  | INT_LITERAL             { IntLit($1) }
+  | INT64_LITERAL           { Int64Lit($1) }
+  | FLOAT_LITERAL           { FloatLit($1) }
+  | COMPLEX_LITERAL         { ComplexLit($1) }
+  | STRING_LITERAL          { StringLit($1) }
+  | CHAR_LITERAL            { CharLit($1) }
+  | LCURLY expr_list RCURLY { ArrayLit($2) }
 
   | IDENT LPAREN RPAREN               { FunctionCall($1, []) }
   | IDENT LPAREN argument_list RPAREN { FunctionCall ($1, $3) }
 
+expr_list:
+    expr COMMA expr_list { $1 :: $3 }
+  | expr                 { $1 :: [] }
+
 argument_list:
-    expr COMMA argument_list { $1 :: $3 }
-  | expr                     { $1 :: [] }
+    expr_list { $1 }
 
 statement:
     LCURLY RCURLY { CompoundStatement([]) }
