@@ -10,7 +10,8 @@
 %token EOF
 %token <int64> INT_LITERAL
 %token <float> FLOAT_LITERAL
-%token <string> IDENT TYPE
+%token <string> IDENT TYPE STRING_LITERAL
+%token <char> CHAR_LITERAL
 
 %left SC
 %left DECL_EQUAL EQUAL
@@ -69,6 +70,8 @@ expr:
 
   | INT_LITERAL   { IntLit($1) }
   | FLOAT_LITERAL { FloatLit($1) }
+  | STRING_LITERAL { StringLit($1) }
+  | CHAR_LITERAL { CharLit($1) }
 
 statement:
     LCURLY RCURLY { CompoundStatement([]) }

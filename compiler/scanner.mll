@@ -46,6 +46,10 @@ rule token =
         | decdigit+ '.' decdigit* | '.' decdigit+
         | decdigit+ ('.' decdigit*)? 'e' '-'? decdigit+
             as lit { FLOAT_LITERAL(float_of_string lit) }
+        | '"' (('\\' _ | [^ '"'])* as str) '"'
+            { STRING_LITERAL(Scanf.unescaped(str)) }
+        | '\'' ('\\' _ | [^ '\''] | "\\x" hexdigit hexdigit as lit) '\''
+            { CHAR_LITERAL((Scanf.unescaped(lit)).[0]) }
 
         | "bool" | "char" | "byte" | "int" | "uint"
         | "int8" | "uint8" | "int16" | "uint16"

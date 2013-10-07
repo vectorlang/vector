@@ -14,6 +14,8 @@ type expr =
   | Assign of string * expr
   | IntLit of int64
   | FloatLit of float
+  | StringLit of string
+  | CharLit of char
   | Ident of string ;;
 
 type statement =
