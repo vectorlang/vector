@@ -38,42 +38,43 @@
 
 expr:
     expr PLUS expr   { Binop($1, Add, $3) }
-  | expr MINUS expr { Binop($1, Sub, $3) }
-  | expr TIMES expr { Binop($1, Mul, $3) }
+  | expr MINUS expr  { Binop($1, Sub, $3) }
+  | expr TIMES expr  { Binop($1, Mul, $3) }
   | expr DIVIDE expr { Binop($1, Div, $3) }
   | expr MODULO expr { Binop($1, Mod, $3) }
   | expr LSHIFT expr { Binop($1, Lshift, $3) }
   | expr RSHIFT expr { Binop($1, Rshift, $3) }
-  | expr LT expr { Binop($1, Less, $3) }
-  | expr LTE expr { Binop($1, LessEq, $3) }
-  | expr GT expr { Binop($1, Greater, $3) }
-  | expr GTE expr { Binop($1, GreaterEq, $3) }
-  | expr EE expr { Binop($1, Eq, $3) }
-  | expr NE expr { Binop($1, NotEq, $3) }
+  | expr LT expr     { Binop($1, Less, $3) }
+  | expr LTE expr    { Binop($1, LessEq, $3) }
+  | expr GT expr     { Binop($1, Greater, $3) }
+  | expr GTE expr    { Binop($1, GreaterEq, $3) }
+  | expr EE expr     { Binop($1, Eq, $3) }
+  | expr NE expr     { Binop($1, NotEq, $3) }
   | expr BITAND expr { Binop($1, BitAnd, $3) }
   | expr BITXOR expr { Binop($1, BitXor, $3) }
-  | expr BITOR expr { Binop($1, BitOr, $3) }
+  | expr BITOR expr  { Binop($1, BitOr, $3) }
   | expr LOGAND expr { Binop($1, LogAnd, $3) }
-  | expr LOGOR expr { Binop($1, LogOr, $3) }
+  | expr LOGOR expr  { Binop($1, LogOr, $3) }
 
   | MINUS expr %prec UMINUS { Preop(Neg, $2) }
   | LOGNOT expr { Preop(LogNot, $2) }
   | BITNOT expr { Preop(BitNot, $2) }
-  | DEC expr { Preop(PreDec, $2) }
-  | INC expr { Preop(PreInc, $2) }
+  | DEC expr    { Preop(PreDec, $2) }
+  | INC expr    { Preop(PreInc, $2) }
 
   | expr DEC { Postop($1, PostDec) }
   | expr INC { Postop($1, PostInc) }
+  
+  | LPAREN expr RPAREN { $2 }
 
   | IDENT EQUAL expr { Assign($1, $3) }
-  | LPAREN expr RPAREN { $2 }
-  | IDENT         { Ident($1) }
+  | IDENT            { Ident($1) }
 
-  | INT_LITERAL   { IntLit($1) }
-  | INT64_LITERAL { Int64Lit($1) }
-  | FLOAT_LITERAL { FloatLit($1) }
+  | INT_LITERAL    { IntLit($1) }
+  | INT64_LITERAL  { Int64Lit($1) }
+  | FLOAT_LITERAL  { FloatLit($1) }
   | STRING_LITERAL { StringLit($1) }
-  | CHAR_LITERAL { CharLit($1) }
+  | CHAR_LITERAL   { CharLit($1) }
 
 statement:
     LCURLY RCURLY { CompoundStatement([]) }
