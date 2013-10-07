@@ -10,6 +10,7 @@ set -e
 #
 # It contains many kludges.
 
+scons -c > /dev/null
 scons > /dev/null
 
 PARSE='
