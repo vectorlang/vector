@@ -64,7 +64,7 @@ expr:
 
   | expr DEC { Postop($1, PostDec) }
   | expr INC { Postop($1, PostInc) }
-  
+
   | LPAREN expr RPAREN { $2 }
 
   | IDENT EQUAL expr { Assign($1, $3) }
