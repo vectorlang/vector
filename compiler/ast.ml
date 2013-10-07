@@ -23,10 +23,13 @@ type expr =
   | Ident of string
   | FunctionCall of string * expr list;;
 
-type statement =
-    CompoundStatement of statement list
-  | Expression of expr
-  | AssigningDecl of string * expr
+type decl =
+    AssigningDecl of string * expr
   | PrimitiveDecl of string * string
   | ArrayDecl of string * string * expr
+
+type statement =
+    CompoundStatement of statement list
+  | Declaration of decl
+  | Expression of expr
   | EmptyStatement

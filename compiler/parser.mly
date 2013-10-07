@@ -89,15 +89,18 @@ expr_list:
 argument_list:
     expr_list { $1 }
 
-statement:
-    LCURLY RCURLY { CompoundStatement([]) }
-  | LCURLY statement_seq RCURLY { CompoundStatement($2) }
-  | expr SC { Expression($1) }
+declaration:
   | IDENT DECL_EQUAL expr SC { AssigningDecl($1, $3) }
   | TYPE IDENT SC { PrimitiveDecl($1, $2) }
   | TYPE IDENT LSQUARE RSQUARE SC { ArrayDecl($1, $2, IntLit(0l)) }
   | TYPE IDENT LSQUARE expr RSQUARE SC { ArrayDecl($1, $2, $4) }
+
+statement:
+    LCURLY RCURLY { CompoundStatement([]) }
+  | LCURLY statement_seq RCURLY { CompoundStatement($2) }
+  | expr SC { Expression($1) }
   | SC { EmptyStatement }
+  | declaration { Declaration($1) }
 
 statement_seq:
     statement statement_seq { $1 :: $2 }
