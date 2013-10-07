@@ -40,6 +40,9 @@
 ident:
   IDENT { Ident($1) }
 
+datatype:
+  TYPE { Type($1) }
+
 expr:
     expr PLUS expr   { Binop($1, Add, $3) }
   | expr MINUS expr  { Binop($1, Sub, $3) }
@@ -74,14 +77,14 @@ expr:
   | ident EQUAL expr { Assign($1, $3) }
   | ident            { Variable($1) }
 
-  | INT_LITERAL             { IntLit($1) }
-  | INT64_LITERAL           { Int64Lit($1) }
-  | FLOAT_LITERAL           { FloatLit($1) }
-  | COMPLEX_LITERAL         { ComplexLit($1) }
-  | STRING_LITERAL          { StringLit($1) }
-  | CHAR_LITERAL            { CharLit($1) }
-  | LPAREN TYPE RPAREN expr { Cast($2, $4) }
-  | LCURLY expr_list RCURLY { ArrayLit($2) }
+  | INT_LITERAL                 { IntLit($1) }
+  | INT64_LITERAL               { Int64Lit($1) }
+  | FLOAT_LITERAL               { FloatLit($1) }
+  | COMPLEX_LITERAL             { ComplexLit($1) }
+  | STRING_LITERAL              { StringLit($1) }
+  | CHAR_LITERAL                { CharLit($1) }
+  | LPAREN datatype RPAREN expr { Cast($2, $4) }
+  | LCURLY expr_list RCURLY     { ArrayLit($2) }
 
   | ident LPAREN RPAREN               { FunctionCall($1, []) }
   | ident LPAREN argument_list RPAREN { FunctionCall ($1, $3) }
@@ -94,10 +97,10 @@ argument_list:
     expr_list { $1 }
 
 declaration:
-  | ident DECL_EQUAL expr SC { AssigningDecl($1, $3) }
-  | TYPE ident SC { PrimitiveDecl($1, $2) }
-  | TYPE ident LSQUARE RSQUARE SC { ArrayDecl($1, $2, IntLit(0l)) }
-  | TYPE ident LSQUARE expr RSQUARE SC { ArrayDecl($1, $2, $4) }
+  | ident DECL_EQUAL expr SC               { AssigningDecl($1, $3) }
+  | datatype ident SC                      { PrimitiveDecl($1, $2) }
+  | datatype ident LSQUARE RSQUARE SC      { ArrayDecl($1, $2, IntLit(0l)) }
+  | datatype ident LSQUARE expr RSQUARE SC { ArrayDecl($1, $2, $4) }
 
 statement:
     LCURLY RCURLY { CompoundStatement([]) }

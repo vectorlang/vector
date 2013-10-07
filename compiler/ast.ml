@@ -7,6 +7,9 @@ type preop = Neg | LogNot | BitNot | PreDec | PreInc ;;
 
 type postop = PostDec | PostInc ;;
 
+type datatype =
+    Type of string;;
+
 type ident =
     Ident of string;;
 
@@ -22,14 +25,14 @@ type expr =
   | StringLit of string
   | CharLit of char
   | ArrayLit of expr list
-  | Cast of string * expr
+  | Cast of datatype * expr
   | Variable of ident
   | FunctionCall of ident * expr list;;
 
 type decl =
     AssigningDecl of ident * expr
-  | PrimitiveDecl of string * ident
-  | ArrayDecl of string * ident * expr;;
+  | PrimitiveDecl of datatype * ident
+  | ArrayDecl of datatype * ident * expr;;
 
 type statement =
     CompoundStatement of statement list
