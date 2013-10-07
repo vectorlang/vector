@@ -16,5 +16,5 @@ PARSE='
 open Ast;;\n
 \n
 let lexbuf = Lexing.from_channel stdin in\n
-Parser.expr Scanner.token lexbuf;;'
+Parser.statement_seq Scanner.token lexbuf;;'
 (echo -e $PARSE; cat -) | ocaml scanner.cmo parser.cmo | tail -n +3 | head -n -1

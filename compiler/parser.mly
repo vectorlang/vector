@@ -26,8 +26,8 @@
 
 %start statement_seq
 %type <Ast.expr> expr
-%type <unit> statement
-%type <unit> statement_seq
+%type <Ast.statement> statement
+%type <Ast.statement list> statement_seq
 
 %%
 
@@ -57,16 +57,17 @@ expr:
   | IDENT         { Ident($1) }
 
 statement:
-    LCURLY RCURLY {}
-  | LCURLY statement_seq RCURLY {}
-  | expr SEMICOLON {}
-  | expr DECL_EQUAL SEMICOLON {}
-  | PRIMITIVE_TYPE IDENTIFIER SEMICOLON {}
-  | PRIMITIVE_TYPE IDENTIFIER EQUAL expr SEMICOLON {}
-  | SEMICOLON {}
+    LCURLY RCURLY { CompoundStatement([]) }
+  | LCURLY statement_seq RCURLY { CompoundStatement($2) }
+  | expr SC { Expression($1) }
+  | IDENT DECL_EQUAL expr SC { AssigningDecl($1, $3) }
+  | TYPE IDENT SC { PrimitiveDecl($1, $2) }
+  | TYPE IDENT LSQUARE RSQUARE SC { ArrayDecl($1, $2, IntLit(0)) }
+  | TYPE IDENT LSQUARE expr RSQUARE SC { ArrayDecl($1, $2, $4) }
+  | SC { EmptyStatement }
 
 statement_seq:
-    statement statement_seq {}
-  | statement {}
+    statement statement_seq { $1 :: $2 }
+  | statement { $1 :: [] }
 
 %%
