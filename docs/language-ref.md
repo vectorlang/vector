@@ -10,7 +10,7 @@ This is the reference manual for Vector, a programming language for the GPU.
 
 The characters `/*` introduce a comment, and the first `*/` ends the comment.
 Single-line comments are also supported and denoted with `//` at the beginning
-of a line
+of a line.
 
 ### Identifiers
 An identifier is a sequence of letters and digits; the first character must be
@@ -204,7 +204,8 @@ from a narrower to a wider type, for example from a `int16` to `int32`, or from
 precision. If a `double` is converted to a `float`, then the `double` will be rounded
 and then truncated to be the length of the `float` type that it is converted to.
 For conversions between signed types and unsigned types, if the
-signed type had a negative number, the maximum unsigned int + 1 will be added
+signed type had a negative number, then `UINT_MAX + 1`, where `UINT_MAX` is the
+maximum unsigned integer of the target type, will be added
 to it so that the value is a valid unsigned type.
 
 For conversions between any integer and floating-point type, everything up to
@@ -220,9 +221,207 @@ the upper 8 bits of the resulting int object.
 
 ## Expressions
 
+### Postfix Expressions
+
+The operators in postfix expressions group left to right.
+
+> *postfix-expression* ::=
+
+> > *primary-expression*
+
+> > | *postfix-expression*`++`
+
+> > | *postfix-expression*`--`
+
+> > | *postfix-expression`.`identifier*
+
+> > | *postfix-expression`[`expression`]`*
+
 ### Operators
 
-TODO: Sid by 10/6
+#### Unary Operators
+
+> *unary-expression* ::=
+
+> > *postfix expression*
+
+> > | `++`*unary expression*
+
+> > | `--`*unary expression*
+
+> > | *unary-operator cast-expression*
+
+> >  | `sizeof` *unary-expression*
+
+> >  | `sizeof`(*type-name*)
+
+unary operators include `-`, `!`. The `-` unary operator returns the negative
+of its operand.  If necessary, the operand is promoted to a wider type. For
+unsigned quantities, the negative is computed by subtracting the promoted value
+from the largest value of the promoted type and adding 1. For the case that the
+ value is 0, the value returned is also 0.
+
+#### Cast Operations
+
+A unary expression with a parenthesized type preceding it causes the value
+of the expression to be converted to the type in the parentheses.
+> *cast-expression* ::=
+> >  *unary expression*
+
+> > | *(type-name)* *cast-expression*
+
+#### Multiplicative Operators
+
+Multiplicative operators include `*`, `/`, and `%`, and group to the right. 
+There are two operands and both must have arithmetic types.
+
+> *multiplicative-expression* ::=
+> > *multiplicative-expression* * *cast-expression*
+
+> > | *multiplicative-expression* `/` *cast-expression*
+
+> > | *multiplicative-expression* `%` *cast-expression*
+
+The `*` operator denotes multiplication, the `/` operation gives the quotient,
+and the `%` operator gives the remainder after a division of the two operands.
+
+#### Additive Operators
+
+The additive operators include `+` and `-` group, and they group left-to-right.
+If the operands have arithmetic types, then the appropriate arithmetic operation
+is performed.
+
+
+> *additive-expression* ::=
+
+> > *multiplicative-expression*
+
+> > | *additive-expression* `+` *multiplicative-expression*
+
+> > | *additive-expression* `-` *multiplicative-expression*
+
+The `+` operator gives the sum of the two operands, and the `-` operator gives
+the difference.
+#### Shift Operators
+
+The shift operators include *<<* and *>>*.  These operators group left to right,
+and each operator must be of an integral type.
+
+> *shift-expression* ::=
+
+> > *shift-expression* `<<` *additive-expression*
+
+> > *shift-expression* `>>` *additive-expression*
+
+The value of shift expression *E1 << E2* is interpreted as *E1* left-shifted
+by *E2* bits, and *E1 >> E2* is interpreted as *E1* right-shifted *E2* bits.
+
+#### Relational Operators
+
+Relational operators group left-to-right.
+
+> *relational-expression* ::=
+> > *shift-expression*
+
+> > *relational-expression* `>` *shift-expression*
+> > *relational-expression* `<` *shift-expression*
+> > *relational-expression* `<=` *shift-expression*
+> > *relational-expression* `>=` *shift-expression*
+
+The operator `>` denotes the greater-than operation, `<` denotes less-than,
+`>=` denotes greater-than-or-equal, and `<=` denotes less-then-or-equal.
+
+Each of these operators returns 0 if false and 1 if true, and this result
+is always of type `int`.
+
+#### Equality Operators
+
+> *equality-expression* :==
+
+> > *relational-expression*
+
+> > | *equality-expression* `==` *relational-expression*
+
+> > | *equality-expression* `!=` *relational-expression*
+
+The equality operator `=` denotes equal-to, and the operator `!=` denotes
+not-equal-to.  These both return 1 if true and 0 if false, and this value
+is of type `int`.  These operators have lower precedence than relational
+operators.
+
+#### Bitwise AND
+
+> *AND-expression* ::=
+
+> > *equality-expression*
+
+> > | AND-expression `&` *equality-expression*
+
+The `&` operator denotes the bitwise-and operation. It requires both operands
+to be of integral types, and the result is the bitwise-and function applied
+to the operands.
+
+#### Bitwise Exclusive OR
+
+> *exclusive-OR-expression* ::=
+
+> > *AND-expression*
+
+> > *exclusive-OR-expression* `^` *AND-expression*
+
+The `^` operator denotes the bitwise-exclusive-or operation.  It also requires
+both operands to have intergral types, and the result is the bitwise-exclusive-or
+operation applied to the two operands.
+
+#### Bitwise Inclusive OR
+
+> *inclusive-OR-expression* ::=
+
+> > *exclusive-OR-expression*
+
+> > | *inclusive-OR-expression* `|` *exclusive-OR-expression*
+
+The `|` operator denotes the bitwise-inclusive-or operation.  It also requires
+both operands to have intergral types, and the result is the bitwise-inclusive-or
+operation applied to the two operands.
+
+#### Logical AND
+
+> *logical-AND-expression* ::=
+
+> > *inclusive-OR-expression*
+
+> > | *logical-AND-expression* `&&` *inclusive-OR-expression*
+
+The `&&` operator returns 1 if both operands are not equal to 0, and 0 if
+at least one operand is equal to 0, and the type of this value is `int`.  It
+groups expressions left-to-right. Operands must be of arithmetic types.
+
+#### Logical OR
+
+> *logical-OR-expression* ::=
+> > *logical-AND-expression*
+
+> > *logical-OR-expression* `||` *logical-AND-expression*
+
+The `||` operator returns 1 if at least one operand is not equal to 0, and 0
+otherwise. The type of this return value is `int`.  This operator groups
+expressions left-to-right. Operands must be of arithmetic types.
+
+
+#### Conditional Operator
+
+> *conditional-expression* ::=
+> > *logical-OR-expression*
+
+> > | *logical-OR-expression* `?` *expression* `:` *conditional-expression*
+
+The first expression is evaluated and then compared to 0.  If the result is
+not equal to 0, then evaluate the expression on the left-hand side of the
+colon symbol, otherwise, evaluate the expression on the right-hand side
+of the colon. If both the second and third operands have arithmetic values,
+then arithmetic conversions are performed such that this expression returns
+the same type.
 
 ### Function Calls
 
