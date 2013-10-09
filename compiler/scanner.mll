@@ -42,7 +42,6 @@ rule token =
         | '~' { BITNOT }
         | "++" { INC }
         | "--" { DEC }
-
         | decdigit+ | "0x" hexdigit+
             as lit { INT_LITERAL(Int32.of_string lit) }
         | (decdigit+ | "0x" hexdigit+ as lit) 'L'
@@ -67,4 +66,13 @@ rule token =
 
         | ['a'-'z' 'A'-'Z' '_']+ decdigit* as ident { IDENT(ident) }
 
+        | "/*" { comments lexbuf }
+        | "//" {inline_comments lexbuf}
+
         | eof { EOF }
+and comments = parse
+  | "*/"                { token lexbuf}
+  | _                   { comments lexbuf}
+and inline_comments = parse
+  | "\n"  {token lexbuf}
+  | _ {inline_comments lexbuf}
