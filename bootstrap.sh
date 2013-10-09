@@ -25,3 +25,7 @@ cp /vagrant/profile.sh .profile
 chown vagrant:vagrant .profile
 
 apt-get -y install gdb valgrind
+apt-get -y install python-software-properties
+add-apt-repository -y ppa:avsm/ppa
+apt-get update
+apt-get -y install ocaml opam
