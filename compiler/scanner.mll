@@ -65,6 +65,6 @@ rule token =
         | "void"
             as primtype { TYPE(primtype) }
 
-        | ['a'-'z' 'A'-'Z' '_']+ as ident { IDENT(ident) }
+        | ['a'-'z' 'A'-'Z' '_']+ decdigit* as ident { IDENT(ident) }
 
         | eof { EOF }
