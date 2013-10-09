@@ -19,9 +19,7 @@
 %token <Complex.t> COMPLEX_LITERAL
 
 %left SC
-%right (DECL_EQUAL EQUAL PLUS_EQUALS MINUS_EQUALS TIMES_EQUALS
-        DIVIDE_EQUALS MODULO_EQUALS LSHIFT_EQUALS RSHIFT_EQUALS
-        BITOR_EQUALS BITAND_EQUALS BITXOR_EQUALS)
+%right DECL_EQUAL EQUAL PLUS_EQUALS MINUS_EQUALS TIMES_EQUALS DIVIDE_EQUALS MODULO_EQUALS LSHIFT_EQUALS RSHIFT_EQUALS BITOR_EQUALS BITAND_EQUALS BITXOR_EQUALS
 %left LOGOR
 %left LOGAND
 %left BITOR
@@ -67,6 +65,17 @@ expr:
   | expr BITOR expr  { Binop($1, BitOr, $3) }
   | expr LOGAND expr { Binop($1, LogAnd, $3) }
   | expr LOGOR expr  { Binop($1, LogOr, $3) }
+
+  | expr PLUS_EQUALS expr   { Binop($1, AddAssn, $3) }
+  | expr MINUS_EQUALS expr  { Binop($1, SubAssn, $3) }
+  | expr TIMES_EQUALS expr  { Binop($1, MulAssn, $3) }
+  | expr DIVIDE_EQUALS expr { Binop($1, DivAssn, $3) }
+  | expr MODULO_EQUALS expr { Binop($1, ModAssn, $3) }
+  | expr LSHIFT_EQUALS expr { Binop($1, LshiftAssn, $3) }
+  | expr RSHIFT_EQUALS expr { Binop($1, RshiftAssn, $3) }
+  | expr BITOR_EQUALS expr  { Binop($1, BitOrAssn, $3) }
+  | expr BITAND_EQUALS expr { Binop($1, BitAndAssn, $3) }
+  | expr BITXOR_EQUALS expr { Binop($1, BitXorAssn, $3) }
 
   | MINUS expr %prec UMINUS { Preop(Neg, $2) }
   | LOGNOT expr { Preop(LogNot, $2) }
