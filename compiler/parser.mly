@@ -91,6 +91,8 @@ expr:
 
   | ident EQUAL expr { Assign($1, $3) }
   | ident            { Variable($1) }
+  | expr LSQUARE expr RSQUARE { ArrayIndex($1, $3) }
+  | expr LSQUARE expr RSQUARE EQUAL expr { ArrayAssign($1, $3, $6) }
 
   | INT_LITERAL                 { IntLit($1) }
   | INT64_LITERAL               { Int64Lit($1) }
