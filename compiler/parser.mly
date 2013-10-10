@@ -34,10 +34,8 @@
 %right UMINUS LOGNOT BITNOT DEC INC
 %nonassoc LPAREN RPAREN LSQUARE RSQUARE
 
-%start statement_seq
-%type <Ast.expr> expr
-%type <Ast.statement> statement
-%type <Ast.statement list> statement_seq
+%start top_level
+%type <Ast.statement list> top_level
 
 %%
 
@@ -106,14 +104,11 @@ expr:
   | LCURLY expr_list RCURLY     { ArrayLit($2) }
 
   | ident LPAREN RPAREN               { FunctionCall($1, []) }
-  | ident LPAREN argument_list RPAREN { FunctionCall ($1, $3) }
+  | ident LPAREN expr_list RPAREN { FunctionCall ($1, $3) }
 
 expr_list:
     expr COMMA expr_list { $1 :: $3 }
   | expr                 { $1 :: [] }
-
-argument_list:
-    expr_list { $1 }
 
 decl:
   | ident DECL_EQUAL expr SC               { AssigningDecl($1, $3) }
@@ -123,7 +118,7 @@ decl:
 
 statement:
     LCURLY RCURLY { CompoundStatement([]) }
-  | LCURLY block_level_statement_seq RCURLY { CompoundStatement($2) }
+  | LCURLY statement_seq RCURLY { CompoundStatement($2) }
   | expr SC { Expression($1) }
   | SC { EmptyStatement }
   | decl { Declaration($1) }
@@ -146,12 +141,12 @@ param_list:
   | datatype ident LSQUARE RSQUARE
       { ArrayDecl($1, $2, IntLit(0l)) :: [] }
 
-statement_seq:
-  top_level_statement statement_seq {$1 :: $2}
+top_level:
+    top_level_statement top_level {$1 :: $2}
   | top_level_statement {$1 :: [] }
 
-block_level_statement_seq:
-  statement block_level_statement_seq {$1 :: $2 }
+statement_seq:
+  statement statement_seq {$1 :: $2 }
 | statement { $1 :: [] }
 
 %%
