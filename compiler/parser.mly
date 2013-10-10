@@ -33,6 +33,8 @@
 %left TIMES DIVIDE MODULO
 %right UMINUS LOGNOT BITNOT DEC INC
 %nonassoc LPAREN RPAREN LSQUARE RSQUARE
+%nonassoc IFX
+%nonassoc ELSE
 
 %start top_level
 %type <Ast.statement list> top_level
@@ -117,21 +119,13 @@ decl:
   | datatype ident LSQUARE expr RSQUARE SC { ArrayDecl($1, $2, $4) }
 
 statement:
-    dangling { $1 }
-  | nondangling { $1 }
-
-dangling:
-    IF LPAREN expr RPAREN nondangling ELSE dangling
+  | IF LPAREN expr RPAREN statement ELSE statement
         { IfElseStatement($3, $5, $7) }
-  | IF LPAREN expr RPAREN statement {IfStatement($3,$5)}
-
-nondangling:
-    LCURLY statement_seq RCURLY { CompoundStatement($2) }
+  | IF LPAREN expr RPAREN statement %prec IFX {IfStatement($3,$5)}
+  | LCURLY statement_seq RCURLY { CompoundStatement($2) }
   | expr SC { Expression($1) }
   | SC { EmptyStatement }
   | decl { Declaration($1) }
-  | IF LPAREN expr RPAREN nondangling ELSE nondangling
-        { IfElseStatement($3,$5,$7) }
   | RETURN expr SC { ReturnStatement($2) }
   | RETURN SC { VoidReturnStatement }
 
