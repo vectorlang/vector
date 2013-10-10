@@ -134,13 +134,17 @@ top_level_statement:
       { FunctionDecl($1, $2, $4, $7) }
   | decl { Declaration($1) }
 
-param_list:
-    datatype ident COMMA param_list { PrimitiveDecl($1, $2) :: $4 }
-  | datatype ident                  { PrimitiveDecl($1, $2) :: [] }
-  | datatype ident LSQUARE RSQUARE COMMA param_list
-      { ArrayDecl($1, $2, IntLit(0l)) :: $6 }
+param:
+  | datatype ident { PrimitiveDecl($1, $2) }
   | datatype ident LSQUARE RSQUARE
-      { ArrayDecl($1, $2, IntLit(0l)) :: [] }
+      { ArrayDecl($1, $2, IntLit(0l)) }
+
+non_empty_param_list:
+  | param COMMA non_empty_param_list { $1 :: $3 }
+  | param { $1 :: [] }
+
+param_list:
+  | non_empty_param_list { $1 }
   | { [] }
 
 top_level:
