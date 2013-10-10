@@ -126,8 +126,7 @@ dangling:
   | IF LPAREN expr RPAREN statement {IfStatement($3,$5)}
 
 nondangling:
-    LCURLY RCURLY { CompoundStatement([]) }
-  | LCURLY statement_seq RCURLY { CompoundStatement($2) }
+    LCURLY statement_seq RCURLY { CompoundStatement($2) }
   | expr SC { Expression($1) }
   | SC { EmptyStatement }
   | decl { Declaration($1) }
@@ -137,18 +136,18 @@ nondangling:
   | RETURN SC { VoidReturnStatement }
 
 top_level_statement:
-  | returntype ident LPAREN param_list RPAREN 
-      LCURLY statement_seq RCURLY
+    returntype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
       { FunctionDecl($1, $2, $4, $7) }
   | decl { Declaration($1) }
 
 param_list:
-  | datatype ident COMMA param_list { PrimitiveDecl($1, $2) :: $4 }
+    datatype ident COMMA param_list { PrimitiveDecl($1, $2) :: $4 }
   | datatype ident                  { PrimitiveDecl($1, $2) :: [] }
   | datatype ident LSQUARE RSQUARE COMMA param_list
       { ArrayDecl($1, $2, IntLit(0l)) :: $6 }
   | datatype ident LSQUARE RSQUARE
       { ArrayDecl($1, $2, IntLit(0l)) :: [] }
+  | { [] }
 
 top_level:
     top_level_statement top_level {$1 :: $2}
@@ -157,5 +156,6 @@ top_level:
 statement_seq:
   statement statement_seq {$1 :: $2 }
 | statement { $1 :: [] }
+| { [] }
 
 %%
