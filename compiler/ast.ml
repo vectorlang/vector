@@ -1,7 +1,10 @@
 type binop = Add | Sub | Mul | Div | Mod
     | Lshift | Rshift
     | Less | LessEq | Greater | GreaterEq | Eq | NotEq
-    | BitAnd | BitXor | BitOr | LogAnd | LogOr ;;
+    | BitAnd | BitXor | BitOr | LogAnd | LogOr
+    | AddAssn | SubAssn | MulAssn | DivAssn | ModAssn
+    | LshiftAssn | RshiftAssn
+    | BitOrAssn | BitAndAssn | BitXorAssn ;;
 
 type preop = Neg | LogNot | BitNot | PreDec | PreInc ;;
 

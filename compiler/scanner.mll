@@ -42,6 +42,18 @@ rule token =
         | '~' { BITNOT }
         | "++" { INC }
         | "--" { DEC }
+
+        | "+=" { PLUS_EQUALS }
+        | "-=" { MINUS_EQUALS }
+        | "*=" { TIMES_EQUALS }
+        | "/-" { DIVIDE_EQUALS }
+        | "%=" { MODULO_EQUALS }
+        | "<<+" { LSHIFT_EQUALS }
+        | ">>=" { RSHIFT_EQUALS }
+        | "|=" { BITOR_EQUALS }
+        | "&=" { BITAND_EQUALS }
+        | "^=" { BITXOR_EQUALS }
+
         | decdigit+ | "0x" hexdigit+
             as lit { INT_LITERAL(Int32.of_string lit) }
         | (decdigit+ | "0x" hexdigit+ as lit) 'L'
