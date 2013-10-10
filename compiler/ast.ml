@@ -49,7 +49,7 @@ type statement =
   | Declaration of decl
   | Expression of expr
   | EmptyStatement
-  | IfelseStatement of expr * statement * statement
+  | IfElseStatement of expr * statement * statement
   | IfStatement of expr * statement
   | FunctionDecl of returntype * ident * decl list * statement list
   | ReturnStatement of expr

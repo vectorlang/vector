@@ -122,7 +122,7 @@ statement:
 
 dangling:
     IF LPAREN expr RPAREN nondangling ELSE dangling
-        { IfelseStatement($3, $5, $7) }
+        { IfElseStatement($3, $5, $7) }
   | IF LPAREN expr RPAREN statement {IfStatement($3,$5)}
 
 nondangling:
@@ -131,7 +131,7 @@ nondangling:
   | SC { EmptyStatement }
   | decl { Declaration($1) }
   | IF LPAREN expr RPAREN nondangling ELSE nondangling
-        { IfelseStatement($3,$5,$7) }
+        { IfElseStatement($3,$5,$7) }
   | RETURN expr SC { ReturnStatement($2) }
   | RETURN SC { VoidReturnStatement }
 
