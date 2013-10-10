@@ -9,6 +9,7 @@ let floating =
 rule token = parse
         | [' ' '\t' '\r' '\n'] { token lexbuf }
         | ';' { SC }
+        | ':' { COLON }
         | '.' { DOT }
         | ',' { COMMA }
         | '(' { LPAREN }
@@ -79,9 +80,13 @@ rule token = parse
             as primtype { TYPE(primtype) }
 
         | "return" { RETURN }
+        | "if" { IF }
+        | "else" { ELSE }
+        | "for" { FOR }
+        | "while" { WHILE }
+        | "pfor" { PFOR }
+        | "in" { IN }
 
-        | "if" {IF}
-        | "else" {ELSE}
         | ['a'-'z' 'A'-'Z' '_']+ decdigit* as ident { IDENT(ident) }
 
         | "/*" { comments lexbuf }

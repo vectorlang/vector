@@ -1,7 +1,7 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE
-%token DOT COMMA SC
+%token DOT COMMA SC COLON
 %token EQUAL DECL_EQUAL
 %token PLUS_EQUALS MINUS_EQUALS TIMES_EQUALS DIVIDE_EQUALS MODULO_EQUALS
 %token LSHIFT_EQUALS RSHIFT_EQUALS BITOR_EQUALS BITAND_EQUALS BITXOR_EQUALS
@@ -9,7 +9,7 @@
 %token LT LTE GT GTE EE NE
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token LOGNOT BITNOT DEC INC
-%token IF ELSE
+%token IF ELSE WHILE FOR PFOR IN
 %token RETURN VOID
 %token EOF
 %token <int32> INT_LITERAL
@@ -118,7 +118,11 @@ statement:
   | IF LPAREN expr RPAREN statement ELSE statement
       { IfElseStatement($3, $5, $7) }
   | IF LPAREN expr RPAREN statement %prec IFX {IfStatement($3,$5)}
-  
+
+  | WHILE LPAREN expr RPAREN statement { WhileStatement($3, $5) }
+  | FOR LPAREN iterator_list RPAREN statement { ForStatement($3, $5) }
+  | PFOR LPAREN iterator_list RPAREN statement { PforStatement($3, $5) }
+
   | LCURLY statement_seq RCURLY { CompoundStatement($2) }
 
   | expr SC { Expression($1) }
@@ -127,6 +131,17 @@ statement:
 
   | RETURN expr SC { ReturnStatement($2) }
   | RETURN SC { VoidReturnStatement }
+
+iterator_list:
+  | iterator COMMA iterator_list { $1 :: $3 }
+  | iterator { $1 :: [] }
+
+iterator:
+  | ident IN expr COLON expr COLON expr { RangeIterator($1, $3, $5, $7) }
+  | ident IN expr COLON expr { RangeIterator($1, $3, $5, IntLit(1l)) }
+  | ident IN COLON expr COLON expr { RangeIterator($1, IntLit(0l), $4, $6) }
+  | ident IN COLON expr { RangeIterator($1, IntLit(0l), $4, IntLit(1l)) }
+  | ident IN expr { ArrayIterator($1, $3) }
 
 top_level_statement:
   | datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY

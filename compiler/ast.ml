@@ -40,6 +40,10 @@ type decl =
   | PrimitiveDecl of datatype * ident
   | ArrayDecl of datatype * ident * expr;;
 
+type iterator =
+    RangeIterator of ident * expr * expr * expr
+  | ArrayIterator of ident * expr
+
 type statement =
     CompoundStatement of statement list
   | Declaration of decl
@@ -47,6 +51,9 @@ type statement =
   | EmptyStatement
   | IfElseStatement of expr * statement * statement
   | IfStatement of expr * statement
+  | WhileStatement of expr * statement
+  | ForStatement of iterator list * statement
+  | PforStatement of iterator list * statement
   | FunctionDecl of datatype * ident * decl list * statement list
   | ReturnStatement of expr
   | VoidReturnStatement
