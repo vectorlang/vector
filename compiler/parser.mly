@@ -10,7 +10,7 @@
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token LOGNOT BITNOT DEC INC
 %token IF ELSE
-%token RETURN
+%token RETURN VOID
 %token EOF
 %token <int32> INT_LITERAL
 %token <int64> INT64_LITERAL
@@ -46,6 +46,10 @@ ident:
 
 datatype:
   TYPE { Type($1) }
+
+returntype:
+    datatype { ScalarRet($1) }
+  | VOID { VoidRet }
 
 expr:
     expr PLUS expr   { Binop($1, Add, $3) }
@@ -129,7 +133,8 @@ statement:
   | RETURN SC { VoidReturnStatement }
 
 top_level_statement:
-  | datatype ident LPAREN param_list RPAREN LCURLY block_level_statement_seq RCURLY
+  | returntype ident LPAREN param_list RPAREN 
+      LCURLY statement_seq RCURLY
       { FunctionDecl($1, $2, $4, $7) }
   | decl { Declaration($1) }
 

@@ -15,6 +15,10 @@ type postop = PostDec | PostInc ;;
 type datatype =
     Type of string;;
 
+type returntype =
+    ScalarRet of datatype
+  | VoidRet ;;
+
 type ident =
     Ident of string;;
 
@@ -47,6 +51,6 @@ type statement =
   | EmptyStatement
   | IfelseStatement of expr * statement * statement
   | IfStatement of expr * statement
-  | FunctionDecl of datatype * ident * decl list * statement list
+  | FunctionDecl of returntype * ident * decl list * statement list
   | ReturnStatement of expr
   | VoidReturnStatement
