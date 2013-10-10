@@ -119,16 +119,19 @@ decl:
 
 statement:
     LCURLY RCURLY { CompoundStatement([]) }
-  | LCURLY statement_seq RCURLY { CompoundStatement($2) }
+  | LCURLY block_level_statement_seq RCURLY { CompoundStatement($2) }
   | expr SC { Expression($1) }
   | SC { EmptyStatement }
   | decl { Declaration($1) }
   | IF LPAREN expr RPAREN statement ELSE statement { IfelseStatement($3,$5,$7) }
   | IF LPAREN expr RPAREN statement {IfStatement($3,$5)}
-  | datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
-      { FunctionDecl($1, $2, $4, $7) }
   | RETURN expr SC { ReturnStatement($2) }
   | RETURN SC { VoidReturnStatement }
+
+top_level_statement:
+  | datatype ident LPAREN param_list RPAREN LCURLY block_level_statement_seq RCURLY
+      { FunctionDecl($1, $2, $4, $7) }
+  | decl { Declaration($1) }
 
 param_list:
   | datatype ident COMMA param_list { PrimitiveDecl($1, $2) :: $4 }
@@ -139,7 +142,11 @@ param_list:
       { ArrayDecl($1, $2, IntLit(0l)) :: [] }
 
 statement_seq:
-    statement statement_seq { $1 :: $2 }
-  | statement { $1 :: [] }
+  top_level_statement statement_seq {$1 :: $2}
+  | top_level_statement {$1 :: [] }
+
+block_level_statement_seq:
+  statement block_level_statement_seq {$1 :: $2 }
+| statement { $1 :: [] }
 
 %%
