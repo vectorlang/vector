@@ -2,11 +2,12 @@
 
 let decdigit = ['0'-'9']
 let hexdigit = ['0'-'9' 'a'-'f' 'A'-'Z']
-let floating = decdigit+ '.' decdigit* | '.' decdigit+
-        | decdigit+ ('.' decdigit*)? 'e' '-'? decdigit+
+let floating =
+      decdigit+ '.' decdigit* | '.' decdigit+
+    | decdigit+ ('.' decdigit*)? 'e' '-'? decdigit+
 
-rule token =
-    parse [' ' '\t' '\r' '\n'] { token lexbuf }
+rule token = parse
+        | [' ' '\t' '\r' '\n'] { token lexbuf }
         | ';' { SC }
         | '.' { DOT }
         | ',' { COMMA }

@@ -42,13 +42,13 @@
 %%
 
 ident:
-  IDENT { Ident($1) }
+    IDENT { Ident($1) }
 
 datatype:
-  TYPE { Type($1) }
+    TYPE { Type($1) }
 
 expr:
-    expr PLUS expr   { Binop($1, Add, $3) }
+  | expr PLUS expr   { Binop($1, Add, $3) }
   | expr MINUS expr  { Binop($1, Sub, $3) }
   | expr TIMES expr  { Binop($1, Mul, $3) }
   | expr DIVIDE expr { Binop($1, Div, $3) }
@@ -105,7 +105,7 @@ expr:
   | ident LPAREN expr_list RPAREN { FunctionCall ($1, $3) }
 
 expr_list:
-    expr COMMA expr_list { $1 :: $3 }
+  | expr COMMA expr_list { $1 :: $3 }
   | expr                 { $1 :: [] }
 
 decl:
@@ -116,7 +116,7 @@ decl:
 
 statement:
   | IF LPAREN expr RPAREN statement ELSE statement
-        { IfElseStatement($3, $5, $7) }
+      { IfElseStatement($3, $5, $7) }
   | IF LPAREN expr RPAREN statement %prec IFX {IfStatement($3,$5)}
   
   | LCURLY statement_seq RCURLY { CompoundStatement($2) }
@@ -129,7 +129,7 @@ statement:
   | RETURN SC { VoidReturnStatement }
 
 top_level_statement:
-    datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
+  | datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
       { FunctionDecl($1, $2, $4, $7) }
   | decl { Declaration($1) }
 
@@ -147,11 +147,11 @@ param_list:
   | { [] }
 
 top_level:
-    top_level_statement top_level {$1 :: $2}
+  | top_level_statement top_level {$1 :: $2}
   | top_level_statement {$1 :: [] }
 
 statement_seq:
-    statement statement_seq {$1 :: $2 }
+  | statement statement_seq {$1 :: $2 }
   | { [] }
 
 %%
