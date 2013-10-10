@@ -87,9 +87,11 @@ rule token =
         | "//" {inline_comments lexbuf}
 
         | eof { EOF }
+
 and comments = parse
   | "*/"                { token lexbuf}
   | _                   { comments lexbuf}
+
 and inline_comments = parse
   | "\n"  {token lexbuf}
   | _ {inline_comments lexbuf}

@@ -118,10 +118,13 @@ statement:
   | IF LPAREN expr RPAREN statement ELSE statement
         { IfElseStatement($3, $5, $7) }
   | IF LPAREN expr RPAREN statement %prec IFX {IfStatement($3,$5)}
+  
   | LCURLY statement_seq RCURLY { CompoundStatement($2) }
+
   | expr SC { Expression($1) }
   | SC { EmptyStatement }
   | decl { Declaration($1) }
+
   | RETURN expr SC { ReturnStatement($2) }
   | RETURN SC { VoidReturnStatement }
 
