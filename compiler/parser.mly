@@ -148,8 +148,7 @@ top_level:
   | top_level_statement {$1 :: [] }
 
 statement_seq:
-  statement statement_seq {$1 :: $2 }
-| statement { $1 :: [] }
-| { [] }
+    statement statement_seq {$1 :: $2 }
+  | { [] }
 
 %%
