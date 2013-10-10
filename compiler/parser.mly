@@ -10,6 +10,7 @@
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token LOGNOT BITNOT DEC INC
 %token IF ELSE
+%token RETURN
 %token EOF
 %token <int32> INT_LITERAL
 %token <int64> INT64_LITERAL
@@ -126,6 +127,8 @@ statement:
   | IF LPAREN expr RPAREN statement {IfStatement($3,$5)}
   | datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
       { FunctionDecl($1, $2, $4, $7) }
+  | RETURN expr SC { ReturnStatement($2) }
+  | RETURN SC { VoidReturnStatement }
 
 param_list:
   | datatype ident COMMA param_list { PrimitiveDecl($1, $2) :: $4 }

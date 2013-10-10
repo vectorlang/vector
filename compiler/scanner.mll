@@ -76,6 +76,8 @@ rule token =
         | "void"
             as primtype { TYPE(primtype) }
 
+        | "return" { RETURN }
+
         | "if" {IF}
         | "else" {ELSE}
         | ['a'-'z' 'A'-'Z' '_']+ decdigit* as ident { IDENT(ident) }

@@ -45,3 +45,5 @@ type statement =
   | IfelseStatement of expr * statement * statement
   | IfStatement of expr * statement
   | FunctionDecl of datatype * ident * decl list * statement list
+  | ReturnStatement of expr
+  | VoidReturnStatement
