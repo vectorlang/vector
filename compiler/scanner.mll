@@ -64,6 +64,8 @@ rule token =
         | "void"
             as primtype { TYPE(primtype) }
 
+        | "if" {IF}
+        | "else" {ELSE}
         | ['a'-'z' 'A'-'Z' '_']+ decdigit* as ident { IDENT(ident) }
 
         | "/*" { comments lexbuf }

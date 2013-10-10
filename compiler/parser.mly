@@ -7,6 +7,7 @@
 %token LT LTE GT GTE EE NE
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token LOGNOT BITNOT DEC INC
+%token IF ELSE
 %token EOF
 %token <int32> INT_LITERAL
 %token <int64> INT64_LITERAL
@@ -108,6 +109,8 @@ statement:
   | expr SC { Expression($1) }
   | SC { EmptyStatement }
   | decl { Declaration($1) }
+  | IF LPAREN expr RPAREN statement ELSE statement { IfelseStatement($3,$5,$7) }
+  | IF LPAREN expr RPAREN statement {IfStatement($3,$5)}
   | datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
       { FunctionDecl($1, $2, $4, $7) }
 
