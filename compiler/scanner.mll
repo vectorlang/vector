@@ -59,7 +59,8 @@ rule token =
         | (decdigit+ | "0x" hexdigit+ as lit) 'L'
             { INT64_LITERAL(Int64.of_string lit) }
         | floating as lit { FLOAT_LITERAL(float_of_string lit) }
-        | "#(" (floating as real) ',' ' '? (floating as imag) ')'
+        | "#(" ('-'? (floating | decdigit+) as real) ',' ' '?
+               ('-'? (floating | decdigit+) as imag) ')'
             { COMPLEX_LITERAL(
                 {Complex.re = float_of_string real;
                  Complex.im = float_of_string imag}) }
