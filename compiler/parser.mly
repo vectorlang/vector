@@ -67,16 +67,16 @@ expr:
   | expr LOGAND expr { Binop($1, LogAnd, $3) }
   | expr LOGOR expr  { Binop($1, LogOr, $3) }
 
-  | expr PLUS_EQUALS expr   { Binop($1, AddAssn, $3) }
-  | expr MINUS_EQUALS expr  { Binop($1, SubAssn, $3) }
-  | expr TIMES_EQUALS expr  { Binop($1, MulAssn, $3) }
-  | expr DIVIDE_EQUALS expr { Binop($1, DivAssn, $3) }
-  | expr MODULO_EQUALS expr { Binop($1, ModAssn, $3) }
-  | expr LSHIFT_EQUALS expr { Binop($1, LshiftAssn, $3) }
-  | expr RSHIFT_EQUALS expr { Binop($1, RshiftAssn, $3) }
-  | expr BITOR_EQUALS expr  { Binop($1, BitOrAssn, $3) }
-  | expr BITAND_EQUALS expr { Binop($1, BitAndAssn, $3) }
-  | expr BITXOR_EQUALS expr { Binop($1, BitXorAssn, $3) }
+  | ident PLUS_EQUALS expr   { AssignOp($1, AddAssn, $3) }
+  | ident MINUS_EQUALS expr  { AssignOp($1, SubAssn, $3) }
+  | ident TIMES_EQUALS expr  { AssignOp($1, MulAssn, $3) }
+  | ident DIVIDE_EQUALS expr { AssignOp($1, DivAssn, $3) }
+  | ident MODULO_EQUALS expr { AssignOp($1, ModAssn, $3) }
+  | ident LSHIFT_EQUALS expr { AssignOp($1, LshiftAssn, $3) }
+  | ident RSHIFT_EQUALS expr { AssignOp($1, RshiftAssn, $3) }
+  | ident BITOR_EQUALS expr  { AssignOp($1, BitOrAssn, $3) }
+  | ident BITAND_EQUALS expr { AssignOp($1, BitAndAssn, $3) }
+  | ident BITXOR_EQUALS expr { AssignOp($1, BitXorAssn, $3) }
 
   | MINUS expr %prec UMINUS { Preop(Neg, $2) }
   | LOGNOT expr { Preop(LogNot, $2) }

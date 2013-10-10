@@ -2,7 +2,9 @@ type binop = Add | Sub | Mul | Div | Mod
     | Lshift | Rshift
     | Less | LessEq | Greater | GreaterEq | Eq | NotEq
     | BitAnd | BitXor | BitOr | LogAnd | LogOr
-    | AddAssn | SubAssn | MulAssn | DivAssn | ModAssn
+
+type assignop =
+      AddAssn | SubAssn | MulAssn | DivAssn | ModAssn
     | LshiftAssn | RshiftAssn
     | BitOrAssn | BitAndAssn | BitXorAssn ;;
 
@@ -18,6 +20,7 @@ type ident =
 
 type expr =
     Binop of expr * binop * expr
+  | AssignOp of ident * assignop * expr
   | Preop of preop * expr
   | Postop of expr * postop
   | Assign of ident * expr
