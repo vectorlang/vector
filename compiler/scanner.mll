@@ -5,6 +5,7 @@ let hexdigit = ['0'-'9' 'a'-'f' 'A'-'Z']
 let floating =
       decdigit+ '.' decdigit* | '.' decdigit+
     | decdigit+ ('.' decdigit*)? 'e' '-'? decdigit+
+    | '.' decdigit+ 'e' '-'? decdigit+
 
 rule token = parse
         | [' ' '\t' '\r' '\n'] { token lexbuf }
