@@ -102,9 +102,9 @@ used to separate individual elements and the array itself is delimited by
 In this manual, a `typewriter` typeface indicates literal words and characters.
 An *italic* typeface indicates a category with special meaning. Lists are
 presented either inline or using bullets. If two items are presented on same
-line of a bulleted list separated by commas, they are equivalent. <EOL> is
-used to indicate the end of a line; <epsilon> is used to indicate the empty
-string. Backus-Naur Form is used to express the grammar of Vector.
+line of a bulleted list separated by commas, they are equivalent.
+<epsilon> is used to indicate the empty string.
+Backus-Naur Form is used to express the grammar of Vector.
 
 ## Types
 
@@ -491,9 +491,9 @@ memory for the identifier.
 
 ### Primitive Type Declarations
 
-> *primitive-declaration* ::= *primitive-type-specifier* *identifier*
+> *primitive-declaration* ::= *primitive-type-specifier* *identifier* `;`
 
-> > | *identifier* `:=` *expression*
+> > | *identifier* `:=` *expression* `;`
 
 The first primitive declaration declares a primitive type variable unintialized.
 In this case, the value of the identifier before first assignment is unspecified.
@@ -505,11 +505,11 @@ If you wish to specify the exact type of the identifier, use an explicit cast.
 
 ### Array Declarations
 
-> *array-declaration* ::= *primitive-type-specifier* *identifier* `[]`
+> *array-declaration* ::= *primitive-type-specifier* *identifier* `[];`
 
-> > | *primitive-type-specifier* *identifier* `[` *index-list* `]`
+> > | *primitive-type-specifier* *identifier* `[` *index-list* `];`
 
-> > | *identifier* `:=` *expression*
+> > | *identifier* `:=` *expression* `;`
 
 > *index-list* ::= *index-list* `,` *expression* | *expression*
 
@@ -546,6 +546,8 @@ available in the function body.
 
 > *statement* ::= *expression-statement*
 
+> > | *declaration*
+
 > > | *compound-statement*
 
 > > | *selection-statement*
@@ -554,26 +556,29 @@ available in the function body.
 
 > > | *jump-statement*
 
-> > | <epsilon>
-
 Statements in Vector are executed in sequence except as described as part of
 compound statements, selection statements, iteration statements, and jump
 statements.
 
 ### Expression Statements
 
-> *expression-statement* ::= *expression*
+> *expression-statement* ::= *expression* `;`
 
-An expression statement is an expression with its value discarded. The
-side effects of the expression still occur.
+An expression statement is an expression with its value discarded followed by
+a semicolon. The side effects of the expression still occur.
+
+### Declarations
+
+Declarations are also considered statements. The only caveat is that
+nested function declarations are not allowed.
 
 ### Compound Statements
 
 > *compound-statement* ::= `{` *statement-list* `}`
 
-> *statement-list* ::= *statement*
+> *statement-list* ::= *statement-list* *statement*
 
-> > | *statement-list* <EOL> *statement*
+> > | <epsilon>
 
 A compound statement is also called a *block*. When a block is executed, each of
 the statements in its statement list are executed in order. Blocks allow the
@@ -639,7 +644,7 @@ pfor loops.
 
 ### Jump Statements
 
-> *jump-statement* ::= `return` *expression* <EOL> | `return` <EOL>
+> *jump-statement* ::= `return` *expression* `;` | `return` `;`
 
 A return statement returns control of execution to the caller of the current
 function. If the statement has an expression, the expression is evaluated (with
