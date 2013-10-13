@@ -166,6 +166,13 @@ Array elements are accessed using square-bracket notation. For instance `a[4]`
 returns the element at index 4 of array `a` (arrays are zero-indexed). The
 built-in `len` function returns an `int` representing the length of an array.
 
+Array elements can be assigned to using the same syntax, so `a[4] = 3` will
+set the value at index 4 of the array to 3.
+
+Arrays can also be multi-dimensional. Indexing into a multi-dimensional
+array is achieved by separating the dimensional index numbers by commas.
+So `a[1, 2]` will access row 1, column 2 of the two-dimensional array `a`.
+
 ### Function Types
 
 > *function-type* ::= *primitive-type* `()` | *array-type* `()`
@@ -483,11 +490,11 @@ If you wish to specify the exact type of the identifier, use an explicit cast.
 
 > *array-declaration* ::= *primitive-type-specifier* *identifier* `[]`
 
-> > | *primitive-type-specifier* *identifier* `[` *expression* `]`
+> > | *primitive-type-specifier* *identifier* `[` *index-list* `]`
 
 > > | *identifier* `:=` *expression*
 
-> *member-list* ::= *member-list* `,` *expression* | *expression*
+> *index-list* ::= *index-list* `,` *expression* | *expression*
 
 The first syntax does not initialize the array or allocate any storage for it.
 
