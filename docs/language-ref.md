@@ -51,8 +51,8 @@ The following identifiers are reserved for language keywords
 `while`
 `for`
 `pfor`
-`do`
 `return`
+`sync`
 
 ### Constants
 
@@ -564,6 +564,8 @@ available in the function body.
 
 > > | *jump-statement*
 
+> > | *sync-statement*
+
 Statements in Vector are executed in sequence except as described as part of
 compound statements, selection statements, iteration statements, and jump
 statements.
@@ -674,6 +676,14 @@ the for statement all happen in parallel on the GPU.
 A return statement returns control of execution to the caller of the current
 function. If the statement has an expression, the expression is evaluated (with
 side effects) and the result is returned to the caller.
+
+### Synchronization Statements
+
+> *sync-statement* ::= `sync` `;`
+
+The `sync` statement is used inside `pfor` statements for synchronization.
+When a thread in a `pfor` reaches a `sync`, it will wait at that point until
+all other threads reach the `sync` statement before continuing.
 
 ## External Declarations
 
