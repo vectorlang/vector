@@ -47,6 +47,10 @@ ident:
 datatype:
     TYPE { Type($1) }
 
+lvalue:
+  | ident { Variable($1) }
+  | expr LSQUARE expr_list RSQUARE { ArrayElem($1, $3) }
+
 expr:
   | expr PLUS expr   { Binop($1, Add, $3) }
   | expr MINUS expr  { Binop($1, Sub, $3) }
@@ -67,16 +71,16 @@ expr:
   | expr LOGAND expr { Binop($1, LogAnd, $3) }
   | expr LOGOR expr  { Binop($1, LogOr, $3) }
 
-  | ident PLUS_EQUALS expr   { AssignOp($1, AddAssn, $3) }
-  | ident MINUS_EQUALS expr  { AssignOp($1, SubAssn, $3) }
-  | ident TIMES_EQUALS expr  { AssignOp($1, MulAssn, $3) }
-  | ident DIVIDE_EQUALS expr { AssignOp($1, DivAssn, $3) }
-  | ident MODULO_EQUALS expr { AssignOp($1, ModAssn, $3) }
-  | ident LSHIFT_EQUALS expr { AssignOp($1, LshiftAssn, $3) }
-  | ident RSHIFT_EQUALS expr { AssignOp($1, RshiftAssn, $3) }
-  | ident BITOR_EQUALS expr  { AssignOp($1, BitOrAssn, $3) }
-  | ident BITAND_EQUALS expr { AssignOp($1, BitAndAssn, $3) }
-  | ident BITXOR_EQUALS expr { AssignOp($1, BitXorAssn, $3) }
+  | lvalue PLUS_EQUALS expr   { AssignOp($1, AddAssn, $3) }
+  | lvalue MINUS_EQUALS expr  { AssignOp($1, SubAssn, $3) }
+  | lvalue TIMES_EQUALS expr  { AssignOp($1, MulAssn, $3) }
+  | lvalue DIVIDE_EQUALS expr { AssignOp($1, DivAssn, $3) }
+  | lvalue MODULO_EQUALS expr { AssignOp($1, ModAssn, $3) }
+  | lvalue LSHIFT_EQUALS expr { AssignOp($1, LshiftAssn, $3) }
+  | lvalue RSHIFT_EQUALS expr { AssignOp($1, RshiftAssn, $3) }
+  | lvalue BITOR_EQUALS expr  { AssignOp($1, BitOrAssn, $3) }
+  | lvalue BITAND_EQUALS expr { AssignOp($1, BitAndAssn, $3) }
+  | lvalue BITXOR_EQUALS expr { AssignOp($1, BitXorAssn, $3) }
 
   | MINUS expr %prec UMINUS { Preop(Neg, $2) }
   | LOGNOT expr { Preop(LogNot, $2) }
@@ -89,10 +93,8 @@ expr:
 
   | LPAREN expr RPAREN { $2 }
 
-  | ident EQUAL expr { Assign($1, $3) }
-  | ident            { Variable($1) }
-  | expr LSQUARE expr_list RSQUARE { ArrayIndex($1, $3) }
-  | expr LSQUARE expr_list RSQUARE EQUAL expr { ArrayAssign($1, $3, $6) }
+  | lvalue EQUAL expr { Assign($1, $3) }
+  | lvalue            { Lval($1) }
 
   | INT_LITERAL                 { IntLit($1) }
   | INT64_LITERAL               { Int64Lit($1) }

@@ -18,12 +18,15 @@ type datatype =
 type ident =
     Ident of string
 
-type expr =
+type lvalue =
+  | Variable of ident
+  | ArrayElem of expr * expr list
+and expr =
     Binop of expr * binop * expr
-  | AssignOp of ident * assignop * expr
+  | AssignOp of lvalue * assignop * expr
   | Preop of preop * expr
   | Postop of expr * postop
-  | Assign of ident * expr
+  | Assign of lvalue * expr
   | IntLit of int32
   | Int64Lit of int64
   | FloatLit of float
@@ -32,10 +35,8 @@ type expr =
   | CharLit of char
   | ArrayLit of expr list
   | Cast of datatype * expr
-  | Variable of ident
   | FunctionCall of ident * expr list
-  | ArrayIndex of expr * expr list
-  | ArrayAssign of expr * expr list * expr
+  | Lval of lvalue
 
 type decl =
     AssigningDecl of ident * expr
