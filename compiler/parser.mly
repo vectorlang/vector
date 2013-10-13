@@ -100,7 +100,7 @@ expr:
   | COMPLEX_LITERAL             { ComplexLit($1) }
   | STRING_LITERAL              { StringLit($1) }
   | CHAR_LITERAL                { CharLit($1) }
-  | LPAREN datatype RPAREN expr { Cast($2, $4) }
+  | datatype LPAREN expr RPAREN { Cast($1, $3) }
   | LCURLY expr_list RCURLY     { ArrayLit($2) }
 
   | ident LPAREN RPAREN               { FunctionCall($1, []) }
