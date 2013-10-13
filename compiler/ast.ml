@@ -34,8 +34,8 @@ type expr =
   | Cast of datatype * expr
   | Variable of ident
   | FunctionCall of ident * expr list
-  | ArrayIndex of expr * expr
-  | ArrayAssign of expr * expr * expr
+  | ArrayIndex of expr * expr list
+  | ArrayAssign of expr * expr list * expr
 
 type decl =
     AssigningDecl of ident * expr
