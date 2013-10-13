@@ -235,7 +235,7 @@ to it so that the value is a valid unsigned type.
 For conversions between any integer and floating-point type, everything up to
 16 bits can be cast to `float` with no loss of precision, and everything up to 32
 bits can be cast to `double` with no loss of precision. For any floating-point
-to integer type conversions, the fraction portion of the floating-point type is 
+to integer type conversions, the fraction portion of the floating-point type is
 discarded.
 
 When a `char` object is converted to an int, its sign is propagated through
@@ -296,7 +296,7 @@ of the expression to be converted to the type in the parentheses.
 
 #### Multiplicative Operators
 
-Multiplicative operators include `*`, `/`, and `%`, and group to the right. 
+Multiplicative operators include `*`, `/`, and `%`, and group to the right.
 There are two operands and both must have arithmetic types.
 
 > *multiplicative-expression* ::=
@@ -498,9 +498,9 @@ memory for the identifier.
 The first primitive declaration declares a primitive type variable unintialized.
 In this case, the value of the identifier before first assignment is unspecified.
 
-The second declaration declares a primitive variable with the given 
-identifier with its initial value set to the result of the expression. 
-The type of the identifier will be inferenced from the expression. 
+The second declaration declares a primitive variable with the given
+identifier with its initial value set to the result of the expression.
+The type of the identifier will be inferenced from the expression.
 If you wish to specify the exact type of the identifier, use an explicit cast.
 
 ### Array Declarations
