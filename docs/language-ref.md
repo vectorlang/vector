@@ -588,21 +588,21 @@ addition, scoping is based on blocks; see the "Scope" section for more details.
 ### Selection Statements
 
 > *selection-statement* ::=
-> `if` *expression* *compound-statement* *elseifs* *else*
-
-> *elseifs* ::=
-> *elseifs* `else if` *expression* *compound-statement* | <epsilon>
-
-> *else* ::= `else` *compound-statement* | <epsilon>
+> `if` `(` *expression* `)` *statement* `else` *statement* |
+> `if` `(` *expression* `)` *statement*
 
 When a selection statement is executed, first the expression associated with the
 `if` is evaluated (with all side effects). If the resulting value is nonzero,
 the first substatement is executed. and control flow resumes after the selection
-statement. Otherwise, for each else-if clause in the selection statement, the
-associated expression is evaluated. If its value is nonzero, its substatement is
-executed and control flow resumes after the selection statement; otherwise, the
-next else-if clause is checked. If there are no more else-if clause and there is
-an else clause, its substatement is executed.
+statement. If the resulting value is zero and there is an `else` clause,
+the substatement of the `else` clause gets executed, and control resumes
+after the selection statement. If there is no `else` clause, control flow
+resumes after the selection statement without executing either of the
+substatements.
+
+If statements can be nested (as in `else if`). If there is ambiguity in which
+`if` an `else` corresponds to, the ambiguity is always resolved to the closest
+non-matched `if`.
 
 ### Iteration Statements
 
