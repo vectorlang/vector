@@ -479,7 +479,15 @@ called.
 
 ### Assignment
 
-TODO: Jon by 10/6
+> *assignment* ::= *identifier* `=` *expression*
+
+An assignment is simply an identifier and an expression separated by an
+equals sign. An assignment is itself an expression returning the value that
+was assigned, so they can be chained. For instance
+
+    a = b = 3;
+
+Assigns the variables a and b to the value 3.
 
 ## Declarations
 
