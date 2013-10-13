@@ -8,15 +8,15 @@ type assignop =
     | LshiftAssn | RshiftAssn
     | BitOrAssn | BitAndAssn | BitXorAssn ;;
 
-type preop = Neg | LogNot | BitNot | PreDec | PreInc ;;
+type preop = Neg | LogNot | BitNot | PreDec | PreInc
 
-type postop = PostDec | PostInc ;;
+type postop = PostDec | PostInc
 
 type datatype =
-    Type of string;;
+    Type of string
 
 type ident =
-    Ident of string;;
+    Ident of string
 
 type expr =
     Binop of expr * binop * expr

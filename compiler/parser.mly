@@ -108,7 +108,7 @@ expr:
 
 expr_list:
   | expr COMMA expr_list { $1 :: $3 }
-  | expr                 { $1 :: [] }
+  | expr                 { [$1] }
 
 decl:
   | ident DECL_EQUAL expr SC               { AssigningDecl($1, $3) }
@@ -136,7 +136,7 @@ statement:
 
 iterator_list:
   | iterator COMMA iterator_list { $1 :: $3 }
-  | iterator { $1 :: [] }
+  | iterator { [$1] }
 
 iterator:
   | ident IN expr COLON expr COLON expr { RangeIterator($1, $3, $5, $7) }
@@ -153,11 +153,11 @@ top_level_statement:
 param:
   | datatype ident { PrimitiveDecl($1, $2) }
   | datatype ident LSQUARE RSQUARE
-      { ArrayDecl($1, $2, IntLit(0l)) }
+      { ArrayDecl($1, $2, []) }
 
 non_empty_param_list:
   | param COMMA non_empty_param_list { $1 :: $3 }
-  | param { $1 :: [] }
+  | param { [$1] }
 
 param_list:
   | non_empty_param_list { $1 }
@@ -165,7 +165,7 @@ param_list:
 
 top_level:
   | top_level_statement top_level {$1 :: $2}
-  | top_level_statement {$1 :: [] }
+  | top_level_statement { [$1] }
 
 statement_seq:
   | statement statement_seq {$1 :: $2 }
