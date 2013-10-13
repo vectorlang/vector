@@ -606,41 +606,58 @@ non-matched `if`.
 
 ### Iteration Statements
 
-> *iteration-statement* ::= `while` *expression* *compound-statement*
+> *iteration-statement* ::= `while` *expression* *statement*
 >
-> > | `do` *compound-statement* `while` *expression* <EOL>
+> > | `for` `(` *iterator-list* `)` *statement*
 >
-> > | `for` *expression*; *expression*; *expression* *compound-statement*
+> > | `pfor` `(` *iterator-list* `)` *statement*
 >
-> > | `for` *identifier* `in` *expression* *compound-statement*
+> *iterator-list* ::= *iterator-list* `,` *iterator* | *iterator*
 >
-> > | `pfor` *identifier* `in` *expression* *compound-statement*
+> *iterator* ::= *identifier* `in` (*array-expression* | *range*)
+>
+> *range* ::= *expression* : *expression* : *expression* |
+> *expression* : *expression* | : *expression* : *expression* | : *expression*
 
 When a while statement is reached, the expression is evaluated (with all side
 effects). If its value is nonzero, its block is executed, and after the
 execution of the block, the while statement is executed again. If the value of
 the expression is zero, the execution of the while statement is finished.
 
-A do-while statement behaves identically to the while statement, except that its
-block is executed before the expression is checked. This means that the block
-executes unconditionally at least once.
+A for statement allows you to sweep one or more variables across an array or
+range, evaluating the inner statement with the identifiers assigned to a new
+set of values each time.
 
-A for statement using the first syntax has three expressions. When the for
-statement is executed, the first expression (also known as the initialization)
-is evaluated with all side effects, and the result is discarded. Then, the
-second expression (also known as the condition) is checked. If its value is
-nonzero, the block of the for statement executes (the statements in the block
-may refer to the identifier). Otherwise, the execution of the for statement is
-finished.  After each time the block executes, the third expression is evaluated
-with all side effects, and the result is discarded.
+The expression following the `in` in an iterator expression can be an array
+or a range. If it is an array, the identifier is assigned to the value of
+each element of the array sequentially. If it is a range, the identifier is
+assigned to each integer in the range.
 
-The second syntax iterates through the block once for each of the elements of the
-expression, which is evaluated once (with side effects) and must be an array
-type. In the block, the identifier refers to the current element of the array.
+A range consists of three integers separated by colons. The integers represent
+the start of the range, the exclusive end of the range, and the step size of
+the range. So, for instance, the range `0:5:2` will generate the sequence
+`0, 2, 4`. The first integer can be ommitted, in which case it will default
+to zero. The third integer can also be ommitted, in which case it will default
+to one. If the third integer is ommitted, the second colon is ommitted as well.
 
-A pfor statement is identical to the second syntax of for statements, but the
-iterations happen in parallel on the GPU. The first syntax is not allowed for
-pfor loops.
+The step size can also be negative, in which case the iteration will proceed
+in reverse order. Therefore, `5:0:-1` will generate the sequence `5, 4, 3, 2, 1`.
+
+If multiple iterators are given in the for statement, the rightmost iterator
+will go to completion before the iterator to the left is advanced.
+For instance, the statement
+
+    for (i in 0:2, j in 0:2) { printf("%d, %d\n", i, j); }
+
+Will result in the output
+
+    0, 0
+    0, 1
+    1, 0
+    1, 1
+
+A pfor statement is identical to the for statement, except the iterations of
+the for statement all happen in parallel on the GPU.
 
 ### Jump Statements
 
