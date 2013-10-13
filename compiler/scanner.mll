@@ -82,6 +82,7 @@ rule token = parse
             as primtype { TYPE(primtype) }
 
         | "return" { RETURN }
+        | "sync" { SYNC }
         | "if" { IF }
         | "else" { ELSE }
         | "for" { FOR }

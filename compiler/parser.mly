@@ -10,7 +10,7 @@
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token LOGNOT BITNOT DEC INC
 %token IF ELSE WHILE FOR PFOR IN
-%token RETURN VOID
+%token RETURN VOID SYNC
 %token EOF
 %token <int32> INT_LITERAL
 %token <int64> INT64_LITERAL
@@ -133,6 +133,8 @@ statement:
 
   | RETURN expr SC { ReturnStatement($2) }
   | RETURN SC { VoidReturnStatement }
+
+  | SYNC SC { SyncStatement }
 
 iterator_list:
   | iterator COMMA iterator_list { $1 :: $3 }
