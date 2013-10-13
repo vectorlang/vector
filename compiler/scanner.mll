@@ -77,7 +77,7 @@ rule token = parse
         | "int32" | "uint32" | "int64" | "uint64"
         | "float" | "float32" | "double" | "float64"
         | "complex" | "complex64" | "complex128"
-        | "void"
+        | "void" | "string"
             as primtype { TYPE(primtype) }
 
         | "return" { RETURN }
