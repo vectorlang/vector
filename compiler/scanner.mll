@@ -2,6 +2,7 @@
 
 let decdigit = ['0'-'9']
 let hexdigit = ['0'-'9' 'a'-'f' 'A'-'Z']
+let letter = ['a'-'z' 'A'-'Z' '_']
 let floating =
       decdigit+ '.' decdigit* | '.' decdigit+
     | decdigit+ ('.' decdigit*)? 'e' '-'? decdigit+
@@ -88,7 +89,7 @@ rule token = parse
         | "pfor" { PFOR }
         | "in" { IN }
 
-        | ['a'-'z' 'A'-'Z' '_']+ decdigit* as ident { IDENT(ident) }
+        | letter (letter | decdigit)* as ident { IDENT(ident) }
 
         | "/*" { comments lexbuf }
         | "//" {inline_comments lexbuf}
