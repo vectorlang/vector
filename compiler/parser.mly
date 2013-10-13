@@ -113,8 +113,8 @@ expr_list:
 decl:
   | ident DECL_EQUAL expr SC               { AssigningDecl($1, $3) }
   | datatype ident SC                      { PrimitiveDecl($1, $2) }
-  | datatype ident LSQUARE RSQUARE SC      { ArrayDecl($1, $2, IntLit(0l)) }
-  | datatype ident LSQUARE expr RSQUARE SC { ArrayDecl($1, $2, $4) }
+  | datatype ident LSQUARE RSQUARE SC      { ArrayDecl($1, $2, []) }
+  | datatype ident LSQUARE expr_list RSQUARE SC { ArrayDecl($1, $2, $4) }
 
 statement:
   | IF LPAREN expr RPAREN statement ELSE statement

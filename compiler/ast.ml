@@ -40,7 +40,7 @@ type expr =
 type decl =
     AssigningDecl of ident * expr
   | PrimitiveDecl of datatype * ident
-  | ArrayDecl of datatype * ident * expr;;
+  | ArrayDecl of datatype * ident * expr list
 
 type iterator =
     RangeIterator of ident * expr * expr * expr
