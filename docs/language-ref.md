@@ -705,4 +705,218 @@ TODO: Decide whether we need this by 10/6
 
 TODO: all by 10/13
 
+> *top-level* ::=
+
+> > *top-level-statement top_level*
+
+> > | *top-level-statement*
+
+
+> *top-level-statement* ::=
+
+> > *datatype* *identifier* *(param-list)* *{statment_seq}*
+
+> > | *declaration*
+
+
+> *statement-seq* ::=
+
+> > *statement statement_seq*
+
+> > | <epsilon>
+
+> *datatype* ::= one of
+
+> > `int` `char` `float` `bool` `char` `int8` `byte` `uint8` `int16` `uint16` `int` 
+> > `int32` `uint` `uint32` `int64` `uint64` `double` `float` `float32` `double`
+> > `float64` `complex` `complex64` `complex128` `string`
+
+> *expression* ::=
+
+> > *expression* `+` *expression*
+
+> > | *expression* `-` *expression*
+
+> > | *expression* `*` *expression*
+
+> > | *expression* `/` *expression*
+
+> > | *expression* `%` *expression*
+
+> > | *expression* `<<` *expression*
+
+> > | *expression* `>>` *expression*
+
+> > | *expression* `<` *expression*
+
+> > | *expression* `<=` *expression*
+
+> > | *expression* `>` *expression*
+
+> > | *expression* `>=` *expression*
+
+> > | *expression* `==` *expression*
+
+> > | *expression* `!=` *expression*
+
+> > | *expression* & *expression*
+
+> > | *expression* ^ *expression*
+
+> > | *expression* | *expression*
+
+> > | *expression* || *expression*
+
+> > | *expression* `&&` *expression*
+
+> > | *lvalue* `+=` *expression*
+
+> > | *lvalue* `-=` *expression*
+
+> > | *lvalue* `*=` *expression*
+
+> > | *lvalue* `/=` *expression*
+
+> > | *lvalue* `%=` *expression*
+
+> > | *lvalue* `<<`= *expression*
+
+> > | *lvalue* `>>`= *expression*
+
+> > | *lvalue* `|=` *expression*
+
+> > | *lvalue* `&=` *expression*
+
+> > | *lvalue* `^=` *expression*
+
+> > | `-`*expression* 
+
+> > | `!`*expression*
+
+> > | `~`*expression*
+
+> > | `--`*expression*
+
+> > | `++`*expression*
+
+> > | *expression*`++`
+
+> > | *expression*`--`
+
+> > | `(`*expression*`)`
+
+> > | *lvalue* `=` *expression*
+
+> > | *lvalue*
+
+> > | *expression* `[`*expression-list`]`
+
+> > | *expression* `[`*expression-list`]` `=` *expression*
+
+> > | *constant* 
+
+> > | *datatype* `(`*expression*`)`
+
+> > | `{`*expression-list*`}`
+
+> > | *identifier* `()`
+
+> > | *identifier* `(`*expression-list*`)`
+
+> *lvalue* ::=
+
+> > *identifier*
+
+> > | *expression* `[`*expression-list*`]`
+
+> *expression-list* ::=
+
+> > *expression* `,` *expression-list*
+
+> > | *expression*
+
+> *declaration* ::=
+
+> > *identifier `:=` *expression*`;`
+
+> > | *datatype* *identifier* `;`
+
+> > | *datatype* *identifier* `[]`;
+
+> > | *datatype* *identifier* `[`*expression-list*`];`
+
+> *statement* ::=
+
+> > `if` `(`*expression*`)` *statement* `else` *statement*
+
+> > | `if` `(`*expression*`)`*statement*
+
+> > | `while` `(` *expression* `)` *statement*
+
+> > | `for` `(` *iterator-list* `)` *statement*
+
+> > | `pfor` `(` *iterator-list* `)` *statement*
+
+> > | `{` *statement_seq* `}`
+
+> > | *expression* `;`
+
+> > | `;`
+
+> > | *declaration*
+
+> > | `return` *expression* `;`
+
+> > | `return;`
+
+> *iterator-list* ::=
+
+> > *iterator* `,` *iterator-list*
+
+> > *iterator*
+
+> *iterator* ::=
+
+> > *identifier* `in` *expression* `:` *expression* `:` *expression*
+
+> > | *identifier* `in` *expression* `:` *expression*
+
+> > | *identifier* `in` *expression* `:` *expression*
+
+> > | *identifier* `in` `:` *expression*
+
+> > | *identifier* `in` `:` *expression*
+
+> *param* ::=
+
+> > *datatype* *identifier*
+
+> > *datatype* *identifier* `[]`
+
+> *non-empty-param-list* ::=
+
+> > *param* `,` *non-empty-param-list*
+
+> > | *param*
+
+> *param-list*
+
+> > *non-empty-param-list*
+
+> > | <epsilon>
+
+> *constant* ::=
+
+> > *int*
+
+> > *int_64*
+
+> > *float*
+
+> > *complex*
+
+> > *string*
+
+> > *char*
+
 [IEEE 754]: http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=57469
