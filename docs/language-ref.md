@@ -45,6 +45,7 @@ The following identifiers are reserved for language keywords
 `complex`
 `complex64`
 `complex128`
+`string`
 `if`
 `else`
 `while`
@@ -80,11 +81,21 @@ escaped character is used, the integer code for the first character is stored
 in the lower-order byte and the integer code for the second character is stored
 in the higher-order byte.
 
+#### String Constants
+
+String constants consist of a series of characters delimited by quotation marks.
+
 #### Floating Constants
 
 Floating constants consist of an integer part, a decimal point, a fraction part,
 an `e` and a signed exponent. If decimal point is not included, then the `e`
 and signed exponent must be included, otherwise, they are optional.
+
+#### Array Constants
+
+Array constants consist of a series of elements of a given type.  Commas are
+used to separate individual elements and the array itself is delimited by
+`[` and `]`.
 
 ## Syntax Notation
 
@@ -138,7 +149,7 @@ floating point numbers, respectively, as defined in [IEEE 754][].
 
 #### Complex Number Types
 
-Complext number types are given by the following literals:
+Complex number types are given by the following literals:
 
  * `complex`, `complex64`
  * `complex128`
@@ -150,6 +161,12 @@ or assigned by appending `.re` or `.im` to the identifier.
     a := #(3.1, 2.1)
     b := a.re // b is 3.1
     a.im = 1.2 // a is now #(3.1, 1.2)
+
+#### String Types
+
+String types are given by the following literal:
+
+ * `string`
 
 ### Array Types
 
