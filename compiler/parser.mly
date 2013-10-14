@@ -143,11 +143,14 @@ iterator_list:
   | iterator { [$1] }
 
 iterator:
-  | ident IN expr COLON expr COLON expr { RangeIterator($1, $3, $5, $7) }
-  | ident IN expr COLON expr { RangeIterator($1, $3, $5, IntLit(1l)) }
-  | ident IN COLON expr COLON expr { RangeIterator($1, IntLit(0l), $4, $6) }
-  | ident IN COLON expr { RangeIterator($1, IntLit(0l), $4, IntLit(1l)) }
+  | ident IN range { RangeIterator($1, $3) }
   | ident IN expr { ArrayIterator($1, $3) }
+
+range:
+  | expr COLON expr COLON expr { Range($1, $3, $5) }
+  | expr COLON expr { Range($1, $3, IntLit(1l)) }
+  | COLON expr COLON expr { Range(IntLit(0l), $2, $4) }
+  | COLON expr { Range(IntLit(0l), $2, IntLit(1l)) }
 
 top_level_statement:
   | datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY

@@ -43,8 +43,11 @@ type decl =
   | PrimitiveDecl of datatype * ident
   | ArrayDecl of datatype * ident * expr list
 
+type range =
+    Range of expr * expr * expr
+
 type iterator =
-    RangeIterator of ident * expr * expr * expr
+    RangeIterator of ident * range
   | ArrayIterator of ident * expr
 
 type statement =
