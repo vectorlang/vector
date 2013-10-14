@@ -877,15 +877,19 @@ TODO: all by 10/13
 
 > *iterator* ::=
 
-> > *identifier* `in` *expression* `:` *expression* `:` *expression*
+> > *identifier* `in` *range*
 
-> > | *identifier* `in` *expression* `:` *expression*
+> > | *identifier* `in`  *expression*
 
-> > | *identifier* `in` *expression* `:` *expression*
+> *range* ::=
 
-> > | *identifier* `in` `:` *expression*
+> > *expression* `:` *expression* `:` *expression*
 
-> > | *identifier* `in` `:` *expression*
+> > *expression* `:` *expression*
+
+> > `:` *expression* `:` *expression*
+
+> > `:` *expression*
 
 > *param* ::=
 
