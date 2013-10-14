@@ -759,13 +759,13 @@ TODO: all by 10/13
 
 > > | *expression* `!=` *expression*
 
-> > | *expression* & *expression*
+> > | *expression* `&` *expression*
 
-> > | *expression* ^ *expression*
+> > | *expression* `^` *expression*
 
-> > | *expression* | *expression*
+> > | *expression* `|` *expression*
 
-> > | *expression* || *expression*
+> > | *expression* `||` *expression*
 
 > > | *expression* `&&` *expression*
 
@@ -837,7 +837,7 @@ TODO: all by 10/13
 
 > *declaration* ::=
 
-> > *identifier `:=` *expression*`;`
+> > *identifier* `:=` *expression*`;`
 
 > > | *datatype* *identifier* `;`
 
