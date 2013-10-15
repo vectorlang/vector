@@ -1,13 +1,10 @@
 import os
 
-ocaml_object = Builder(action = '$OCAMLC -c $OCAML_FLAGS $SOURCE')
-ocaml_program = Builder(action = '$OCAMLC $OCAML_FLAGS $SOURCES -o $TARGET')
-ocamllex = Builder(action = 'ocamllex $SOURCE')
-ocamlyacc = Builder(action = 'ocamlyacc $SOURCE')
+env = Environment(ENV=os.environ)
 
 AddOption('--ocamlc', dest='ocamlc', default='ocamlc',
           help = 'Ocaml compiler to use')
-AddOption('--ocaml_flags', dest='ocaml_flags', default='',
+AddOption('--ocaml_flags', dest='ocaml_flags', default='-I compiler',
           help = 'Ocaml compiler flags')
 AddOption('--native', dest='native', default=False, action='store_true',
           help = 'Compile native code instead of bytecode')
@@ -20,8 +17,10 @@ if GetOption('native'):
     ocamlc = 'ocamlopt'
     obj_ext = '.cmx'
 
-env = Environment(ENV = os.environ)
-
+ocaml_object = Builder(action = '$OCAMLC -c $OCAML_FLAGS $SOURCE')
+ocaml_program = Builder(action = '$OCAMLC $OCAML_FLAGS $SOURCES -o $TARGET')
+ocamllex = Builder(action = 'ocamllex $SOURCE')
+ocamlyacc = Builder(action = 'ocamlyacc $SOURCE')
 env.Append(OCAMLC = ocamlc, OCAML_FLAGS = ocaml_flags)
 env.Append(BUILDERS = {'OcamlObject': ocaml_object,
                        'OcamlProgram': ocaml_program,
