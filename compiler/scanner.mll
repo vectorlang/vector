@@ -14,6 +14,7 @@ rule token = parse
   | ':' { COLON }
   | '.' { DOT }
   | ',' { COMMA }
+  | '@' { AT }
   | '(' { LPAREN }  | ')' { RPAREN }
   | '{' { LCURLY }  | '}' { RCURLY }
   | '[' { LSQUARE } | ']' { RSQUARE }

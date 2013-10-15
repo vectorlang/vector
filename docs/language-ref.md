@@ -475,6 +475,46 @@ A function may call itself.
 The result of evaluating the function call is the value returned by the function
 called.
 
+### Higher-Order Functions
+
+> *higher-order-function-call* ::=
+> > `@` *identifier* `(` *function-identifier* `,` *argument-list* `)`
+
+Vector supports a set of builtin higher order functions. Since these functions
+require compile-time support, they have a slightly modified syntax to
+distinguish them from normal functions. Higher-order functions start with
+an at sign and take a function name as the first argument. Currently-supported
+higher-order functions are `@map` and `@reduce`. Map takes a function of a
+single argument and an array and returns an array resulting from applying the
+function to each element of the array. This mapping operation is performed on
+the GPU. For instance,
+
+    int evenorodd(int num)
+    {
+        return num % 2;
+    }
+
+    parities := @map(evenorodd, {1, 2, 3, 4, 5});
+
+The `parities` variable will get the value `{1, 0, 1, 0, 1}`, where each
+element is 1 if the corresponding input element was odd of 0 if the input
+element was even.
+
+The reduce HOF takes a function of two variables and an array and returns the
+resulting scalar value from applying the function to pairs of the inputs.
+For instance,
+
+    int add(int a, int b)
+    {
+        return a + b;
+    }
+
+    sum := @reduce(add, {1, 2, 3, 4, 5});
+
+This code takes the sum of the array. There is no guarantee on the order in
+which items in the array are reduced. Therefore, the reducing function
+must be associative and commutative or the result with be non-deterministic.
+
 ### Assignment
 
 > *assignment* ::= *identifier* `=` *expression*

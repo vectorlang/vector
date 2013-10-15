@@ -1,7 +1,7 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE
-%token DOT COMMA SC COLON
+%token DOT COMMA SC COLON AT
 %token EQUAL DECL_EQUAL
 %token PLUS_EQUALS MINUS_EQUALS TIMES_EQUALS DIVIDE_EQUALS MODULO_EQUALS
 %token LSHIFT_EQUALS RSHIFT_EQUALS BITOR_EQUALS BITAND_EQUALS BITXOR_EQUALS
@@ -107,6 +107,8 @@ expr:
 
   | ident LPAREN RPAREN               { FunctionCall($1, []) }
   | ident LPAREN expr_list RPAREN { FunctionCall ($1, $3) }
+  | AT ident LPAREN ident COMMA expr_list RPAREN
+      { HigherOrderFunctionCall($2, $4, $6) }
 
 expr_list:
   | expr COMMA expr_list { $1 :: $3 }
