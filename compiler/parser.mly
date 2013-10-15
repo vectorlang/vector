@@ -120,8 +120,9 @@ decl:
 
 statement:
   | IF LPAREN expr RPAREN statement ELSE statement
-      { IfElseStatement($3, $5, $7) }
-  | IF LPAREN expr RPAREN statement %prec IFX {IfStatement($3,$5)}
+      { IfStatement($3, $5, $7) }
+  | IF LPAREN expr RPAREN statement %prec IFX
+      { IfStatement($3, $5, EmptyStatement) }
 
   | WHILE LPAREN expr RPAREN statement { WhileStatement($3, $5) }
   | FOR LPAREN iterator_list RPAREN statement { ForStatement($3, $5) }

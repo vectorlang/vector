@@ -55,8 +55,7 @@ type statement =
   | Declaration of decl
   | Expression of expr
   | EmptyStatement
-  | IfElseStatement of expr * statement * statement
-  | IfStatement of expr * statement
+  | IfStatement of expr * statement * statement
   | WhileStatement of expr * statement
   | ForStatement of iterator list * statement
   | PforStatement of iterator list * statement
