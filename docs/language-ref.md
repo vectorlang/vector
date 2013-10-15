@@ -192,8 +192,6 @@ So `a[1, 2]` will access row 1, column 2 of the two-dimensional array `a`.
 
 ### Function Types
 
-> *function-type* ::= *primitive-type* `()` | *array-type* `()`
-
 Functions take in zero or more variables of primitive or array types and
 optionally return a variable of primitive or array type.
 
