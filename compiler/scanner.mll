@@ -14,49 +14,28 @@ rule token = parse
   | ':' { COLON }
   | '.' { DOT }
   | ',' { COMMA }
-  | '(' { LPAREN }
-  | ')' { RPAREN }
-  | '{' { LCURLY }
-  | '}' { RCURLY }
-  | '[' { LSQUARE }
-  | ']' { RSQUARE }
-  | '=' { EQUAL }
-  | ":=" { DECL_EQUAL }
+  | '(' { LPAREN }  | ')' { RPAREN }
+  | '{' { LCURLY }  | '}' { RCURLY }
+  | '[' { LSQUARE } | ']' { RSQUARE }
+  | '=' { EQUAL } | ":=" { DECL_EQUAL }
 
-  | '+' { PLUS }
-  | '-' { MINUS }
-  | '*' { TIMES }
-  | '/' { DIVIDE }
+  | '+' { PLUS } | '-' { MINUS } | '*' { TIMES } | '/' { DIVIDE }
   | '%' { MODULO }
-  | "<<" { LSHIFT }
-  | ">>" { RSHIFT }
-  | '<' { LT }
-  | "<=" { LTE }
-  | '>' { GT }
-  | ">=" { GTE }
-  | "==" { EE }
-  | "!=" { NE }
-  | '&' { BITAND }
-  | '^' { BITXOR }
-  | '|' { BITOR }
-  | "&&" { LOGAND }
-  | "||" { LOGOR }
+  | "<<" { LSHIFT } | ">>" { RSHIFT }
+  | '<' { LT } | "<=" { LTE }
+  | '>' { GT } | ">=" { GTE }
+  | "==" { EE } | "!=" { NE }
+  | '&' { BITAND } | '^' { BITXOR } | '|' { BITOR }
+  | "&&" { LOGAND } | "||" { LOGOR }
 
-  | '!' { LOGNOT }
-  | '~' { BITNOT }
-  | "++" { INC }
-  | "--" { DEC }
+  | '!' { LOGNOT } | '~' { BITNOT }
+  | "++" { INC } | "--" { DEC }
 
-  | "+=" { PLUS_EQUALS }
-  | "-=" { MINUS_EQUALS }
-  | "*=" { TIMES_EQUALS }
-  | "/-" { DIVIDE_EQUALS }
+  | "+=" { PLUS_EQUALS } | "-=" { MINUS_EQUALS }
+  | "*=" { TIMES_EQUALS } | "/-" { DIVIDE_EQUALS }
   | "%=" { MODULO_EQUALS }
-  | "<<+" { LSHIFT_EQUALS }
-  | ">>=" { RSHIFT_EQUALS }
-  | "|=" { BITOR_EQUALS }
-  | "&=" { BITAND_EQUALS }
-  | "^=" { BITXOR_EQUALS }
+  | "<<+" { LSHIFT_EQUALS } | ">>=" { RSHIFT_EQUALS }
+  | "|=" { BITOR_EQUALS } | "&=" { BITAND_EQUALS } | "^=" { BITXOR_EQUALS }
 
   | decdigit+ | "0x" hexdigit+
       as lit { INT_LITERAL(Int32.of_string lit) }
