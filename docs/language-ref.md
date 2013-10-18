@@ -740,9 +740,9 @@ supersede variables declared in higher scopes.
 > *include-statement* ::= `include` *string-literal*  `;`
 
 The `include` statement allows a Vector program to include code from other
-file.  The statement works for both other Vector Files and C/C++ header files.
-It simply takes a file name and includes the code from that file.  The file
-extension is optional.
+files. It take a file name as a string literal and includes code from that file.
+The file could either be another Vector program or a C/C++ header file, and
+the file extension is optional.
 
 ## Grammar
 
@@ -759,12 +759,15 @@ extension is optional.
 
 > > | *declaration*
 
+> > | *include-statement*
 
 > *statement-seq* ::=
 
 > > *statement statement_seq*
 
 > > | <epsilon>
+
+> *include-statement* ::= `include` *string-literal*  `;`
 
 > *datatype* ::= one of
 
