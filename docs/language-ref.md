@@ -735,13 +735,16 @@ section of code contained by a function, conditional, or looping construct. Each
 nested block creates a new scope, and variables declared in the new scope
 supersede variables declared in higher scopes.
 
-## Preprocessing
+## Include Statements
 
-TODO: Decide whether we need this by 10/6
+> *include-statement* ::= `include` *string-literal*  `;`
+
+The `include` statement allows a Vector program to include code from other
+file.  The statement works for both other Vector Files and C/C++ header files.
+It simply takes a file name and includes the code from that file.  The file
+extension is optional.
 
 ## Grammar
-
-TODO: all by 10/13
 
 > *top-level* ::=
 
@@ -827,7 +830,7 @@ TODO: all by 10/13
 
 > > | *lvalue* `^=` *expression*
 
-> > | `-`*expression* 
+> > | `-`*expression*
 
 > > | `!`*expression*
 
