@@ -53,6 +53,8 @@ rule token = parse
   | '\'' ('\\' _ | [^ '\''] | "\\x" hexdigit hexdigit as lit) '\''
       { CHAR_LITERAL((Scanf.unescaped(lit)).[0]) }
 
+  | "include" {INCLUDE}
+
   | "bool" | "char" | "byte" | "int" | "uint"
   | "int8" | "uint8" | "int16" | "uint16"
   | "int32" | "uint32" | "int64" | "uint64"

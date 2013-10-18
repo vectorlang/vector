@@ -1,6 +1,7 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE
+%token INCLUDE
 %token DOT COMMA SC COLON AT
 %token EQUAL DECL_EQUAL
 %token PLUS_EQUALS MINUS_EQUALS TIMES_EQUALS DIVIDE_EQUALS MODULO_EQUALS
@@ -159,6 +160,7 @@ top_level_statement:
   | datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
       { FunctionDecl($1, $2, $4, $7) }
   | decl { Declaration($1) }
+  | INCLUDE STRING_LITERAL SC { IncludeStatement($2) }
 
 param:
   | datatype ident { PrimitiveDecl($1, $2) }

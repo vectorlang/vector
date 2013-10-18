@@ -55,6 +55,7 @@ type statement =
     CompoundStatement of statement list
   | Declaration of decl
   | Expression of expr
+  | IncludeStatement of string 
   | EmptyStatement
   | IfStatement of expr * statement * statement
   | WhileStatement of expr * statement
