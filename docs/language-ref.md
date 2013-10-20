@@ -96,7 +96,7 @@ and signed exponent must be included, otherwise, they are optional.
 
 Array constants consist of a series of elements of a given type.  Commas are
 used to separate individual elements and the array itself is delimited by
-`[` and `]`.
+`{` and `}`.
 
 ## Syntax Notation
 
