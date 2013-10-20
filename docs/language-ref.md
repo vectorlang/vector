@@ -775,7 +775,7 @@ the file extension is optional.
 
 > *datatype* ::= one of
 
-> > `int` `char` `float` `bool` `char` `int8` `byte` `uint8` `int16` `uint16` `int` 
+> > `int` `char` `float` `bool` `char` `int8` `byte` `uint8` `int16` `uint16` `int`
 > > `int32` `uint` `uint32` `int64` `uint64` `double` `float` `float32` `double`
 > > `float64` `complex` `complex64` `complex128` `string`
 
@@ -861,7 +861,7 @@ the file extension is optional.
 
 > > | *expression* `[`*expression-list`]` `=` *expression*
 
-> > | *constant* 
+> > | *constant*
 
 > > | *datatype* `(`*expression*`)`
 
