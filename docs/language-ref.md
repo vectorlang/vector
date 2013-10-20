@@ -323,6 +323,7 @@ is performed.
 
 The `+` operator gives the sum of the two operands, and the `-` operator gives
 the difference.
+
 #### Shift Operators
 
 The shift operators include *<<* and *>>*.  These operators group left to right,
@@ -342,11 +343,15 @@ by *E2* bits, and *E1 >> E2* is interpreted as *E1* right-shifted *E2* bits.
 Relational operators group left-to-right.
 
 > *relational-expression* ::=
+
 > > *shift-expression*
 
 > > *relational-expression* `>` *shift-expression*
+
 > > *relational-expression* `<` *shift-expression*
+
 > > *relational-expression* `<=` *shift-expression*
+
 > > *relational-expression* `>=` *shift-expression*
 
 The operator `>` denotes the greater-than operation, `<` denotes less-than,
