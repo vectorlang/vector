@@ -92,11 +92,6 @@ Floating constants consist of an integer part, a decimal point, a fraction part,
 an `e` and a signed exponent. If decimal point is not included, then the `e`
 and signed exponent must be included, otherwise, they are optional.
 
-#### Array Constants
-
-Array constants consist of a series of elements of a given type.  Commas are
-used to separate individual elements and the array itself is delimited by
-`{` and `}`.
 
 ## Syntax Notation
 
@@ -190,6 +185,9 @@ set the value at index 4 of the array to 3.
 Arrays can also be multi-dimensional. Indexing into a multi-dimensional
 array is achieved by separating the dimensional index numbers by commas.
 So `a[1, 2]` will access row 1, column 2 of the two-dimensional array `a`.
+
+Arrays can be initialized using comma-seperated list delimited by curly braces
+`{}`.
 
 ### Function Types
 
