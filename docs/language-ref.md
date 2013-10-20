@@ -83,7 +83,8 @@ in the higher-order byte.
 
 #### String Constants
 
-String constants consist of a series of characters delimited by quotation marks.
+String constants consist of a series of characters delimited by quotation marks
+`""`.
 
 #### Floating Constants
 
