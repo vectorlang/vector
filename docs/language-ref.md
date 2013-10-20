@@ -272,24 +272,13 @@ The operators in postfix expressions group left to right.
 
 > > | *unary-operator cast-expression*
 
-> >  | `sizeof` *unary-expression*
-
-> >  | `sizeof`(*type-name*)
-
-unary operators include `-`, `!`. The `-` unary operator returns the negative
-of its operand.  If necessary, the operand is promoted to a wider type. For
-unsigned quantities, the negative is computed by subtracting the promoted value
-from the largest value of the promoted type and adding 1. For the case that the
- value is 0, the value returned is also 0.
-
-#### Cast Operations
-
-A unary expression with a parenthesized type preceding it causes the value
-of the expression to be converted to the type in the parentheses.
-> *cast-expression* ::=
-> >  *unary expression*
-
-> > | *(type-name)* *cast-expression*
+unary operators include `-`, `!`, and `~`. The `-` unary operator returns the
+negative of its operand. If necessary, the operand is promoted to a wider type.
+For unsigned quantities, the negative is computed by subtracting the promoted
+value from the largest value of the promoted type and adding 1.
+For the case that the value is 0, the value returned is also 0.
+The `!` operator returns 1 if its operand is 0 and returns 0 otherwise.
+The `~` operator returns the one's complement of its operand.
 
 #### Multiplicative Operators
 
