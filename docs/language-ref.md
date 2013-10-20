@@ -449,6 +449,27 @@ of the colon. If both the second and third operands have arithmetic values,
 then arithmetic conversions are performed such that this expression returns
 the same type.
 
+### Operator Precedence and Associativity
+
+For binary operators, it is necessary to specify operator precedence and
+associativity in order to avoid ambiguity. The precedence of operators
+in vector from highest to lowest precedence is as follows.
+
+ * `*`, `/`, `%`
+ * `+`, `-`
+ * `<<`, `>>`
+ * `<`, `<=`, `>`, `>=`
+ * `==`, `!=`
+ * `&`
+ * `^`
+ * `|`
+ * `&&`
+ * `||`
+ * `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `<<=`, `>>=`, `|=`, `&=`, `^=`
+
+All of these operators are associated left-to-right, with the exception of
+the last row (the assignment operators) which are associated right-to-left.
+
 ### Function Calls
 
 > *function-call* ::= *identifier* `(` *argument-list* `)` | *identifier* `()`
