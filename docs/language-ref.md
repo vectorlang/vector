@@ -482,16 +482,16 @@ called.
 ### Higher-Order Functions
 
 > *higher-order-function-call* ::=
-> > `@` *identifier* `(` *function-identifier* `,` *argument-list* `)`
+> > `@` *identifier* `(` *identifier* `,` *argument-list* `)`
 
 Vector supports a set of builtin higher order functions. Since these functions
 require compile-time support, they have a slightly modified syntax to
 distinguish them from normal functions. Higher-order functions start with
-an at sign and take a function name as the first argument. Currently-supported
-higher-order functions are `@map` and `@reduce`. Map takes a function of a
-single argument and an array and returns an array resulting from applying the
-function to each element of the array. This mapping operation is performed on
-the GPU. For instance,
+an at sign and take a function identifier as the first argument.
+Currently-supported higher-order functions are `@map` and `@reduce`.
+Map takes a function of a single argument and an array and returns an array
+resulting from applying the function to each element of the array.
+This mapping operation is performed on the GPU. For instance,
 
     int evenorodd(int num)
     {
