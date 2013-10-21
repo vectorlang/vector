@@ -99,7 +99,7 @@ In this manual, a `typewriter` typeface indicates literal words and characters.
 An *italic* typeface indicates a category with special meaning. Lists are
 presented either inline or using bullets. If two items are presented on same
 line of a bulleted list separated by commas, they are equivalent.
-<epsilon> is used to indicate the empty string.
+&lt;epsilon&gt; is used to indicate the empty string.
 Backus-Naur Form is used to express the grammar of Vector.
 
 ## Types
@@ -646,7 +646,7 @@ nested function declarations are not allowed.
 
 > *statement-list* ::= *statement-list* *statement*
 
-> > | <epsilon>
+> > | &lt;epsilon&gt;
 
 A compound statement is also called a *block*. When a block is executed, each of
 the statements in its statement list are executed in order. Blocks allow the
@@ -791,7 +791,7 @@ the file extension is optional.
 
 > > *statement statement-seq*
 
-> > | <epsilon>
+> > | &lt;epsilon&gt;
 
 > *include-statement* ::= `include` *string-literal* `;`
 
@@ -984,7 +984,7 @@ the file extension is optional.
 
 > > *non-empty-param-list*
 
-> > | <epsilon>
+> > | &lt;epsilon&gt;
 
 > *constant* ::=
 
