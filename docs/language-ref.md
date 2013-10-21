@@ -877,6 +877,9 @@ the file extension is optional.
 
 > > | *identifier* `(`*expression-list*`)`
 
+> > | `@`*identifier* `(`*identifier*`,`*expression-list*`)`
+
+
 > *lvalue* ::=
 
 > > *identifier*
