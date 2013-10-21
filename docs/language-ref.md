@@ -105,6 +105,7 @@ Backus-Naur Form is used to express the grammar of Vector.
 ## Types
 
 > *type-specifier* ::=
+
 > *primitive-type* | *array-type* | *function-type* | `void`
 
 Each identifier is associated with a type that determines how it is interpreted.
@@ -360,7 +361,7 @@ and each operator must be of an integral type.
 
 > > *expression* `<<` *expression*
 
-> > *expression* `>>` *expression*
+> > | *expression* `>>` *expression*
 
 The value of shift expression *E1 << E2* is interpreted as *E1* left-shifted
 by *E2* bits, and *E1 >> E2* is interpreted as *E1* right-shifted *E2* bits.
@@ -373,11 +374,11 @@ Relational operators group left-to-right.
 
 > > *expression* `>` *expression*
 
-> > *expression* `<` *expression*
+> > | *expression* `<` *expression*
 
-> > *expression* `<=` *expression*
+> > | *expression* `<=` *expression*
 
-> > *expression* `>=` *expression*
+> > | *expression* `>=` *expression*
 
 The operator `>` denotes the greater-than operation, `<` denotes less-than,
 `>=` denotes greater-than-or-equal, and `<=` denotes less-then-or-equal.
@@ -488,6 +489,7 @@ called.
 ### Higher-Order Functions
 
 > *higher-order-function-call* ::=
+
 > > `@` *identifier* `(` *identifier* `,` *argument-list* `)`
 
 Vector supports a set of builtin higher order functions. Since these functions
@@ -539,15 +541,22 @@ Assigns the variables a and b to the value 3.
 
 ## Declarations
 
-> *declaration* ::= *primitive-declaration* | *array-declaration* |
-> *function-declaration*
+> *declaration* ::=
+
+> > *primitive-declaration*
+
+> > | *array-declaration*
+
+> > | *function-declaration*
 
 A declaration specifies the type of an identifier; it may or may not allocate
 memory for the identifier.
 
 ### Primitive Type Declarations
 
-> *primitive-declaration* ::= *primitive-type-specifier* *identifier* `;`
+> *primitive-declaration* ::=
+
+> > *primitive-type-specifier* *identifier* `;`
 
 > > | *identifier* `:=` *expression* `;`
 
@@ -583,7 +592,8 @@ is identical to the initializing declaration for primitives.
 ### Function Declarations
 
 > *function-declaration* ::=
-> *type-specifier* *identifier* `(` *parameter-list* `)` *compound-statement*
+
+> > *type-specifier* *identifier* `(` *parameter-list* `)` *compound-statement*
 
 > > | *type-specifier* *identifier* `()` *compound-statement*
 
@@ -646,8 +656,10 @@ addition, scoping is based on blocks; see the "Scope" section for more details.
 ### Selection Statements
 
 > *selection-statement* ::=
-> `if` `(` *expression* `)` *statement* `else` *statement* |
-> `if` `(` *expression* `)` *statement*
+
+> > `if` `(` *expression* `)` *statement* `else` *statement*
+
+> > | `if` `(` *expression* `)` *statement*
 
 When a selection statement is executed, first the expression associated with the
 `if` is evaluated (with all side effects). If the resulting value is nonzero,
@@ -665,17 +677,24 @@ non-matched `if`.
 ### Iteration Statements
 
 > *iteration-statement* ::= `while` *expression* *statement*
->
+
 > > | `for` `(` *iterator-list* `)` *statement*
->
+
 > > | `pfor` `(` *iterator-list* `)` *statement*
->
+
 > *iterator-list* ::= *iterator-list* `,` *iterator* | *iterator*
->
+
 > *iterator* ::= *identifier* `in` (*array-expression* | *range*)
->
-> *range* ::= *expression* : *expression* : *expression* |
-> *expression* : *expression* | : *expression* : *expression* | : *expression*
+
+> *range* ::=
+
+> > *expression* : *expression* : *expression*
+
+> > | *expression* : *expression*
+
+> > | : *expression* : *expression* 
+
+> > | : *expression*
 
 When a while statement is reached, the expression is evaluated (with all side
 effects). If its value is nonzero, its block is executed, and after the
@@ -735,8 +754,6 @@ all other threads reach the `sync` statement before continuing.
 
 ## External Declarations
 
-TODO: Jon by 10/6. Includes function definitions.
-
 ## Scope
 
 Vector uses block-level scoping. A block is another name for a compound
@@ -758,14 +775,13 @@ the file extension is optional.
 
 > *top-level* ::=
 
-> > *top-level-statement top_level*
+> > *top-level-statement top-hevel*
 
 > > | *top-level-statement*
 
-
 > *top-level-statement* ::=
 
-> > *datatype* *identifier* *(param-list)* *{statment_seq}*
+> > *datatype* *identifier* *(param-list)* `{` *statment-seq* `}`
 
 > > | *declaration*
 
@@ -773,17 +789,21 @@ the file extension is optional.
 
 > *statement-seq* ::=
 
-> > *statement statement_seq*
+> > *statement statement-seq*
 
 > > | <epsilon>
 
-> *include-statement* ::= `include` *string-literal*  `;`
+> *include-statement* ::= `include` *string-literal* `;`
 
-> *datatype* ::= one of
+> *datatype* ::=
 
-> > `int` `char` `float` `bool` `char` `int8` `byte` `uint8` `int16` `uint16` `int`
-> > `int32` `uint` `uint32` `int64` `uint64` `double` `float` `float32` `double`
-> > `float64` `complex` `complex64` `complex128` `string`
+> > `int` | `char` | `float` | `bool` | `char` | `int8` | `byte` | `uint8`
+
+> > | `int16` | `uint16` | `int` | `int32` | `uint` | `uint32` | `int64`
+
+> > | `uint64` | `double` | `float` | `float32` | `double` | `float64` 
+
+> > | `complex` | `complex64` | `complex128` | `string`
 
 > *expression* ::=
 
@@ -914,7 +934,7 @@ the file extension is optional.
 
 > > | `pfor` `(` *iterator-list* `)` *statement*
 
-> > | `{` *statement_seq* `}`
+> > | `{` *statement-seq* `}`
 
 > > | *expression* `;`
 
@@ -960,7 +980,7 @@ the file extension is optional.
 
 > > | *param*
 
-> *param-list*
+> *param-list* ::=
 
 > > *non-empty-param-list*
 
@@ -970,7 +990,7 @@ the file extension is optional.
 
 > > *int*
 
-> > *int_64*
+> > *int64*
 
 > > *float*
 
