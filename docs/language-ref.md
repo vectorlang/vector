@@ -792,7 +792,9 @@ the file extension is optional.
 
 > *top-level-statement* ::=
 
-> > *datatype* *identifier* *(param-list)* `{` *statment-seq* `}`
+> > *datatype* *identifier* `(` *param-list* `)` `{` *statment-seq* `}`
+
+> > *datatype* *identifier* `(` *param-list* `);`
 
 > > | *declaration*
 
