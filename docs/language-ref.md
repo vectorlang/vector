@@ -608,6 +608,18 @@ commas. Only the non-initializing primitive declarations and non-sizing array
 declarations are allowed. The identifiers specified by the parameter list are
 available in the function body.
 
+### Forward Declarations
+
+> *forward-declaration* ::=
+> *type-specifier* *identifier* `(` *parameter-list* `);`
+
+> > | *type-specifier* *identifier* `();`
+
+A forward declaration is the same as a function declaration except instead
+of having a compound statement implementing the function, it is terminated by
+a semicolon. Forward declarations are mainly used for declaring functions that
+are implemented in C.
+
 ## Statements
 
 > *statement* ::= *expression-statement*

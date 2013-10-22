@@ -159,6 +159,8 @@ range:
 top_level_statement:
   | datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
       { FunctionDecl($1, $2, $4, $7) }
+  | datatype ident LPAREN param_list RPAREN SC
+      { ForwardDecl($1, $2, $4) }
   | decl { Declaration($1) }
   | INCLUDE STRING_LITERAL SC { IncludeStatement($2) }
 
