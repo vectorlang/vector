@@ -592,9 +592,13 @@ is identical to the initializing declaration for primitives.
 
 > > *type-specifier* *identifier* `(` *parameter-list* `)` *compound-statement*
 
-> > | *type-specifier* *identifier* `()` *compound-statement*
+> *param-list* ::=
 
-> *parameter-list* ::= *parameter-list*, *declaration* | *declaration*
+> > *non-empty-param-list* | &lt;epsilon&gt;
+
+> *non-empty-param-list* ::=
+
+> > *param* `,` *non-empty-param-list* | *param*
 
 A function declaration declares a function that accepts the parameters given by
 the parameter list and, when called, evaluates the given block (also known as a
@@ -609,8 +613,6 @@ available in the function body.
 
 > *forward-declaration* ::=
 > *type-specifier* *identifier* `(` *parameter-list* `);`
-
-> > | *type-specifier* *identifier* `();`
 
 A forward declaration is the same as a function declaration except instead
 of having a compound statement implementing the function, it is terminated by
