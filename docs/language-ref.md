@@ -812,7 +812,7 @@ the file extension is optional.
 
 > > | `int16` | `uint16` | `int` | `int32` | `uint` | `uint32` | `int64`
 
-> > | `uint64` | `double` | `float` | `float32` | `double` | `float64` 
+> > | `uint64` | `double` | `float` | `float32` | `double` | `float64`
 
 > > | `complex` | `complex64` | `complex128` | `string`
 
@@ -894,9 +894,9 @@ the file extension is optional.
 
 > > | *lvalue*
 
-> > | *expression* `[`*expression-list`]`
+> > | *expression* `[`*expression-list*`]`
 
-> > | *expression* `[`*expression-list`]` `=` *expression*
+> > | *expression* `[`*expression-list*`]` `=` *expression*
 
 > > | *constant*
 
