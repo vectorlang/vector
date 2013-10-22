@@ -12,6 +12,7 @@ set -e
 
 scons -c > /dev/null
 scons > /dev/null
+cd compiler
 
 PARSE='
 open Ast;;\n
