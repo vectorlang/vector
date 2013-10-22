@@ -21,9 +21,6 @@ case-sensitive.
 
 The following identifiers are reserved for language keywords
 
-`int`
-`char`
-`float`
 `bool`
 `char`
 `int8`
