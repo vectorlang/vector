@@ -10,6 +10,7 @@ set -e
 #
 # It contains many kludges.
 
+cd ../
 scons -c > /dev/null
 scons > /dev/null
 cd compiler
