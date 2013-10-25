@@ -1,6 +1,8 @@
 include "hello";
 a := 4 + 5;
 
+int b(int x, int y);
+
 int a() {
 	if (x < y) {
 		x = 1;
@@ -8,4 +10,7 @@ int a() {
 		x = 2;
 	}
 	return x;
+	while (4 == 3) {
+		i += 2;
+	}
 }

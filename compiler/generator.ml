@@ -1,7 +1,11 @@
 open Ast
+open Complex
 
 let generate_ident = function
     Ident(s) -> "$" ^ s
+
+let generate_datatype = function
+    Type(s) -> "#" ^ s
 
 let rec generate_lvalue = function
     Variable(i) -> generate_ident i
@@ -45,20 +49,58 @@ and generate_expr = function
       in
       generate_lvalue lvalue ^ " " ^ _op ^ " " ^ generate_expr e
     )
+  | Preop(op,e) -> (
+      let _op = match op with
+          Neg -> "-"
+        | LogNot -> "!"
+        | BitNot -> "~"
+        | PreDec -> "--"
+        | PreInc -> "++"
+      in
+      _op ^ generate_expr e
+    )
+  | Postop(e,op) -> (
+      let _op = match op with
+          PostDec -> "--"
+        | PostInc -> "++"
+      in
+      generate_expr e ^ _op
+    )
   | Assign(lvalue, e) -> generate_lvalue lvalue ^ " = " ^ generate_expr e
   | IntLit(i) -> Int32.to_string i
   | Int64Lit(i) -> Int64.to_string i
+  | FloatLit(f) -> string_of_float f
+  | ComplexLit(c) -> "(" ^ string_of_float c.re ^ " + i" ^ string_of_float c.im ^ ")"
   | StringLit(s) -> "\"" ^ s ^ "\""
+  | CharLit(c) -> "'" ^ Char.escaped c ^ "'"
+  | ArrayLit(es) -> "{" ^ generate_expr_list es ^ "}"
+  | Cast(d,e) -> "(" ^ generate_datatype d ^ ") (" ^ generate_expr e ^ ")"
+  | FunctionCall(i,es) -> generate_ident i ^ "(" ^ generate_expr_list es ^ ")"
+  | HigherOrderFunctionCall(i1,i2,es) -> "@" ^ generate_ident i1 ^ "(" ^ generate_ident i2 ^ ", " ^ generate_expr_list es ^ ")"
   | Lval(lvalue) -> generate_lvalue lvalue
-  | _ -> "_"
-
-let generate_datatype = function
-  Type(s) -> "#" ^ s
+and generate_expr_list = function
+    [] -> "_"
+  | hd :: tl -> generate_expr hd ^ ", " ^ generate_expr_list tl
 
 let generate_decl = function
     AssigningDecl(i,e) -> generate_ident i ^ " := " ^ generate_expr e
   | PrimitiveDecl(d,i) -> generate_datatype d ^ " " ^ generate_ident i
-  | _ -> "()"
+  | ArrayDecl(d,i,es) -> generate_datatype d ^ " := " ^ generate_expr (ArrayLit(es))
+
+let generate_range = function
+    Range(e1,e2,e3) -> "range(" ^ generate_expr e1 ^ ", " ^ generate_expr e2 ^ ", " ^ generate_expr e3 ^ ")"
+
+let generate_iterator = function
+    RangeIterator(i, r) -> generate_ident i ^ " in " ^ generate_range r
+  | ArrayIterator(i, e) -> generate_ident i ^ " in " ^ generate_expr e
+
+let rec generate_iterator_list = function
+    [] -> "_"
+  | hd :: tl -> generate_iterator hd ^ ", " ^ generate_iterator_list tl
+
+let rec generate_decl_list = function
+    [] -> "_"
+  | hd :: tl -> generate_decl hd ^ ", " ^ generate_decl_list tl
 
 let rec generate_statement = function
     CompoundStatement(ss) -> generate_statement_list ss
@@ -67,16 +109,14 @@ let rec generate_statement = function
   | IncludeStatement(s) -> "include \"" ^ s ^ "\";"
   | EmptyStatement -> "_"
   | IfStatement(e, s1, s2) -> "if (" ^ generate_expr e ^ ") {\n" ^ generate_statement s1 ^ "} else {\n" ^ generate_statement s2 ^ "}"
-  | FunctionDecl(t, i, ds, ss) ->
-    let rec generate_decl_list = function
-        [] -> ""
-      | hd :: tl -> generate_decl hd ^ ", " ^ generate_decl_list tl
-    in
-    generate_datatype t ^ " " ^ generate_ident i ^ "(" ^ generate_decl_list ds ^ ") {\n" ^ generate_statement_list ss ^ "}"
+  | WhileStatement(e, s) -> "while (" ^ generate_expr e ^ ") {\n" ^ generate_statement s ^ "}"
+  | ForStatement(is, s) -> "for (" ^ generate_iterator_list is ^ ") {\n" ^ generate_statement s ^ "}"
+  | PforStatement(is, s) -> "pfor (" ^ generate_iterator_list is ^ ") {\n" ^ generate_statement s ^ "}"
+  | FunctionDecl(t, i, ds, ss) -> generate_datatype t ^ " " ^ generate_ident i ^ "(" ^ generate_decl_list ds ^ ") {\n" ^ generate_statement_list ss ^ "}"
+  | ForwardDecl(t, i, ds) -> generate_datatype t ^ " " ^ generate_ident i ^ "(" ^ generate_decl_list ds ^ ");"
   | ReturnStatement(e) -> "return " ^ generate_expr e ^ ";"
   | VoidReturnStatement -> "return;"
   | SyncStatement -> "sync;"
-  | _ -> "_"
 
 and generate_statement_list = function
     [] -> ""
