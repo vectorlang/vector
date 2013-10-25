@@ -1,9 +1,10 @@
 open Ast
 
 let generate = function
-  _ -> print_endline "hello"
+  _ -> "hello"
 
 let _ =
   let lexbuf = Lexing.from_channel stdin in
   let tree = Parser.top_level Scanner.token lexbuf in
-  generate tree
+  let code = generate tree in
+  print_endline code
