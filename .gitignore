@@ -10,3 +10,4 @@
 /compiler/parser.ml
 /compiler/parser.mli
 /compiler/scanner.ml
+/compiler/generator
