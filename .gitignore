@@ -7,6 +7,7 @@
 *.cmi
 *.cmx
 *.cmo
+.*.swp
 /compiler/parser.ml
 /compiler/parser.mli
 /compiler/scanner.ml
