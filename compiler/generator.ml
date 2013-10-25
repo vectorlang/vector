@@ -2,7 +2,7 @@ open Ast
 open Complex
 
 let generate_ident = function
-    Ident(s) -> "$" ^ s
+    Ident(s) -> "v_" ^ s
 
 exception Unknown_type
 
