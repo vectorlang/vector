@@ -1,0 +1,2 @@
+include "hello";
+a := 4 + 5;
