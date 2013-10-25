@@ -1,2 +1,11 @@
 include "hello";
 a := 4 + 5;
+
+int a() {
+	if (x < y) {
+		x = 1;
+	} else {
+		x = 2;
+	}
+	return x;
+}
