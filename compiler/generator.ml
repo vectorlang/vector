@@ -4,8 +4,18 @@ open Complex
 let generate_ident = function
     Ident(s) -> "$" ^ s
 
+exception Unknown_type
+
 let generate_datatype = function
-    Type(s) -> "#" ^ s
+    Type(s) -> (match s with
+        "bool" | "char" | "int8" -> "int8_t"
+      | "byte" | "uint8" -> "uint8_t"
+      | "int16" -> "uint16_t"
+      | "int" | "int32" -> "int32_t"
+      | "uint" | "uint32" -> "uint32_t"
+      | "int64" -> "int64_t"
+      | "uint64" -> "uint64_t"
+      | _ -> raise Unknown_type)
 
 let rec generate_lvalue = function
     Variable(i) -> generate_ident i
