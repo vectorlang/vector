@@ -49,7 +49,7 @@ rule token = parse
           {Complex.re = float_of_string real;
            Complex.im = float_of_string imag}) }
   | '"' (('\\' _ | [^ '"'])* as str) '"'
-      { STRING_LITERAL(Scanf.unescaped(str)) }
+      { STRING_LITERAL(str) }
   | '\'' ('\\' _ | [^ '\''] | "\\x" hexdigit hexdigit as lit) '\''
       { CHAR_LITERAL((Scanf.unescaped(lit)).[0]) }
 
