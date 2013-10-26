@@ -21,7 +21,7 @@ void mandelbrot(uchar3 *colors, uchar3 *colorMap,
     size_t xi, yi, xn, yn, i;
     float x0, y0, x, y, xtemp;
     int iter = 0;
-    
+
     xi = threadIdx.x + blockDim.x * blockIdx.x;
     yi = threadIdx.y + blockDim.y * blockIdx.y;
     xn = blockDim.x * gridDim.x;
@@ -43,15 +43,10 @@ void mandelbrot(uchar3 *colors, uchar3 *colorMap,
     colors[i] = colorMap[iter];
 }
 
-int write_ppm(const char *fname, uchar3 *colors, 
+int write_ppm(FILE *f, uchar3 *colors,
         unsigned int width, unsigned int height)
 {
-    FILE *f = fopen(fname, "w");
     size_t x, y, i;
-    if (f == NULL) {
-        perror("fopen");
-        return -1;
-    }
 
     fprintf(f, "P3\n");
     fprintf(f, "%u %u\n", width, height);
@@ -78,23 +73,18 @@ int main(int argc, char *argv[])
     int i;
     long ran;
 
-    if (argc < 5) {
-        fprintf(stderr, "Usage: %s left right top bottom\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
+    left = (argc > 1) ? atof(argv[1]) : -2.0;
+    right = (argc > 2) ? atof(argv[2]) : 1.0;
+    top = (argc > 3) ? atof(argv[3]) : 1.0;
+    bottom = (argc > 4) ? atof(argv[4]) : -1.0;
 
-    left = atof(argv[1]);
-    right = atof(argv[2]);
-    top = atof(argv[3]);
-    bottom = atof(argv[4]);
-
-    if (left < LEFT_MIN || right > RIGHT_MAX 
+    if (left < LEFT_MIN || right > RIGHT_MAX
             || top > TOP_MAX || bottom < BOTTOM_MIN) {
         fprintf(stderr, "Window out of bounds\n");
         exit(EXIT_FAILURE);
     }
 
-    srandom(time(0));
+    srandom(0);
 
     for (i = 0; i < MAX_ITER; i++) {
         ran = random();
@@ -118,7 +108,7 @@ int main(int argc, char *argv[])
     err = cudaMemcpy(d_colorMap, colorMap, sizeof(colorMap), cudaMemcpyHostToDevice);
     checkError(err);
 
-    mandelbrot<<<grid_dim, block_dim>>>(d_colors, d_colorMap, 
+    mandelbrot<<<grid_dim, block_dim>>>(d_colors, d_colorMap,
             left, right, top, bottom);
     cudaDeviceSynchronize();
     checkError(cudaGetLastError());
@@ -126,7 +116,7 @@ int main(int argc, char *argv[])
     err = cudaMemcpy(colors, d_colors, sizeof(colors), cudaMemcpyDeviceToHost);
     checkError(err);
 
-    if (write_ppm("mandelbrot.ppm", colors, IMG_WIDTH, IMG_HEIGHT))
+    if (write_ppm(stdout, colors, IMG_WIDTH, IMG_HEIGHT))
         exit(EXIT_FAILURE);
 
     cudaFree(d_colors);
