@@ -8,9 +8,9 @@ type assignop =
     | LshiftAssn | RshiftAssn
     | BitOrAssn | BitAndAssn | BitXorAssn ;;
 
-type preop = Neg | LogNot | BitNot | PreDec | PreInc
+type unop = Neg | LogNot | BitNot
 
-type postop = PostDec | PostInc
+type postop = Dec | Inc
 
 type datatype =
     Type of string
@@ -24,8 +24,8 @@ type lvalue =
 and expr =
     Binop of expr * binop * expr
   | AssignOp of lvalue * assignop * expr
-  | Preop of preop * expr
-  | Postop of expr * postop
+  | Unop of unop * expr
+  | Postop of lvalue * postop
   | Assign of lvalue * expr
   | IntLit of int32
   | Int64Lit of int64

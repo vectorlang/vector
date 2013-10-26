@@ -61,22 +61,20 @@ and generate_expr = function
       in
       generate_lvalue lvalue ^ " " ^ _op ^ " " ^ generate_expr e
     )
-  | Preop(op,e) -> (
+  | Unop(op,e) -> (
       let _op = match op with
           Neg -> "-"
         | LogNot -> "!"
         | BitNot -> "~"
-        | PreDec -> "--"
-        | PreInc -> "++"
       in
       _op ^ generate_expr e
     )
-  | Postop(e,op) -> (
+  | Postop(lvalue, op) -> (
       let _op = match op with
-          PostDec -> "--"
-        | PostInc -> "++"
+          Dec -> "--"
+        | Inc -> "++"
       in
-      generate_expr e ^ _op
+      generate_lvalue lvalue ^ _op
     )
   | Assign(lvalue, e) -> generate_lvalue lvalue ^ " = " ^ generate_expr e
   | IntLit(i) -> Int32.to_string i

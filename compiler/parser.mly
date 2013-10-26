@@ -83,14 +83,12 @@ expr:
   | lvalue BITAND_EQUALS expr { AssignOp($1, BitAndAssn, $3) }
   | lvalue BITXOR_EQUALS expr { AssignOp($1, BitXorAssn, $3) }
 
-  | MINUS expr %prec UMINUS { Preop(Neg, $2) }
-  | LOGNOT expr { Preop(LogNot, $2) }
-  | BITNOT expr { Preop(BitNot, $2) }
-  | DEC expr    { Preop(PreDec, $2) }
-  | INC expr    { Preop(PreInc, $2) }
+  | MINUS expr %prec UMINUS { Unop(Neg, $2) }
+  | LOGNOT expr { Unop(LogNot, $2) }
+  | BITNOT expr { Unop(BitNot, $2) }
 
-  | expr DEC { Postop($1, PostDec) }
-  | expr INC { Postop($1, PostInc) }
+  | lvalue DEC { Postop($1, Dec) }
+  | lvalue INC { Postop($1, Inc) }
 
   | LPAREN expr RPAREN { $2 }
 

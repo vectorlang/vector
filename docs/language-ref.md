@@ -303,10 +303,6 @@ The operators in postfix expressions group left to right.
 
 > *unary-expression* ::=
 
-> >   `++`*expression*
-
-> > | `--`*expression*
-
 > > | *unary-operator*  *expression*
 
 unary operators include `-`, `!`, and `~`. The `-` unary operator returns the
@@ -881,10 +877,6 @@ the file extension is optional.
 > > | `!`*expression*
 
 > > | `~`*expression*
-
-> > | `--`*expression*
-
-> > | `++`*expression*
 
 > > | *expression*`++`
 
