@@ -90,10 +90,13 @@ and generate_expr = function
   | HigherOrderFunctionCall(i1,i2,es) -> "@" ^ generate_ident i1 ^ "(" ^ generate_ident i2 ^ ", " ^ generate_expr_list es ^ ")"
   | Lval(lvalue) -> generate_lvalue lvalue
 and generate_expr_list = function
-    [] -> "_"
-  | hd :: tl -> generate_expr hd ^ ", " ^ generate_expr_list tl
-
-let generate_decl = function
+    [] -> ""
+  | hd :: tl as lst -> generate_nonempty_expr_list lst
+and generate_nonempty_expr_list = function
+    expr :: [] -> generate_expr expr
+  | expr :: tl -> generate_expr expr ^ generate_nonempty_expr_list tl
+  | [] -> raise Empty_list
+and generate_decl = function
     AssigningDecl(i,e) -> generate_ident i ^ " := " ^ generate_expr e
   | PrimitiveDecl(d,i) -> generate_datatype d ^ " " ^ generate_ident i
   | ArrayDecl(d,i,es) -> generate_datatype d ^ " := " ^ generate_expr (ArrayLit(es))
@@ -109,9 +112,14 @@ let rec generate_iterator_list = function
     [] -> "_"
   | hd :: tl -> generate_iterator hd ^ ", " ^ generate_iterator_list tl
 
-let rec generate_decl_list = function
-    [] -> "_"
-  | hd :: tl -> generate_decl hd ^ ", " ^ generate_decl_list tl
+let rec generate_nonempty_decl_list = function
+    hd :: [] -> generate_decl hd
+  | hd :: tl -> generate_decl hd ^ ", " ^ generate_nonempty_decl_list tl
+  | [] -> raise Empty_list
+
+let generate_decl_list = function
+    [] -> "void"
+  | hd :: tl as lst -> generate_nonempty_decl_list lst
 
 let rec generate_statement = function
     CompoundStatement(ss) -> generate_statement_list ss
