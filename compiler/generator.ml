@@ -1,10 +1,11 @@
 open Ast
 open Complex
 
-let generate_ident = function
-    Ident(s) -> "v_" ^ s
-
 exception Unknown_type
+exception Empty_list
+
+let generate_ident = function
+    Ident(s) -> s
 
 let generate_datatype = function
     Type(s) -> (match s with
