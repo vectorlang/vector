@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "vector_utils.h"
 
 #define VEC_SIZE 5000
 #define BLOCK_SIZE 512
-
-#define ceil_div(n, d) (((n) - 1) / (d) + 1)
 
 __global__
 void vec_mult(long *a, long *b, long *c, size_t n)
