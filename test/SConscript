@@ -37,9 +37,7 @@ env.Append(BUILDERS = {'CudaGen' : cuda_gen,
                        'RunTest': run_test})
 
 # Add the name of your example to this list to get it compiled
-test_cases = ['hello']
-
-print 'Running test cases. No output means test cases pass'
+test_cases = ['hello', 'control_flow']
 
 for test_case in test_cases:
     env.CudaGen(test_case + '.cu', [test_case + '.vec'])
