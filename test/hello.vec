@@ -1,0 +1,5 @@
+int vec_main()
+{
+    printf("Hello, Vector!\n");
+    return 0;
+}

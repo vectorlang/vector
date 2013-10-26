@@ -1,7 +1,9 @@
 /.vagrant
+*.cu
 *.o
 *.json
 *.ppm
+*.out
 .sconsign.dblite
 *.pdf
 *.cmi
@@ -12,3 +14,4 @@
 /compiler/parser.mli
 /compiler/scanner.ml
 /compiler/generator
+/test/hello
