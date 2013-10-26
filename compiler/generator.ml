@@ -141,8 +141,15 @@ and generate_statement_list = function
     [] -> ""
   | hd :: tl -> generate_statement hd ^ "\n" ^ generate_statement_list tl
 
+let generate_toplevel tree =
+    "#include <stdio.h>\n" ^
+    "#include <stdlib.h>\n" ^
+    "#include <stdint.h>\n\n" ^
+    generate_statement_list tree ^
+    "\nint main(void) { return vec_main(); }"
+
 let _ =
   let lexbuf = Lexing.from_channel stdin in
   let tree = Parser.top_level Scanner.token lexbuf in
-  let code = generate_statement_list tree in
+  let code = generate_toplevel tree in
   print_string code
