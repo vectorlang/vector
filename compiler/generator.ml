@@ -94,7 +94,7 @@ and generate_expr_list = function
   | hd :: tl as lst -> generate_nonempty_expr_list lst
 and generate_nonempty_expr_list = function
     expr :: [] -> generate_expr expr
-  | expr :: tl -> generate_expr expr ^ generate_nonempty_expr_list tl
+  | expr :: tl -> generate_expr expr ^ ", " ^ generate_nonempty_expr_list tl
   | [] -> raise Empty_list
 and generate_decl = function
     AssigningDecl(i,e) -> generate_ident i ^ " := " ^ generate_expr e
@@ -122,13 +122,15 @@ let generate_decl_list = function
   | hd :: tl as lst -> generate_nonempty_decl_list lst
 
 let rec generate_statement = function
-    CompoundStatement(ss) -> generate_statement_list ss
+    CompoundStatement(ss) -> "{\n" ^ generate_statement_list ss ^ "}\n"
   | Declaration(d) -> generate_decl d ^ ";"
   | Expression(e) -> generate_expr e ^ ";"
   | IncludeStatement(s) -> "include \"" ^ s ^ "\";"
-  | EmptyStatement -> "_"
-  | IfStatement(e, s1, s2) -> "if (" ^ generate_expr e ^ ") {\n" ^ generate_statement s1 ^ "} else {\n" ^ generate_statement s2 ^ "}"
-  | WhileStatement(e, s) -> "while (" ^ generate_expr e ^ ") {\n" ^ generate_statement s ^ "}"
+  | EmptyStatement -> ";"
+  | IfStatement(e, s1, s2) -> "if (" ^ generate_expr e ^ ")\n" ^
+        generate_statement s1 ^ "\nelse\n" ^ generate_statement s2
+  | WhileStatement(e, s) -> "while (" ^ generate_expr e ^ ")\n" ^
+        generate_statement s
   | ForStatement(is, s) -> "for (" ^ generate_iterator_list is ^ ") {\n" ^ generate_statement s ^ "}"
   | PforStatement(is, s) -> "pfor (" ^ generate_iterator_list is ^ ") {\n" ^ generate_statement s ^ "}"
   | FunctionDecl(t, i, ds, ss) -> generate_datatype t ^ " " ^ generate_ident i ^ "(" ^ generate_decl_list ds ^ ") {\n" ^ generate_statement_list ss ^ "}"
