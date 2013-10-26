@@ -1,0 +1,12 @@
+import os
+
+env = Environment(ENV=os.environ)
+
+env.Append(CCFLAGS = '-Wall -O2 -fPIC')
+
+obj_files = ['vector_array']
+
+for obj in obj_files:
+    env.Object(obj + '.o', [obj + '.cpp'])
+
+env.Library('vector', obj_files)
