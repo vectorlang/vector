@@ -1,5 +1,8 @@
-env = Environment()
+import os
 
-SConscript(['compiler/SConscript'])
-SConscript(['test/SConscript'])
+env = Environment(ENV=os.environ)
+
+env.SConscript(['compiler/SConscript'])
+env.SConscript(['test/SConscript'])
+env.SConscript(['rtlib/SConscript'])
 Default('compiler')
