@@ -293,10 +293,6 @@ The operators in postfix expressions group left to right.
 
 > > | *expression*`--`
 
-> > | *expression`.`identifier*
-
-> > | *expression`[`expression`]`*
-
 ### Operators
 
 #### Unary Operators
@@ -413,7 +409,7 @@ bitwise-inclusive-or operation applied to the two operands.
 
 These operations require both operands to have integral types.
 
-#### Logical Expressions
+#### Short-Circuit Logical Expressions
 
 > *logical-expression* ::=
 
@@ -427,6 +423,12 @@ one operand is not equal to 0, and 0 otherwise.
 
 These operators group expressions left-to-right. Operands must be of arithmetic
 types, and the return value is `int`.
+
+These operators are short circuiting. For `&&`, if the left operand
+evaluates to 0, the entire expression evaluates to 0 and the right
+operand is not evaluated. For `||`, if the left operand evaluates
+to something other than 0, the expression returns 1 and the right operand is
+not evaluated.
 
 ### Operator Precedence and Associativity
 
