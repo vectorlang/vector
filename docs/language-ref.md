@@ -266,6 +266,8 @@ the upper 8 bits of the resulting int object.
 
 > > | *assignment*
 
+> > | *compound-assignment*
+
 > > | *function-call*
 
 > > | *higher-order-function-call*
@@ -533,6 +535,34 @@ was assigned, so they can be chained. For instance
     a = b = 3;
 
 Assigns the variables a and b to the value 3.
+
+#### Compound Assignment
+
+> *compound-assignment* ::=
+
+> > *identifier* `+=` *expression*
+
+> > | *identifier* `-=` *expression*
+
+> > | *identifier* `*=` *expression*
+
+> > | *identifier* `/=` *expression*
+
+> > | *identifier* `%=` *expression*
+
+> > | *identifier* `<<=` *expression*
+
+> > | *identifier* `>>=` *expression*
+
+> > | *identifier* `|=` *expression*
+
+> > | *identifier* `&=` *expression*
+
+> > | *identifier* `^=` *expression*
+
+Compound assignments perform an operation with the identifier and expression
+given as operands and then assign the variable specified by the identifier to
+the result.  For example `a += 5` is equivalent to `a = a + 5`.
 
 ## Declarations
 
