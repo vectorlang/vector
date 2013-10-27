@@ -83,7 +83,7 @@ and generate_expr = function
   | ComplexLit(c) -> "(" ^ string_of_float c.re ^ " + i" ^ string_of_float c.im ^ ")"
   | StringLit(s) -> "\"" ^ s ^ "\""
   | CharLit(c) -> "'" ^ Char.escaped c ^ "'"
-  | ArrayLit(es) -> "{" ^ generate_expr_list es ^ "}"
+  | ArrayLit(es) -> "array_init(" ^ generate_expr_list es ^ ")"
   | Cast(d,e) -> "(" ^ generate_datatype d ^ ") (" ^ generate_expr e ^ ")"
   | FunctionCall(i,es) -> generate_ident i ^ "(" ^ generate_expr_list es ^ ")"
   | HigherOrderFunctionCall(i1,i2,es) -> "@" ^ generate_ident i1 ^ "(" ^ generate_ident i2 ^ ", " ^ generate_expr_list es ^ ")"

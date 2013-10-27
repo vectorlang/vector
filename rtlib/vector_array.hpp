@@ -76,4 +76,21 @@ VectorArray<T>::~VectorArray()
 		free(this->values);
 }
 
+template <class T>
+VectorArray<T> array_init(size_t length, ...)
+{
+    VectorArray<T> array(1, length);
+    va_list elem_list;
+    int i;
+
+    va_start(elem_list, length);
+
+    for (i = 0; i < length; i++)
+        array.elem(i) = va_arg(elem_list, T);
+
+    va_end(elem_list);
+
+    return array;
+}
+
 #endif
