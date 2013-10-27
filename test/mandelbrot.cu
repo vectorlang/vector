@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "vector_utils.h"
+#include "vector_utils.hpp"
 
 #define MAX_ITER 1000
 #define LEFT_MIN -2.5

@@ -152,7 +152,7 @@ let generate_toplevel tree =
     "#include <stdio.h>\n" ^
     "#include <stdlib.h>\n" ^
     "#include <stdint.h>\n" ^
-    "#include <libvector.h>\n\n" ^
+    "#include <libvector.hpp>\n\n" ^
     generate_statement_list tree ^
     "\nint main(void) { return vec_main(); }"
 

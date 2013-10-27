@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "vector_utils.h"
+#include "vector_utils.hpp"
 
 __global__
 void dotprod_kernel(int *dotprod, int *x, int *y, size_t n)

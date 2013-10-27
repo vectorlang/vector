@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "vector_utils.h"
+#include "vector_utils.hpp"
 
 #define VEC_SIZE 5000
 #define BLOCK_SIZE 512
