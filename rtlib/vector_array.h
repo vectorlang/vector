@@ -13,11 +13,8 @@ class VectorArray {
 		size_t *dims;
 	public:
 		VectorArray();
-		VectorArray(size_t ndims, size_t *dims);
-		VectorArray(size_t ndims, size_t *dims, T *values);
-		void set_dims(size_t ndims, size_t *dims);
-		void set_values(T *values);
-		T &elem(size_t *indices);
+		VectorArray(size_t ndims, ...);
+		T &elem(size_t first_ind, ...);
 		~VectorArray();
 };
 

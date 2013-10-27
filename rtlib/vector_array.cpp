@@ -1,4 +1,5 @@
 #include "vector_array.h"
+#include <stdarg.h>
 
 template <class T>
 VectorArray<T>::VectorArray()
@@ -9,47 +10,41 @@ VectorArray<T>::VectorArray()
 }
 
 template <class T>
-VectorArray<T>::VectorArray(size_t ndims, size_t *dims)
+VectorArray<T>::VectorArray(size_t ndims, ...)
 {
+	size_t i, total_size = 1;
+	va_list dim_list;
+
+	va_start(dim_list, ndims);
+
 	this->ndims = ndims;
-	this->dims = dims;
-	this->values = NULL;
+	this->dims = (size_t *) calloc(ndims, sizeof(size_t));
+
+	for (i = 0; i < ndims; i++) {
+		this->dims[i] = va_arg(dim_list, size_t);
+		total_size *= this->dims[i];
+	}
+
+	va_end(dim_list);
+
+	this->values = (T *) calloc(ndims, sizeof(T));
 }
 
 template <class T>
-VectorArray<T>::VectorArray(size_t ndims, size_t *dims, T *values)
+T &VectorArray<T>::elem(size_t first_ind, ...)
 {
-	this->ndims = ndims;
-	this->dims = dims;
-	this->values = values;
-}
-
-template <class T>
-void VectorArray<T>::set_dims(size_t ndims, size_t *dims)
-{
-	if (this->dims != NULL)
-		delete[] this->dims;
-	this->dims = dims;
-	this->ndims = ndims;
-}
-
-template <class T>
-void VectorArray<T>::set_values(T *values)
-{
-	if (this->values != NULL)
-		delete[] this->values;
-	this->values = values;
-}
-
-template <class T>
-T &VectorArray<T>::elem(size_t *indices)
-{
-	size_t onedind = 0;
+	size_t ind = first_ind, onedind = first_ind;
 	int i;
+	va_list indices;
 
-	for (i = 0; i < this->ndims - 1; i++)
-		onedind = (onedind + indices[i]) * this->dims[i+1];
-	onedind += indices[this->ndims - 1];
+	va_start(indices, first_ind);
+
+	for (i = 1; i < this->ndims; i++) {
+		ind = va_arg(indices, size_t);
+		onedind = onedind * this->dims[i] + ind;
+	}
+
+	va_end(indices);
 
 	return this->values[onedind];
 }
@@ -58,7 +53,7 @@ template <class T>
 VectorArray<T>::~VectorArray()
 {
 	if (this->dims != NULL)
-		delete[] this->dims;
+		free(this->dims);
 	if (this->values != NULL)
-		delete[] this->values;
+		free(this->values);
 }
