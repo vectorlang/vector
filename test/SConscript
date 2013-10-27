@@ -27,18 +27,18 @@ if GetOption('8400gs'):
     cuda_lib = '/opt/cuda/lib64'
     cuda_arch = 'sm_11'
 
-env.Append(LIBS = [rtlib, 'm', 'vector'])
-env.Append(LIBPATH = [cuda_lib, '../rtlib'])
+env['LINK'] = env['CXX']
+env.Append(LIBS = [rtlib, 'm'])
 env.Append(CPPPATH = ['./rtlib'])
 env.Append(CUDA_ARCH = cuda_arch)
-env.Append(CCFLAGS = '-Wall -O2')
+env.Append(CCFLAGS = '-Wall -g')
 env.Append(NVCC = 'nvcc', NVCC_FLAGS = '-arch=$CUDA_ARCH -I$CPPPATH -Xcompiler $CCFLAGS')
 env.Append(BUILDERS = {'CudaGen' : cuda_gen,
                        'CudaObject' : cuda_object,
                        'RunTest': run_test})
 
 # Add the name of your example to this list to get it compiled
-test_cases = ['hello', 'control_flow']
+test_cases = ['hello', 'control_flow', 'arrays']
 cuda_test_cases = ['dotprod', 'vecmult', 'mandelbrot']
 
 for test_case in test_cases + cuda_test_cases:
