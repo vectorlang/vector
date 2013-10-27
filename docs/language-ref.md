@@ -1,4 +1,5 @@
 # Vector Language Manual
+_Howard Mao (<zm2169@columbia.edu>), Zachary Newman (<zjn2101@columbia.edu>), Sidharth Shanker (<sps2133@columbia.edu>), Jonathan Yu (<jy2432@columbia.edu>), Harry Lee (<hhl2114@columbia.edu>)_
 
 ## Introduction
 
