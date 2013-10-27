@@ -20,7 +20,8 @@ let generate_datatype = function
 
 let rec generate_lvalue = function
     Variable(i) -> generate_ident i
-  | ArrayElem(e, es) -> "()"
+  | ArrayElem(e, es) -> generate_expr e ^ ".elem(" ^
+        generate_expr_list es ^ ")"
 and generate_expr = function
     Binop(e1,op,e2) -> (
       let _op = match op with
@@ -99,7 +100,13 @@ and generate_nonempty_expr_list = function
 and generate_decl = function
     AssigningDecl(i,e) -> generate_ident i ^ " := " ^ generate_expr e
   | PrimitiveDecl(d,i) -> generate_datatype d ^ " " ^ generate_ident i
-  | ArrayDecl(d,i,es) -> generate_datatype d ^ " := " ^ generate_expr (ArrayLit(es))
+  | ArrayDecl(d,i,es) ->
+        let arrinit = (match es with
+            [] -> ""
+          | _ -> "(" ^ string_of_int (List.length es) ^
+                ", " ^ generate_expr_list es ^ ")") in
+        "VectorArray<" ^ generate_datatype d ^ "> " ^
+            generate_ident i ^ arrinit
 
 let generate_range = function
     Range(e1,e2,e3) -> "range(" ^ generate_expr e1 ^ ", " ^ generate_expr e2 ^ ", " ^ generate_expr e3 ^ ")"
@@ -146,7 +153,8 @@ and generate_statement_list = function
 let generate_toplevel tree =
     "#include <stdio.h>\n" ^
     "#include <stdlib.h>\n" ^
-    "#include <stdint.h>\n\n" ^
+    "#include <stdint.h>\n" ^
+    "#include <libvector.h>\n\n" ^
     generate_statement_list tree ^
     "\nint main(void) { return vec_main(); }"
 
