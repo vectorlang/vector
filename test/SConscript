@@ -29,6 +29,7 @@ if GetOption('8400gs'):
 
 env['LINK'] = env['CXX']
 env.Append(LIBS = [rtlib, 'm'])
+env.Append(LIBPATH = [cuda_lib])
 env.Append(CPPPATH = ['./rtlib'])
 env.Append(CUDA_ARCH = cuda_arch)
 env.Append(CCFLAGS = '-Wall -g')
