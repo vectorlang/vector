@@ -12,6 +12,7 @@ class VectorArray {
 		T *values;
 		size_t ndims;
 		size_t *dims;
+		size_t size;
 	public:
 		VectorArray();
 		VectorArray(size_t ndims, ...);
@@ -25,6 +26,7 @@ VectorArray<T>::VectorArray()
 	this->ndims = 0;
 	this->dims = NULL;
 	this->values = NULL;
+	this->size = NULL;
 }
 
 template <class T>
@@ -45,7 +47,8 @@ VectorArray<T>::VectorArray(size_t ndims, ...)
 
 	va_end(dim_list);
 
-	this->values = (T *) calloc(ndims, sizeof(T));
+	this->size = total_size * sizeof(T);
+	this->values = (T *) malloc(this->size);
 }
 
 template <class T>
