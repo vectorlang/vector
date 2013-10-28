@@ -13,7 +13,20 @@ type unop = Neg | LogNot | BitNot
 type postop = Dec | Inc
 
 type datatype =
-    Type of string
+    Bool | Char | Int8
+  | UInt8
+  | Int16
+  | UInt16
+  | Int | Int32
+  | UInt | UInt32
+  | Int64
+  | UInt64
+  | Float | Float32
+  | Double | Float64
+  | Complex | Complex64
+  | Complex128
+  | String
+  | ArrayType of datatype
 
 type ident =
     Ident of string

@@ -7,16 +7,21 @@ exception Empty_list
 let generate_ident = function
     Ident(s) -> s
 
-let generate_datatype = function
-    Type(s) -> (match s with
-        "bool" | "char" | "int8" -> "int8_t"
-      | "byte" | "uint8" -> "uint8_t"
-      | "int16" -> "uint16_t"
-      | "int" | "int32" -> "int32_t"
-      | "uint" | "uint32" -> "uint32_t"
-      | "int64" -> "int64_t"
-      | "uint64" -> "uint64_t"
-      | _ -> raise Unknown_type)
+let generate_datatype s =
+    match s with
+     | Bool -> "bool"
+     | Char -> "char"
+     | Int8 -> "int8_t"
+     | UInt8 -> "uint8_t"
+     | Int16 -> "int16_t"
+     | UInt16 -> "uint16_t"
+     | Int -> "int"
+     | Int32 -> "int32_t"
+     | UInt -> "uint"
+     | UInt32 -> "uint32_t"
+     | Int64 -> "int64_t"
+     | UInt64 -> "uint64_t"
+     | _ -> raise Unknown_type
 
 let rec generate_lvalue = function
     Variable(i) -> generate_ident i
