@@ -74,7 +74,7 @@ and generate_expr = function
       in
       _op ^ generate_expr e
     )
-  | Postop(lvalue, op) -> (
+  | PostOp(lvalue, op) -> (
       let _op = match op with
           Dec -> "--"
         | Inc -> "++"

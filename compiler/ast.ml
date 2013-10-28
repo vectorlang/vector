@@ -38,7 +38,7 @@ and expr =
     Binop of expr * binop * expr
   | AssignOp of lvalue * assignop * expr
   | Unop of unop * expr
-  | Postop of lvalue * postop
+  | PostOp of lvalue * postop
   | Assign of lvalue * expr
   | IntLit of int32
   | Int64Lit of int64

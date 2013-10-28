@@ -101,8 +101,8 @@ expr:
   | LOGNOT expr { Unop(LogNot, $2) }
   | BITNOT expr { Unop(BitNot, $2) }
 
-  | lvalue DEC { Postop($1, Dec) }
-  | lvalue INC { Postop($1, Inc) }
+  | lvalue DEC { PostOp($1, Dec) }
+  | lvalue INC { PostOp($1, Inc) }
 
   | LPAREN expr RPAREN { $2 }
 
