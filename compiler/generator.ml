@@ -17,7 +17,10 @@ let rec infer_type expr =
           | Some(t) -> t
           | None -> raise Empty_list in
     match expr with
-      | Binop(expr1, _, expr2) -> match_type [infer_type expr1; infer_type expr2] (* NB not quite done *)
+      | Binop(expr1, op, expr2) -> (match op with
+         | LogAnd | LogOr | Eq | NotEq | Less | LessEq | Greater | GreaterEq ->
+            Bool
+         | _ -> match_type [infer_type expr1; infer_type expr2])
       | CharLit(_) -> Char
       | ComplexLit(_) -> raise Not_implemented
       | FloatLit(_) -> Float
@@ -30,13 +33,13 @@ let rec infer_type expr =
           | ArrayElem(e, _) -> infer_type e
           | Variable(_) -> raise Not_implemented)
       | AssignOp(lval, _, expr) ->
-          let l = Lval(lval) in
-          match_type [infer_type l; infer_type expr] (* NB not quite done *)
-      | Unop(_, expr) -> infer_type expr (* NB not quite done *)
-      | PostOp(lval, _) -> let l = Lval(lval) in infer_type l (* NB not quite done *)
+            let l = Lval(lval) in
+            match_type [infer_type l; infer_type expr]
+      | Unop(op, expr) -> (if op = Neg then Bool else infer_type expr)
+      | PostOp(lval, _) -> let l = Lval(lval) in infer_type l
       | Assign(lval, expr) ->
-          let l = Lval(lval) in
-          match_type [infer_type l; infer_type expr]
+            let l = Lval(lval) in
+            match_type [infer_type l; infer_type expr]
       | FunctionCall(i, _) -> raise Not_implemented
       | HigherOrderFunctionCall(hof, f, expr_list) -> raise Not_implemented (*
       probably something like the result of f *)
