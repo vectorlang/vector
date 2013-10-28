@@ -3,6 +3,43 @@ open Complex
 
 exception Unknown_type
 exception Empty_list
+exception Type_mismatch
+exception Not_implemented (* this should go away *)
+
+let rec infer_type expr =
+    let f type1 type2 =
+        match type1 with
+          | Some(t) -> (if t = type2 then Some(t) else raise Type_mismatch)
+          | None -> Some(type2) in
+    let match_type expr_list =
+        let a = List.fold_left f None expr_list in
+          match a with
+          | Some(t) -> t
+          | None -> raise Empty_list in
+    match expr with
+      | Binop(expr1, _, expr2) -> match_type [infer_type expr1; infer_type expr2] (* NB not quite done *)
+      | CharLit(_) -> Char
+      | ComplexLit(_) -> raise Not_implemented
+      | FloatLit(_) -> Float
+      | Int64Lit(_) -> Int64
+      | IntLit(_) -> Int
+      | StringLit(_) -> ArrayType(Char)
+      | ArrayLit(exprs) -> ArrayType(match_type (List.map infer_type exprs))
+      | Cast(datatype, expr) -> datatype
+      | Lval(lval) -> (match lval with
+          | ArrayElem(e, _) -> infer_type e
+          | Variable(_) -> raise Not_implemented)
+      | AssignOp(lval, _, expr) ->
+          let l = Lval(lval) in
+          match_type [infer_type l; infer_type expr] (* NB not quite done *)
+      | Unop(_, expr) -> infer_type expr (* NB not quite done *)
+      | PostOp(lval, _) -> let l = Lval(lval) in infer_type l (* NB not quite done *)
+      | Assign(lval, expr) ->
+          let l = Lval(lval) in
+          match_type [infer_type l; infer_type expr]
+      | FunctionCall(i, _) -> raise Not_implemented
+      | HigherOrderFunctionCall(hof, f, expr_list) -> raise Not_implemented (*
+      probably something like the result of f *)
 
 let generate_ident = function
     Ident(s) -> s
@@ -101,7 +138,11 @@ and generate_nonempty_expr_list = function
   | expr :: tl -> generate_expr expr ^ ", " ^ generate_nonempty_expr_list tl
   | [] -> raise Empty_list
 and generate_decl = function
-    AssigningDecl(i,e) -> generate_ident i ^ " := " ^ generate_expr e
+    AssigningDecl(i,e) ->
+        let t = (infer_type e) in
+        (match t with
+          | ArrayType(f) -> raise Not_implemented
+          | _ -> generate_datatype t ^ " " ^ generate_ident i ^ " = " ^ generate_expr e)
   | PrimitiveDecl(d,i) -> generate_datatype d ^ " " ^ generate_ident i
   | ArrayDecl(d,i,es) ->
         let arrinit = (match es with
