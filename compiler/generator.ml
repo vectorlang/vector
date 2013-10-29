@@ -7,16 +7,17 @@ exception Empty_list
 exception Type_mismatch
 exception Not_implemented (* this should go away *)
 
+
 let rec infer_type expr env =
     let f type1 type2 =
         match type1 with
-          | Some(t) -> (if t = type2 then Some(t) else raise Type_mismatch)
-          | None -> Some(type2) in
+         | Some(t) -> (if t = type2 then Some(t) else raise Type_mismatch)
+         | None -> Some(type2) in
     let match_type expr_list =
-        let a = List.fold_left f None expr_list in
-          match a with
-          | Some(t) -> t
-          | None -> raise Empty_list in
+      let a = List.fold_left f None expr_list in
+        match a with
+         | Some(t) -> t
+         | None -> raise Empty_list in
     match expr with
       | Binop(expr1, op, expr2) -> (match op with
          | LogAnd | LogOr | Eq | NotEq | Less | LessEq | Greater | GreaterEq ->
@@ -171,9 +172,15 @@ and generate_expr expr env =
         Verbatim("'" ^ Char.escaped c ^ "'")
       ]
   | ArrayLit(es) ->
+      let typ = (match (infer_type (ArrayLit(es)) env) with
+       | ArrayType(t) -> t
+       | _ -> raise Type_mismatch) in
+      let len = Int32.of_int (List.length es) in
       Environment.combine env [
-        Verbatim("array_init(");
-        Generator(generate_expr_list es);
+        Verbatim("array_init<");
+        Generator(generate_datatype typ);
+        Verbatim(">((size_t) ");
+        Generator(generate_expr_list (IntLit(len) :: es));
         Verbatim(")")
       ]
   | Cast(d,e) ->
@@ -224,7 +231,15 @@ and generate_decl decl env =
    | AssigningDecl(ident,e) ->
        let datatype = (infer_type e env) in
        Environment.update_scope ident datatype (match datatype with
-          | ArrayType(f) -> raise Not_implemented
+          | ArrayType(f) ->
+              Environment.combine env [
+                Verbatim("VectorArray<");
+                Generator(generate_datatype f);
+                Verbatim("> ");
+                Generator(generate_ident ident);
+                Verbatim(" = ");
+                Generator(generate_expr e);
+              ]
           | _ ->
               Environment.combine env [
                 Generator(generate_datatype datatype);
