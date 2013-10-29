@@ -48,30 +48,30 @@ let rec infer_type expr =
 
 let generate_ident ident env =
   match ident with
-    Ident(s) -> Environment.update env [Verbatim(s)]
+    Ident(s) -> Environment.combine env [Verbatim(s)]
 
 let generate_datatype datatype env =
     match datatype with
-     | Bool -> Environment.update env [Verbatim("bool")]
-     | Char -> Environment.update env [Verbatim("char")]
-     | Int8 -> Environment.update env [Verbatim("int8_t")]
-     | UInt8 -> Environment.update env [Verbatim("uint8_t")]
-     | Int16 -> Environment.update env [Verbatim("int16_t")]
-     | UInt16 -> Environment.update env [Verbatim("uint16_t")]
-     | Int -> Environment.update env [Verbatim("int")]
-     | Int32 -> Environment.update env [Verbatim("int32_t")]
-     | UInt -> Environment.update env [Verbatim("uint")]
-     | UInt32 -> Environment.update env [Verbatim("uint32_t")]
-     | Int64 -> Environment.update env [Verbatim("int64_t")]
-     | UInt64 -> Environment.update env [Verbatim("uint64_t")]
+     | Bool -> Environment.combine env [Verbatim("bool")]
+     | Char -> Environment.combine env [Verbatim("char")]
+     | Int8 -> Environment.combine env [Verbatim("int8_t")]
+     | UInt8 -> Environment.combine env [Verbatim("uint8_t")]
+     | Int16 -> Environment.combine env [Verbatim("int16_t")]
+     | UInt16 -> Environment.combine env [Verbatim("uint16_t")]
+     | Int -> Environment.combine env [Verbatim("int")]
+     | Int32 -> Environment.combine env [Verbatim("int32_t")]
+     | UInt -> Environment.combine env [Verbatim("uint")]
+     | UInt32 -> Environment.combine env [Verbatim("uint32_t")]
+     | Int64 -> Environment.combine env [Verbatim("int64_t")]
+     | UInt64 -> Environment.combine env [Verbatim("uint64_t")]
      | _ -> raise Unknown_type
 
 let rec generate_lvalue lval env =
   match lval with
    | Variable(i) ->
-       Environment.update env [Generator(generate_ident i)]
+       Environment.combine env [Generator(generate_ident i)]
    | ArrayElem(e, es) ->
-       Environment.update env [
+       Environment.combine env [
          Generator(generate_expr e);
          Verbatim(".elem(");
          Generator(generate_expr_list es);
@@ -100,7 +100,7 @@ and generate_expr expr env =
         | LogAnd -> "&&"
         | LogOr -> "||"
       in
-      Environment.update env [
+      Environment.combine env [
         Generator(generate_expr e1);
         Verbatim(" " ^ _op ^ " ");
         Generator(generate_expr e2)
@@ -118,7 +118,7 @@ and generate_expr expr env =
         | BitAndAssn -> "&="
         | BitXorAssn -> "^="
       in
-      Environment.update env [
+      Environment.combine env [
         Generator(generate_lvalue lvalue);
         Verbatim(" " ^ _op ^ " ");
         Generator(generate_expr e)
@@ -130,7 +130,7 @@ and generate_expr expr env =
         | LogNot -> "!"
         | BitNot -> "~"
       in
-      Environment.update env [
+      Environment.combine env [
         Verbatim(_op);
         Generator(generate_expr e)
       ]
@@ -140,42 +140,42 @@ and generate_expr expr env =
           Dec -> "--"
         | Inc -> "++"
       in
-      Environment.update env [
+      Environment.combine env [
         Generator(generate_lvalue lvalue);
         Verbatim(_op)
       ]
     )
   | Assign(lvalue, e) -> 
-      Environment.update env [
+      Environment.combine env [
         Generator(generate_lvalue lvalue);
         Verbatim(" = ");
         Generator(generate_expr e)
       ]
   | IntLit(i) ->
-      Environment.update env [Verbatim(Int32.to_string i)]
+      Environment.combine env [Verbatim(Int32.to_string i)]
   | Int64Lit(i) ->
-      Environment.update env [Verbatim(Int64.to_string i)]
+      Environment.combine env [Verbatim(Int64.to_string i)]
   | FloatLit(f) ->
-      Environment.update env [Verbatim(string_of_float f)]
+      Environment.combine env [Verbatim(string_of_float f)]
   | ComplexLit(c) ->
-      Environment.update env [
+      Environment.combine env [
         Verbatim("(" ^ string_of_float c.re);
         Verbatim(" + i" ^ string_of_float c.im ^ ")")
       ]
   | StringLit(s) ->
-      Environment.update env [Verbatim("\"" ^ s ^ "\"")]
+      Environment.combine env [Verbatim("\"" ^ s ^ "\"")]
   | CharLit(c) ->
-      Environment.update env [
+      Environment.combine env [
         Verbatim("'" ^ Char.escaped c ^ "'")
       ]
   | ArrayLit(es) ->
-      Environment.update env [
+      Environment.combine env [
         Verbatim("array_init(");
         Generator(generate_expr_list es);
         Verbatim(")")
       ]
   | Cast(d,e) ->
-      Environment.update env [
+      Environment.combine env [
         Verbatim("(");
         Generator(generate_datatype d);
         Verbatim(") (");
@@ -183,14 +183,14 @@ and generate_expr expr env =
         Verbatim(")")
       ]
   | FunctionCall(i,es) ->
-      Environment.update env [
+      Environment.combine env [
         Generator(generate_ident i);
         Verbatim("(");
         Generator(generate_expr_list es);
         Verbatim(")")
       ]
   | HigherOrderFunctionCall(i1,i2,es) ->
-      Environment.update env [
+      Environment.combine env [
         Verbatim("@");
         Generator(generate_ident i1);
         Verbatim("(");
@@ -200,18 +200,18 @@ and generate_expr expr env =
         Verbatim(")")
       ]
   | Lval(lvalue) ->
-      Environment.update env [Generator(generate_lvalue lvalue)]
+      Environment.combine env [Generator(generate_lvalue lvalue)]
 and generate_expr_list expr_list env =
   match expr_list with
-   | [] -> Environment.update env []
+   | [] -> Environment.combine env []
    | lst ->
-       Environment.update env [Generator(generate_nonempty_expr_list lst)]
+       Environment.combine env [Generator(generate_nonempty_expr_list lst)]
 and generate_nonempty_expr_list expr_list env =
   match expr_list with
    | expr :: [] ->
-       Environment.update env [Generator(generate_expr expr)]
+       Environment.combine env [Generator(generate_expr expr)]
    | expr :: tail ->
-       Environment.update env [
+       Environment.combine env [
          Generator(generate_expr expr);
          Verbatim(", ");
          Generator(generate_nonempty_expr_list tail)
@@ -219,29 +219,29 @@ and generate_nonempty_expr_list expr_list env =
    | [] -> raise Empty_list
 and generate_decl decl env =
   match decl with
-   | AssigningDecl(i,e) ->
-       let t = (infer_type e) in
-        (match t with
+   | AssigningDecl(ident,e) ->
+       let datatype = (infer_type e) in
+       Environment.update ident datatype (match datatype with
           | ArrayType(f) -> raise Not_implemented
-          | _ -> 
-              Environment.update env [
-                Generator(generate_datatype t);
+          | _ ->
+              Environment.combine env [
+                Generator(generate_datatype datatype);
                 Verbatim(" ");
-                Generator(generate_ident i);
+                Generator(generate_ident ident);
                 Verbatim(" = ");
                 Generator(generate_expr e)
               ])
    | PrimitiveDecl(d,i) ->
-       Environment.update env [
+       Environment.update i d (Environment.combine env [
          Generator(generate_datatype d);
          Verbatim(" ");
          Generator(generate_ident i)
-       ]
+       ])
    | ArrayDecl(d,i,es) ->
-        (match es with
+       Environment.update i d (match es with
           | [] -> "", env
           | _ ->
-              Environment.update env [
+              Environment.combine env [
                 Verbatim("VectorArray<");
                 Generator(generate_datatype d);
                 Verbatim("> ");
@@ -254,7 +254,7 @@ and generate_decl decl env =
 let generate_range range env =
   match range with
    | Range(e1,e2,e3) ->
-      Environment.update env [
+      Environment.combine env [
         Verbatim("range(");
         Generator(generate_expr e1);
         Verbatim(", ");
@@ -267,13 +267,13 @@ let generate_range range env =
 let generate_iterator iterator env =
   match iterator with
    | RangeIterator(i, r) ->
-       Environment.update env [
+       Environment.combine env [
          Generator(generate_ident i);
          Verbatim(" in ");
          Generator(generate_range r)
        ]
    | ArrayIterator(i, e) ->
-       Environment.update env [
+       Environment.combine env [
          Generator(generate_ident i);
          Verbatim(" in ");
          Generator(generate_expr e)
@@ -281,9 +281,9 @@ let generate_iterator iterator env =
 
 let rec generate_iterator_list iterator_list env =
   match iterator_list with
-   | [] -> Environment.update env [Verbatim("_")]
+   | [] -> Environment.combine env [Verbatim("_")]
    | iterator :: tail -> 
-       Environment.update env [
+       Environment.combine env [
          Generator(generate_iterator iterator);
          Verbatim(", ");
          Generator(generate_iterator_list tail)
@@ -292,48 +292,47 @@ let rec generate_iterator_list iterator_list env =
 let rec generate_nonempty_decl_list decl_list env =
   match decl_list with
    | decl :: [] ->
-       Environment.update env [Generator(generate_decl decl)]
+       Environment.combine env [Generator(generate_decl decl)]
    | decl :: tail ->
-       Environment.update env [
+       Environment.combine env [
          Generator(generate_decl decl);
          Verbatim(", ");
          Generator(generate_nonempty_decl_list tail)
        ]
    | [] -> raise Empty_list
 
- (* TODO: this looks wrong *)
 let generate_decl_list decl_list env =
   match decl_list with
-   | [] -> Environment.update env [Verbatim("void")]
+   | [] -> Environment.combine env [Verbatim("void")]
    | decl :: tail ->
-       Environment.update env [Generator(generate_nonempty_decl_list tail)]
+       Environment.combine env [Generator(generate_nonempty_decl_list tail)]
 
 let rec generate_statement statement env =
     match statement with
      | CompoundStatement(ss) ->
-         Environment.update env [
+         Environment.combine env [
            Verbatim("{\n");
            Generator(generate_statement_list ss);
            Verbatim("}\n")
          ]
      | Declaration(d) ->
-         Environment.update env [
+         Environment.combine env [
            Generator(generate_decl d);
            Verbatim(";")
          ]
      | Expression(e) ->
-         Environment.update env [
+         Environment.combine env [
            Generator(generate_expr e);
            Verbatim(";")
          ]
      | IncludeStatement(s) ->
-         Environment.update env [
+         Environment.combine env [
            Verbatim("include \"" ^ s ^ "\";")
          ]
      | EmptyStatement ->
-         Environment.update env [Verbatim(";")]
+         Environment.combine env [Verbatim(";")]
      | IfStatement(e, s1, s2) ->
-         Environment.update env [
+         Environment.combine env [
            Verbatim("if (");
            Generator(generate_expr e);
            Verbatim(")\n");
@@ -342,14 +341,14 @@ let rec generate_statement statement env =
            Generator(generate_statement s2)
          ]
      | WhileStatement(e, s) ->
-         Environment.update env [
+         Environment.combine env [
            Verbatim("while (");
            Generator(generate_expr e);
            Verbatim(")\n");
            Generator(generate_statement s)
          ]
      | ForStatement(is, s) ->
-         Environment.update env [
+         Environment.combine env [
            Verbatim("for (");
            Generator(generate_iterator_list is);
            Verbatim(") {\n");
@@ -357,7 +356,7 @@ let rec generate_statement statement env =
            Verbatim("}")
          ]
      | PforStatement(is, s) ->
-         Environment.update env [
+         Environment.combine env [
            Verbatim("pfor (");
            Generator(generate_iterator_list is);
            Verbatim(") {\n");
@@ -365,7 +364,7 @@ let rec generate_statement statement env =
            Verbatim("}")
          ]
      | FunctionDecl(t, i, ds, ss) ->
-         Environment.update env [
+         Environment.combine env [
            Generator(generate_datatype t);
            Verbatim(" ");
            Generator(generate_ident i);
@@ -376,7 +375,7 @@ let rec generate_statement statement env =
            Verbatim("}");
          ]
      | ForwardDecl(t, i, ds) ->
-         Environment.update env [
+         Environment.combine env [
            Generator(generate_datatype t);
            Verbatim(" ");
            Generator(generate_ident i);
@@ -385,21 +384,21 @@ let rec generate_statement statement env =
            Verbatim(");")
          ]
      | ReturnStatement(e) ->
-         Environment.update env [
+         Environment.combine env [
            Verbatim("return ");
            Generator(generate_expr e);
            Verbatim(";")
          ]
      | VoidReturnStatement ->
-         Environment.update env [Verbatim("return;")]
+         Environment.combine env [Verbatim("return;")]
      | SyncStatement ->
-         Environment.update env [Verbatim("sync;")]
+         Environment.combine env [Verbatim("sync;")]
 
 and generate_statement_list statement_list env =
     match statement_list with
-     | [] -> Environment.update env []
+     | [] -> Environment.combine env []
      | statement :: tail ->
-         Environment.update env [
+         Environment.combine env [
            Generator(generate_statement statement);
            Verbatim("\n");
            Generator(generate_statement_list tail)
@@ -407,7 +406,7 @@ and generate_statement_list statement_list env =
 
 let generate_toplevel tree =
     let env = Environment.create in
-    Environment.update env [
+    Environment.combine env [
         Verbatim("#include <stdio.h>\n\
                   #include <stdlib.h>\n\
                   #include <stdint.h>\n\
