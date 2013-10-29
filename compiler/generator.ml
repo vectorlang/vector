@@ -7,7 +7,7 @@ exception Empty_list
 exception Type_mismatch
 exception Not_implemented (* this should go away *)
 
-let rec infer_type expr =
+let rec infer_type expr env =
     let f type1 type2 =
         match type1 with
           | Some(t) -> (if t = type2 then Some(t) else raise Type_mismatch)
@@ -21,28 +21,30 @@ let rec infer_type expr =
       | Binop(expr1, op, expr2) -> (match op with
          | LogAnd | LogOr | Eq | NotEq | Less | LessEq | Greater | GreaterEq ->
             Bool
-         | _ -> match_type [infer_type expr1; infer_type expr2])
+         | _ -> match_type [infer_type expr1 env; infer_type expr2 env])
       | CharLit(_) -> Char
-      | ComplexLit(_) -> raise Not_implemented
+      | ComplexLit(_) -> Complex
       | FloatLit(_) -> Float
       | Int64Lit(_) -> Int64
       | IntLit(_) -> Int
       | StringLit(_) -> ArrayType(Char)
-      | ArrayLit(exprs) -> ArrayType(match_type (List.map infer_type exprs))
+      | ArrayLit(exprs) ->
+          let f expr = infer_type expr env in
+          ArrayType(match_type (List.map f exprs))
       | Cast(datatype, expr) -> datatype
       | Lval(lval) -> (match lval with
-          | ArrayElem(e, _) -> infer_type e
-          | Variable(_) -> raise Not_implemented)
+          | ArrayElem(e, _) -> infer_type e env
+          | Variable(i) -> Environment.get_var_type i env)
       | AssignOp(lval, _, expr) ->
             let l = Lval(lval) in
-            match_type [infer_type l; infer_type expr]
-      | Unop(op, expr) -> (if op = Neg then Bool else infer_type expr)
-      | PostOp(lval, _) -> let l = Lval(lval) in infer_type l
+            match_type [infer_type l env; infer_type expr env]
+      | Unop(op, expr) -> (if op = Neg then Bool else infer_type expr env)
+      | PostOp(lval, _) -> let l = Lval(lval) in infer_type l env
       | Assign(lval, expr) ->
             let l = Lval(lval) in
-            match_type [infer_type l; infer_type expr]
-      | FunctionCall(i, _) -> raise Not_implemented
-      (* probably something like the result of f *)
+            match_type [infer_type l env; infer_type expr env]
+      | FunctionCall(i, _) -> Environment.get_func_type i env
+      (* this depends on the HOF type: ex map is int list -> int list *)
       | HigherOrderFunctionCall(hof, f, expr_list) -> raise Not_implemented
 
 
@@ -145,7 +147,7 @@ and generate_expr expr env =
         Verbatim(_op)
       ]
     )
-  | Assign(lvalue, e) -> 
+  | Assign(lvalue, e) ->
       Environment.combine env [
         Generator(generate_lvalue lvalue);
         Verbatim(" = ");
@@ -220,8 +222,8 @@ and generate_nonempty_expr_list expr_list env =
 and generate_decl decl env =
   match decl with
    | AssigningDecl(ident,e) ->
-       let datatype = (infer_type e) in
-       Environment.update ident datatype (match datatype with
+       let datatype = (infer_type e env) in
+       Environment.update_scope ident datatype (match datatype with
           | ArrayType(f) -> raise Not_implemented
           | _ ->
               Environment.combine env [
@@ -232,13 +234,13 @@ and generate_decl decl env =
                 Generator(generate_expr e)
               ])
    | PrimitiveDecl(d,i) ->
-       Environment.update i d (Environment.combine env [
+       Environment.update_scope i d (Environment.combine env [
          Generator(generate_datatype d);
          Verbatim(" ");
          Generator(generate_ident i)
        ])
    | ArrayDecl(d,i,es) ->
-       Environment.update i d (match es with
+       Environment.update_scope i d (match es with
           | [] -> "", env
           | _ ->
               Environment.combine env [
@@ -282,7 +284,7 @@ let generate_iterator iterator env =
 let rec generate_iterator_list iterator_list env =
   match iterator_list with
    | [] -> Environment.combine env [Verbatim("_")]
-   | iterator :: tail -> 
+   | iterator :: tail ->
        Environment.combine env [
          Generator(generate_iterator iterator);
          Verbatim(", ");
@@ -304,15 +306,17 @@ let rec generate_nonempty_decl_list decl_list env =
 let generate_decl_list decl_list env =
   match decl_list with
    | [] -> Environment.combine env [Verbatim("void")]
-   | decl :: tail ->
-       Environment.combine env [Generator(generate_nonempty_decl_list tail)]
+   | (decl :: tail) as lst ->
+       Environment.combine env [
+         Generator(generate_nonempty_decl_list lst)
+       ]
 
 let rec generate_statement statement env =
     match statement with
      | CompoundStatement(ss) ->
          Environment.combine env [
            Verbatim("{\n");
-           Generator(generate_statement_list ss);
+           NewScopeGenerator(generate_statement_list ss);
            Verbatim("}\n")
          ]
      | Declaration(d) ->
@@ -336,53 +340,46 @@ let rec generate_statement statement env =
            Verbatim("if (");
            Generator(generate_expr e);
            Verbatim(")\n");
-           Generator(generate_statement s1);
+           NewScopeGenerator(generate_statement s1);
            Verbatim("\nelse\n");
-           Generator(generate_statement s2)
+           NewScopeGenerator(generate_statement s2)
          ]
      | WhileStatement(e, s) ->
          Environment.combine env [
            Verbatim("while (");
            Generator(generate_expr e);
            Verbatim(")\n");
-           Generator(generate_statement s)
+           NewScopeGenerator(generate_statement s)
          ]
      | ForStatement(is, s) ->
          Environment.combine env [
            Verbatim("for (");
-           Generator(generate_iterator_list is);
+           NewScopeGenerator(generate_iterator_list is);
            Verbatim(") {\n");
-           Generator(generate_statement s);
+           NewScopeGenerator(generate_statement s);
            Verbatim("}")
          ]
      | PforStatement(is, s) ->
          Environment.combine env [
            Verbatim("pfor (");
-           Generator(generate_iterator_list is);
+           NewScopeGenerator(generate_iterator_list is);
            Verbatim(") {\n");
-           Generator(generate_statement s);
+           NewScopeGenerator(generate_statement s);
            Verbatim("}")
          ]
      | FunctionDecl(t, i, ds, ss) ->
-         Environment.combine env [
-           Generator(generate_datatype t);
-           Verbatim(" ");
-           Generator(generate_ident i);
-           Verbatim("(");
-           Generator(generate_decl_list ds);
-           Verbatim(") {\n");
-           Generator(generate_statement_list ss);
-           Verbatim("}");
-         ]
+         Environment.update_functions i t (Environment.combine env [
+             NewScopeGenerator(generate_function (t,i,ds,ss))
+           ])
      | ForwardDecl(t, i, ds) ->
-         Environment.combine env [
+         Environment.update_functions i t (Environment.combine env [
            Generator(generate_datatype t);
            Verbatim(" ");
            Generator(generate_ident i);
            Verbatim("(");
            Generator(generate_decl_list ds);
            Verbatim(");")
-         ]
+         ])
      | ReturnStatement(e) ->
          Environment.combine env [
            Verbatim("return ");
@@ -402,6 +399,18 @@ and generate_statement_list statement_list env =
            Generator(generate_statement statement);
            Verbatim("\n");
            Generator(generate_statement_list tail)
+         ]
+
+and generate_function (returntype, ident, params, statements) env =
+         Environment.combine env [
+           Generator(generate_datatype returntype);
+           Verbatim(" ");
+           Generator(generate_ident ident);
+           Verbatim("(");
+           Generator(generate_decl_list params);
+           Verbatim(") {\n");
+           Generator(generate_statement_list statements);
+           Verbatim("}");
          ]
 
 let generate_toplevel tree =
