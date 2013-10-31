@@ -46,7 +46,21 @@ ident:
     IDENT { Ident($1) }
 
 datatype:
-    TYPE { Type($1) }
+    TYPE { match $1 with
+     | "bool" -> Bool
+     | "char" -> Char
+     | "int8" -> Int8
+     | "uint8" -> UInt8
+     | "int16" -> Int16
+     | "uint16" -> UInt16
+     | "int" -> Int
+     | "int32" -> Int32
+     | "uint" -> UInt
+     | "uint32" -> UInt32
+     | "int64" -> Int64
+     | "uint64" -> UInt64
+     | _ -> raise Not_found
+    }
 
 lvalue:
   | ident { Variable($1) }
@@ -87,8 +101,8 @@ expr:
   | LOGNOT expr { Unop(LogNot, $2) }
   | BITNOT expr { Unop(BitNot, $2) }
 
-  | lvalue DEC { Postop($1, Dec) }
-  | lvalue INC { Postop($1, Inc) }
+  | lvalue DEC { PostOp($1, Dec) }
+  | lvalue INC { PostOp($1, Inc) }
 
   | LPAREN expr RPAREN { $2 }
 

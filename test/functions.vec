@@ -1,0 +1,20 @@
+int add(int a, int b)
+{
+    return a + b;
+}
+
+int vec_main()
+{
+    j := add(3, 4);
+
+
+    printf("%d\n", j);
+
+    {
+        d := j;
+        j := d + 3;
+        printf("%d\n", j);
+    }
+
+    return 0;
+}
