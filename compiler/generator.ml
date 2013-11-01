@@ -67,6 +67,13 @@ let generate_datatype datatype env =
      | UInt32 -> Environment.combine env [Verbatim("uint32_t")]
      | Int64 -> Environment.combine env [Verbatim("int64_t")]
      | UInt64 -> Environment.combine env [Verbatim("uint64_t")]
+     | Double -> Environment.combine env [Verbatim("double")]
+     | Float -> Environment.combine env [Verbatim("float")]
+     | Float32 -> Environment.combine env [Verbatim("float32")]
+     | Float64 -> Environment.combine env [Verbatim("float64")]
+     | Complex -> Environment.combine env [Verbatim("complex")]
+     | Complex64 -> Environment.combine env [Verbatim("complex64")]
+     | Complex128 -> Environment.combine env [Verbatim("complex128")]
      | _ -> raise Unknown_type
 
 let rec generate_lvalue lval env =

@@ -59,6 +59,13 @@ datatype:
      | "uint32" -> UInt32
      | "int64" -> Int64
      | "uint64" -> UInt64
+     | "double" -> Double
+     | "float" -> Float
+     | "float32" -> Float32
+     | "float64" -> Float64
+     | "complex" -> Complex
+     | "complex64" -> Complex64
+     | "complex128" -> Complex128
      | _ -> raise Not_found
     }
 
