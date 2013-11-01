@@ -93,6 +93,13 @@ expr:
   | expr LOGAND expr { Binop($1, LogAnd, $3) }
   | expr LOGOR expr  { Binop($1, LogOr, $3) }
 
+  | expr DOT ident {
+    match $3 with  
+       Ident("re") -> ComplexAccess($1, $3)
+      |Ident("im") -> ComplexAccess($1, $3)
+      | _ -> raise Not_found 
+  }
+
   | lvalue PLUS_EQUALS expr   { AssignOp($1, AddAssn, $3) }
   | lvalue MINUS_EQUALS expr  { AssignOp($1, SubAssn, $3) }
   | lvalue TIMES_EQUALS expr  { AssignOp($1, MulAssn, $3) }

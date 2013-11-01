@@ -1,0 +1,14 @@
+complex add(complex a, complex b)
+{
+    return a + b;
+}
+
+int vec_main()
+{
+    j := add(#(3,4),#(5, 4));
+
+    printf("%d + %di", j.re, j.im); 
+    
+    return 0;
+}
+

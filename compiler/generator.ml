@@ -23,6 +23,7 @@ let rec infer_type expr env =
          | LogAnd | LogOr | Eq | NotEq | Less | LessEq | Greater | GreaterEq ->
             Bool
          | _ -> match_type [infer_type expr1 env; infer_type expr2 env])
+      | ComplexAccess(expr1,ident) -> Int  
       | CharLit(_) -> Char
       | ComplexLit(_) -> Complex
       | FloatLit(_) -> Float
@@ -46,6 +47,7 @@ let rec infer_type expr env =
             match_type [infer_type l env; infer_type expr env]
       | FunctionCall(i, _) -> Environment.get_func_type i env
       (* this depends on the HOF type: ex map is int list -> int list *)
+      
       | HigherOrderFunctionCall(hof, f, expr_list) -> raise Not_implemented
 
 
@@ -145,6 +147,13 @@ and generate_expr expr env =
         Generator(generate_expr e)
       ]
     )
+  
+  | ComplexAccess(expr, ident) -> (
+    Environment.combine env [
+      Generator(generate_expr expr);
+      Generator(generate_ident ident)
+    ]
+  )    
   | PostOp(lvalue, op) -> (
       let _op = match op with
           Dec -> "--"
