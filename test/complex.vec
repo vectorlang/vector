@@ -7,7 +7,7 @@ int vec_main()
 {
     j := add(#(3,4),#(5, 4));
 
-    printf("%d + %di", j.re, j.im); 
+    printf("%0.1f + %0.1fi\n", j.re, j.im); 
     
     return 0;
 }

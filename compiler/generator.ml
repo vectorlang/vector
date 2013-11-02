@@ -6,7 +6,7 @@ exception Unknown_type
 exception Empty_list
 exception Type_mismatch
 exception Not_implemented (* this should go away *)
-
+exception Invalid_operation
 
 let rec infer_type expr env =
     let f type1 type2 =
@@ -73,9 +73,13 @@ let generate_datatype datatype env =
      | Float -> Environment.combine env [Verbatim("float")]
      | Float32 -> Environment.combine env [Verbatim("float32")]
      | Float64 -> Environment.combine env [Verbatim("float64")]
-     | Complex -> Environment.combine env [Verbatim("complex")]
-     | Complex64 -> Environment.combine env [Verbatim("complex64")]
-     | Complex128 -> Environment.combine env [Verbatim("complex128")]
+
+
+     | Complex -> Environment.combine env [Verbatim("cuDoubleComplex")]
+     | Complex64 -> Environment.combine env [Verbatim("cuDoubleComplex")]
+     | Complex128 -> Environment.combine env [Verbatim("cuDoubleComplex")]
+
+
      | _ -> raise Unknown_type
 
 let rec generate_lvalue lval env =
@@ -92,31 +96,49 @@ let rec generate_lvalue lval env =
 and generate_expr expr env =
   match expr with
     Binop(e1,op,e2) ->
-      let _op = match op with
-        | Add -> "+"
-        | Sub -> "-"
-        | Mul -> "*"
-        | Div -> "/"
-        | Mod -> "%"
-        | Lshift -> "<<"
-        | Rshift -> ">>"
-        | Less -> "<"
-        | LessEq -> "<="
-        | Greater -> ">"
-        | GreaterEq -> ">="
-        | Eq -> "=="
-        | NotEq -> "!="
-        | BitAnd -> "&"
-        | BitXor -> "^"
-        | BitOr -> "|"
-        | LogAnd -> "&&"
-        | LogOr -> "||"
-      in
-      Environment.combine env [
-        Generator(generate_expr e1);
-        Verbatim(" " ^ _op ^ " ");
-        Generator(generate_expr e2)
-      ]
+      let datatype = (infer_type e1 env) in
+      (match datatype with
+        Complex | Complex64 | Complex128 ->
+          let func = match op with
+           | Add -> "cuCadd"
+           | Sub -> "cuCsub"
+           | Mul -> "cuCmul"
+           | Div -> "cuCdiv"
+           | _ -> raise Invalid_operation in
+          Environment.combine env [
+            Verbatim(func ^ "(");
+            Generator(generate_expr e1);
+            Verbatim(",");
+            Generator(generate_expr e2);
+            Verbatim(")")
+          ]
+       | _ ->
+        let _op = match op with
+          | Add -> "+"
+          | Sub -> "-"
+          | Mul -> "*"
+          | Div -> "/"
+          | Mod -> "%"
+          | Lshift -> "<<"
+          | Rshift -> ">>"
+          | Less -> "<"
+          | LessEq -> "<="
+          | Greater -> ">"
+          | GreaterEq -> ">="
+          | Eq -> "=="
+          | NotEq -> "!="
+          | BitAnd -> "&"
+          | BitXor -> "^"
+          | BitOr -> "|"
+          | LogAnd -> "&&"
+          | LogOr -> "||"
+        in
+        Environment.combine env [
+          Generator(generate_expr e1);
+          Verbatim(" " ^ _op ^ " ");
+          Generator(generate_expr e2)
+        ])
+
   | AssignOp(lvalue, op, e) -> (
       let _op = match op with
           AddAssn -> "+="
@@ -149,10 +171,14 @@ and generate_expr expr env =
     )
   
   | ComplexAccess(expr, ident) -> (
-    Environment.combine env [
-      Generator(generate_expr expr);
-      Generator(generate_ident ident)
-    ]
+    let _op = match ident with
+      Ident("re") -> ".x"
+    | Ident("im") -> ".y"
+    | _ -> raise Not_found in
+      Environment.combine env [
+        Generator(generate_expr expr);
+        Verbatim(_op)
+      ]
   )    
   | PostOp(lvalue, op) -> (
       let _op = match op with
@@ -178,8 +204,8 @@ and generate_expr expr env =
       Environment.combine env [Verbatim(string_of_float f)]
   | ComplexLit(c) ->
       Environment.combine env [
-        Verbatim("(" ^ string_of_float c.re);
-        Verbatim(" + i" ^ string_of_float c.im ^ ")")
+        Verbatim("make_cuDoubleComplex(" ^ string_of_float c.re ^ ","
+                         ^ string_of_float c.im ^ ")");
       ]
   | StringLit(s) ->
       Environment.combine env [Verbatim("\"" ^ s ^ "\"")]
