@@ -171,8 +171,8 @@ and generate_expr expr env =
       Environment.combine env [
         Verbatim("'" ^ Char.escaped c ^ "'")
       ]
-  | ArrayLit(es) ->
-      let typ = (match (infer_type (ArrayLit(es)) env) with
+  | ArrayLit(es) as lit ->
+      let typ = (match (infer_type lit env) with
        | ArrayType(t) -> t
        | _ -> raise Type_mismatch) in
       let len = Int32.of_int (List.length es) in
