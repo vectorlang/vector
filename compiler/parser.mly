@@ -12,13 +12,13 @@
 %token LOGNOT BITNOT DEC INC
 %token IF ELSE WHILE FOR PFOR IN
 %token RETURN VOID SYNC
+%token HASH
 %token EOF
 %token <int32> INT_LITERAL
 %token <int64> INT64_LITERAL
 %token <float> FLOAT_LITERAL
 %token <string> IDENT TYPE STRING_LITERAL
 %token <char> CHAR_LITERAL
-%token <Complex.t> COMPLEX_LITERAL
 
 %left SC
 %right DECL_EQUAL EQUAL PLUS_EQUALS MINUS_EQUALS TIMES_EQUALS DIVIDE_EQUALS MODULO_EQUALS LSHIFT_EQUALS RSHIFT_EQUALS BITOR_EQUALS BITAND_EQUALS BITXOR_EQUALS
@@ -126,7 +126,7 @@ expr:
   | INT_LITERAL                 { IntLit($1) }
   | INT64_LITERAL               { Int64Lit($1) }
   | FLOAT_LITERAL               { FloatLit($1) }
-  | COMPLEX_LITERAL             { ComplexLit($1) }
+  | HASH LPAREN expr COMMA expr RPAREN { ComplexLit($3, $5) }
   | STRING_LITERAL              { StringLit($1) }
   | CHAR_LITERAL                { CharLit($1) }
   | datatype LPAREN expr RPAREN { Cast($1, $3) }

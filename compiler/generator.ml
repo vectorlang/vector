@@ -23,9 +23,19 @@ let rec infer_type expr env =
          | LogAnd | LogOr | Eq | NotEq | Less | LessEq | Greater | GreaterEq ->
             Bool
          | _ -> match_type [infer_type expr1 env; infer_type expr2 env])
-      | ComplexAccess(expr1,ident) -> Int  
+      | ComplexAccess(expr1,ident) ->
+          (match (infer_type expr1 env) with
+            | Complex -> Float
+            | Complex64 -> Float32
+            | Complex128 -> Float64
+            | _ -> raise Invalid_operation)
       | CharLit(_) -> Char
-      | ComplexLit(_) -> Complex
+      | ComplexLit(re, im) ->
+          (match (infer_type re env), (infer_type im env) with
+            | (Float, Float) -> Complex
+            | (Float32, Float32) -> Complex64
+            | (Float64, Float64) -> Complex128
+            | _ -> raise Type_mismatch)
       | FloatLit(_) -> Float
       | Int64Lit(_) -> Int64
       | IntLit(_) -> Int
@@ -75,8 +85,8 @@ let generate_datatype datatype env =
      | Float64 -> Environment.combine env [Verbatim("float64")]
 
 
-     | Complex -> Environment.combine env [Verbatim("cuDoubleComplex")]
-     | Complex64 -> Environment.combine env [Verbatim("cuDoubleComplex")]
+     | Complex -> Environment.combine env [Verbatim("cuFloatComplex")]
+     | Complex64 -> Environment.combine env [Verbatim("cuFloatComplex")]
      | Complex128 -> Environment.combine env [Verbatim("cuDoubleComplex")]
 
 
@@ -98,20 +108,22 @@ and generate_expr expr env =
     Binop(e1,op,e2) ->
       let datatype = (infer_type e1 env) in
       (match datatype with
-        Complex | Complex64 | Complex128 ->
-          let func = match op with
-           | Add -> "cuCadd"
-           | Sub -> "cuCsub"
-           | Mul -> "cuCmul"
-           | Div -> "cuCdiv"
-           | _ -> raise Invalid_operation in
-          Environment.combine env [
-            Verbatim(func ^ "(");
-            Generator(generate_expr e1);
-            Verbatim(",");
-            Generator(generate_expr e2);
-            Verbatim(")")
-          ]
+        | Complex | Complex64 | Complex128 ->
+            let func = match op with
+              | Add -> "cuCadd"
+              | Sub -> "cuCsub"
+              | Mul -> "cuCmul"
+              | Div -> "cuCdiv"
+              | _ -> raise Invalid_operation in
+            let func = if datatype == Complex128 then
+                func else func ^ "f" in
+            Environment.combine env [
+                Verbatim(func ^ "(");
+                Generator(generate_expr e1);
+                Verbatim(",");
+                Generator(generate_expr e2);
+                Verbatim(")")
+            ]
        | _ ->
         let _op = match op with
           | Add -> "+"
@@ -202,10 +214,17 @@ and generate_expr expr env =
       Environment.combine env [Verbatim(Int64.to_string i)]
   | FloatLit(f) ->
       Environment.combine env [Verbatim(string_of_float f)]
-  | ComplexLit(c) ->
+  | ComplexLit(re, im) as lit ->
+      let make_func = (match (infer_type lit env) with
+        | Complex | Complex64 -> "make_cuFloatComplex"
+        | Complex128 -> "make_cuDoubleComplex"
+        | _ -> raise Type_mismatch) in
       Environment.combine env [
-        Verbatim("make_cuDoubleComplex(" ^ string_of_float c.re ^ ","
-                         ^ string_of_float c.im ^ ")");
+        Verbatim(make_func ^ "(");
+        Generator(generate_expr re);
+        Verbatim(", ");
+        Generator(generate_expr im);
+        Verbatim(")")
       ]
   | StringLit(s) ->
       Environment.combine env [Verbatim("\"" ^ s ^ "\"")]

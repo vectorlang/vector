@@ -44,7 +44,7 @@ and expr =
   | IntLit of int32
   | Int64Lit of int64
   | FloatLit of float
-  | ComplexLit of Complex.t
+  | ComplexLit of expr * expr
   | StringLit of string
   | CharLit of char
   | ArrayLit of expr list

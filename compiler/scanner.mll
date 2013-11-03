@@ -38,16 +38,13 @@ rule token = parse
   | "<<+" { LSHIFT_EQUALS } | ">>=" { RSHIFT_EQUALS }
   | "|=" { BITOR_EQUALS } | "&=" { BITAND_EQUALS } | "^=" { BITXOR_EQUALS }
 
+  | '#' { HASH }
+
   | decdigit+ | "0x" hexdigit+
       as lit { INT_LITERAL(Int32.of_string lit) }
   | (decdigit+ | "0x" hexdigit+ as lit) 'L'
       { INT64_LITERAL(Int64.of_string lit) }
   | floating as lit { FLOAT_LITERAL(float_of_string lit) }
-  | "#(" ('-'? (floating | decdigit+) as real) ',' ' '?
-         ('-'? (floating | decdigit+) as imag) ')'
-      { COMPLEX_LITERAL(
-          {Complex.re = float_of_string real;
-           Complex.im = float_of_string imag}) }
   | '"' (('\\' _ | [^ '"'])* as str) '"'
       { STRING_LITERAL(str) }
   | '\'' ('\\' _ | [^ '\''] | "\\x" hexdigit hexdigit as lit) '\''
