@@ -5,7 +5,7 @@ complex add(complex a, complex b)
 
 int vec_main()
 {
-    i := #(4.5, 2.3) * #(0., 2.);
+    i := #(float64(4.5), float64(2.3)) * #(float64(0.), float64(2.));
     j := add(#(3.,4.),#(5., 4.));
 
     printf("%0.1f + %0.1fj\n", i.re, i.im);
