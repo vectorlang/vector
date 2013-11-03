@@ -81,8 +81,8 @@ let generate_datatype datatype env =
      | UInt64 -> Environment.combine env [Verbatim("uint64_t")]
      | Double -> Environment.combine env [Verbatim("double")]
      | Float -> Environment.combine env [Verbatim("float")]
-     | Float32 -> Environment.combine env [Verbatim("float32")]
-     | Float64 -> Environment.combine env [Verbatim("float64")]
+     | Float32 -> Environment.combine env [Verbatim("float")]
+     | Float64 -> Environment.combine env [Verbatim("double")]
 
 
      | Complex -> Environment.combine env [Verbatim("cuFloatComplex")]
