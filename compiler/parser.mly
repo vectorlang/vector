@@ -73,12 +73,7 @@ datatype:
 lvalue:
   | ident { Variable($1) }
   | expr LSQUARE expr_list RSQUARE { ArrayElem($1, $3) }
-  | expr DOT ident {
-    match $3 with
-       Ident("re") -> ComplexAccess($1, $3)
-      |Ident("im") -> ComplexAccess($1, $3)
-      | _ -> raise Not_found
-  }
+  | expr DOT ident { ComplexAccess($1, $3) }
 
 expr:
   | expr PLUS expr   { Binop($1, Add, $3) }
