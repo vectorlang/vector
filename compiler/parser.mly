@@ -100,16 +100,16 @@ expr:
   | expr LOGOR expr  { Binop($1, LogOr, $3) }
 
 
-  | lvalue PLUS_EQUALS expr   { AssignOp($1, AddAssn, $3) }
-  | lvalue MINUS_EQUALS expr  { AssignOp($1, SubAssn, $3) }
-  | lvalue TIMES_EQUALS expr  { AssignOp($1, MulAssn, $3) }
-  | lvalue DIVIDE_EQUALS expr { AssignOp($1, DivAssn, $3) }
-  | lvalue MODULO_EQUALS expr { AssignOp($1, ModAssn, $3) }
-  | lvalue LSHIFT_EQUALS expr { AssignOp($1, LshiftAssn, $3) }
-  | lvalue RSHIFT_EQUALS expr { AssignOp($1, RshiftAssn, $3) }
-  | lvalue BITOR_EQUALS expr  { AssignOp($1, BitOrAssn, $3) }
-  | lvalue BITAND_EQUALS expr { AssignOp($1, BitAndAssn, $3) }
-  | lvalue BITXOR_EQUALS expr { AssignOp($1, BitXorAssn, $3) }
+  | lvalue PLUS_EQUALS expr   { AssignOp($1, Add, $3) }
+  | lvalue MINUS_EQUALS expr  { AssignOp($1, Sub, $3) }
+  | lvalue TIMES_EQUALS expr  { AssignOp($1, Mul, $3) }
+  | lvalue DIVIDE_EQUALS expr { AssignOp($1, Div, $3) }
+  | lvalue MODULO_EQUALS expr { AssignOp($1, Mod, $3) }
+  | lvalue LSHIFT_EQUALS expr { AssignOp($1, Lshift, $3) }
+  | lvalue RSHIFT_EQUALS expr { AssignOp($1, Rshift, $3) }
+  | lvalue BITOR_EQUALS expr  { AssignOp($1, BitOr, $3) }
+  | lvalue BITAND_EQUALS expr { AssignOp($1, BitAnd, $3) }
+  | lvalue BITXOR_EQUALS expr { AssignOp($1, BitXor, $3) }
 
   | MINUS expr %prec UMINUS { Unop(Neg, $2) }
   | LOGNOT expr { Unop(LogNot, $2) }
