@@ -34,11 +34,11 @@ type ident =
 type lvalue =
   | Variable of ident
   | ArrayElem of expr * expr list
+  | ComplexAccess of expr * ident 
 and expr =
     Binop of expr * binop * expr
   | AssignOp of lvalue * assignop * expr
   | Unop of unop * expr
-  | ComplexAccess of expr * ident 
   | PostOp of lvalue * postop
   | Assign of lvalue * expr
   | IntLit of int32
