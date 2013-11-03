@@ -6,7 +6,7 @@ exception Unknown_type
 exception Empty_list
 exception Type_mismatch
 exception Not_implemented (* this should go away *)
-
+exception Invalid_operation
 
 let rec infer_type expr env =
     let f type1 type2 =
@@ -24,7 +24,12 @@ let rec infer_type expr env =
             Bool
          | _ -> match_type [infer_type expr1 env; infer_type expr2 env])
       | CharLit(_) -> Char
-      | ComplexLit(_) -> Complex
+      | ComplexLit(re, im) ->
+          (match (infer_type re env), (infer_type im env) with
+            | (Float, Float) -> Complex
+            | (Float32, Float32) -> Complex64
+            | (Float64, Float64) -> Complex128
+            | _ -> raise Type_mismatch)
       | FloatLit(_) -> Float
       | Int64Lit(_) -> Int64
       | IntLit(_) -> Int
@@ -35,7 +40,13 @@ let rec infer_type expr env =
       | Cast(datatype, expr) -> datatype
       | Lval(lval) -> (match lval with
           | ArrayElem(e, _) -> infer_type e env
-          | Variable(i) -> Environment.get_var_type i env)
+          | Variable(i) -> Environment.get_var_type i env
+          | ComplexAccess(expr1,ident) ->
+              (match (infer_type expr1 env) with
+                | Complex -> Float
+                | Complex64 -> Float32
+                | Complex128 -> Float64
+                | _ -> raise Invalid_operation))
       | AssignOp(lval, _, expr) ->
             let l = Lval(lval) in
             match_type [infer_type l env; infer_type expr env]
@@ -46,6 +57,7 @@ let rec infer_type expr env =
             match_type [infer_type l env; infer_type expr env]
       | FunctionCall(i, _) -> Environment.get_func_type i env
       (* this depends on the HOF type: ex map is int list -> int list *)
+
       | HigherOrderFunctionCall(hof, f, expr_list) -> raise Not_implemented
 
 
@@ -67,6 +79,17 @@ let generate_datatype datatype env =
      | UInt32 -> Environment.combine env [Verbatim("uint32_t")]
      | Int64 -> Environment.combine env [Verbatim("int64_t")]
      | UInt64 -> Environment.combine env [Verbatim("uint64_t")]
+     | Double -> Environment.combine env [Verbatim("double")]
+     | Float -> Environment.combine env [Verbatim("float")]
+     | Float32 -> Environment.combine env [Verbatim("float")]
+     | Float64 -> Environment.combine env [Verbatim("double")]
+
+
+     | Complex -> Environment.combine env [Verbatim("cuFloatComplex")]
+     | Complex64 -> Environment.combine env [Verbatim("cuFloatComplex")]
+     | Complex128 -> Environment.combine env [Verbatim("cuDoubleComplex")]
+
+
      | _ -> raise Unknown_type
 
 let rec generate_lvalue lval env =
@@ -80,34 +103,64 @@ let rec generate_lvalue lval env =
          Generator(generate_expr_list es);
          Verbatim(")")
        ]
+    | ComplexAccess(expr, ident) -> (
+        let _op = match ident with
+          Ident("re") -> ".x"
+        | Ident("im") -> ".y"
+        | _ -> raise Not_found in
+          Environment.combine env [
+            Generator(generate_expr expr);
+            Verbatim(_op)
+          ]
+      )
 and generate_expr expr env =
   match expr with
     Binop(e1,op,e2) ->
-      let _op = match op with
-        | Add -> "+"
-        | Sub -> "-"
-        | Mul -> "*"
-        | Div -> "/"
-        | Mod -> "%"
-        | Lshift -> "<<"
-        | Rshift -> ">>"
-        | Less -> "<"
-        | LessEq -> "<="
-        | Greater -> ">"
-        | GreaterEq -> ">="
-        | Eq -> "=="
-        | NotEq -> "!="
-        | BitAnd -> "&"
-        | BitXor -> "^"
-        | BitOr -> "|"
-        | LogAnd -> "&&"
-        | LogOr -> "||"
-      in
-      Environment.combine env [
-        Generator(generate_expr e1);
-        Verbatim(" " ^ _op ^ " ");
-        Generator(generate_expr e2)
-      ]
+      let datatype = (infer_type e1 env) in
+      (match datatype with
+        | Complex | Complex64 | Complex128 ->
+            let func = match op with
+              | Add -> "cuCadd"
+              | Sub -> "cuCsub"
+              | Mul -> "cuCmul"
+              | Div -> "cuCdiv"
+              | _ -> raise Invalid_operation in
+            let func = if datatype == Complex128 then
+                func else func ^ "f" in
+            Environment.combine env [
+                Verbatim(func ^ "(");
+                Generator(generate_expr e1);
+                Verbatim(",");
+                Generator(generate_expr e2);
+                Verbatim(")")
+            ]
+       | _ ->
+        let _op = match op with
+          | Add -> "+"
+          | Sub -> "-"
+          | Mul -> "*"
+          | Div -> "/"
+          | Mod -> "%"
+          | Lshift -> "<<"
+          | Rshift -> ">>"
+          | Less -> "<"
+          | LessEq -> "<="
+          | Greater -> ">"
+          | GreaterEq -> ">="
+          | Eq -> "=="
+          | NotEq -> "!="
+          | BitAnd -> "&"
+          | BitXor -> "^"
+          | BitOr -> "|"
+          | LogAnd -> "&&"
+          | LogOr -> "||"
+        in
+        Environment.combine env [
+          Generator(generate_expr e1);
+          Verbatim(" " ^ _op ^ " ");
+          Generator(generate_expr e2)
+        ])
+
   | AssignOp(lvalue, op, e) -> (
       let _op = match op with
           AddAssn -> "+="
@@ -138,6 +191,8 @@ and generate_expr expr env =
         Generator(generate_expr e)
       ]
     )
+  
+      
   | PostOp(lvalue, op) -> (
       let _op = match op with
           Dec -> "--"
@@ -160,10 +215,17 @@ and generate_expr expr env =
       Environment.combine env [Verbatim(Int64.to_string i)]
   | FloatLit(f) ->
       Environment.combine env [Verbatim(string_of_float f)]
-  | ComplexLit(c) ->
+  | ComplexLit(re, im) as lit ->
+      let make_func = (match (infer_type lit env) with
+        | Complex | Complex64 -> "make_cuFloatComplex"
+        | Complex128 -> "make_cuDoubleComplex"
+        | _ -> raise Type_mismatch) in
       Environment.combine env [
-        Verbatim("(" ^ string_of_float c.re);
-        Verbatim(" + i" ^ string_of_float c.im ^ ")")
+        Verbatim(make_func ^ "(");
+        Generator(generate_expr re);
+        Verbatim(", ");
+        Generator(generate_expr im);
+        Verbatim(")")
       ]
   | StringLit(s) ->
       Environment.combine env [Verbatim("\"" ^ s ^ "\"")]

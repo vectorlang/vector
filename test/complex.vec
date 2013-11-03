@@ -1,0 +1,20 @@
+complex add(complex a, complex b)
+{
+    return a + b;
+}
+
+int vec_main()
+{
+    i := #(float64(4.5), float64(2.3)) * #(float64(0.), float64(2.));
+    j := add(#(3.,4.),#(5., 4.));
+
+    k := #(float64(4.5), float64(2.3));
+
+    k.im = float64(10);
+    printf("%0.1f + %0.1fj\n", i.re, i.im);
+    printf("%0.1f + %0.1fj\n", j.re, j.im);
+    printf("%0.1f + %0.1fj\n", k.re, k.im);
+
+    return 0;
+}
+

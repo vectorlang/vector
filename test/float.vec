@@ -1,0 +1,14 @@
+double divide(double a, double b)
+{
+    return a/b;
+}
+
+int vec_main()
+{
+    j := divide(3, 4);
+
+
+    printf("%0.2f\n", j);
+
+    return 0;
+}

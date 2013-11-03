@@ -12,13 +12,13 @@
 %token LOGNOT BITNOT DEC INC
 %token IF ELSE WHILE FOR PFOR IN
 %token RETURN VOID SYNC
+%token HASH
 %token EOF
 %token <int32> INT_LITERAL
 %token <int64> INT64_LITERAL
 %token <float> FLOAT_LITERAL
 %token <string> IDENT TYPE STRING_LITERAL
 %token <char> CHAR_LITERAL
-%token <Complex.t> COMPLEX_LITERAL
 
 %left SC
 %right DECL_EQUAL EQUAL PLUS_EQUALS MINUS_EQUALS TIMES_EQUALS DIVIDE_EQUALS MODULO_EQUALS LSHIFT_EQUALS RSHIFT_EQUALS BITOR_EQUALS BITAND_EQUALS BITXOR_EQUALS
@@ -59,12 +59,25 @@ datatype:
      | "uint32" -> UInt32
      | "int64" -> Int64
      | "uint64" -> UInt64
+     | "double" -> Double
+     | "float" -> Float
+     | "float32" -> Float32
+     | "float64" -> Float64
+     | "complex" -> Complex
+     | "complex64" -> Complex64
+     | "complex128" -> Complex128
      | _ -> raise Not_found
     }
 
 lvalue:
   | ident { Variable($1) }
   | expr LSQUARE expr_list RSQUARE { ArrayElem($1, $3) }
+  | expr DOT ident {
+    match $3 with
+       Ident("re") -> ComplexAccess($1, $3)
+      |Ident("im") -> ComplexAccess($1, $3)
+      | _ -> raise Not_found
+  }
 
 expr:
   | expr PLUS expr   { Binop($1, Add, $3) }
@@ -85,6 +98,7 @@ expr:
   | expr BITOR expr  { Binop($1, BitOr, $3) }
   | expr LOGAND expr { Binop($1, LogAnd, $3) }
   | expr LOGOR expr  { Binop($1, LogOr, $3) }
+
 
   | lvalue PLUS_EQUALS expr   { AssignOp($1, AddAssn, $3) }
   | lvalue MINUS_EQUALS expr  { AssignOp($1, SubAssn, $3) }
@@ -112,7 +126,7 @@ expr:
   | INT_LITERAL                 { IntLit($1) }
   | INT64_LITERAL               { Int64Lit($1) }
   | FLOAT_LITERAL               { FloatLit($1) }
-  | COMPLEX_LITERAL             { ComplexLit($1) }
+  | HASH LPAREN expr COMMA expr RPAREN { ComplexLit($3, $5) }
   | STRING_LITERAL              { StringLit($1) }
   | CHAR_LITERAL                { CharLit($1) }
   | datatype LPAREN expr RPAREN { Cast($1, $3) }

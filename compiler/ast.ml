@@ -34,6 +34,7 @@ type ident =
 type lvalue =
   | Variable of ident
   | ArrayElem of expr * expr list
+  | ComplexAccess of expr * ident 
 and expr =
     Binop of expr * binop * expr
   | AssignOp of lvalue * assignop * expr
@@ -43,7 +44,7 @@ and expr =
   | IntLit of int32
   | Int64Lit of int64
   | FloatLit of float
-  | ComplexLit of Complex.t
+  | ComplexLit of expr * expr
   | StringLit of string
   | CharLit of char
   | ArrayLit of expr list
