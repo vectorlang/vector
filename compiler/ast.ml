@@ -3,11 +3,6 @@ type binop = Add | Sub | Mul | Div | Mod
     | Less | LessEq | Greater | GreaterEq | Eq | NotEq
     | BitAnd | BitXor | BitOr | LogAnd | LogOr
 
-type assignop =
-      AddAssn | SubAssn | MulAssn | DivAssn | ModAssn
-    | LshiftAssn | RshiftAssn
-    | BitOrAssn | BitAndAssn | BitXorAssn ;;
-
 type unop = Neg | LogNot | BitNot
 
 type postop = Dec | Inc
@@ -37,7 +32,7 @@ type lvalue =
   | ComplexAccess of expr * ident 
 and expr =
     Binop of expr * binop * expr
-  | AssignOp of lvalue * assignop * expr
+  | AssignOp of lvalue * binop * expr
   | Unop of unop * expr
   | PostOp of lvalue * postop
   | Assign of lvalue * expr

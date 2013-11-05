@@ -161,25 +161,9 @@ and generate_expr expr env =
           Generator(generate_expr e2)
         ])
 
-  | AssignOp(lvalue, op, e) -> (
-      let _op = match op with
-          AddAssn -> "+="
-        | SubAssn -> "-="
-        | MulAssn -> "*="
-        | DivAssn -> "/="
-        | ModAssn -> "%="
-        | LshiftAssn -> "<<="
-        | RshiftAssn -> ">>="
-        | BitOrAssn -> "|="
-        | BitAndAssn -> "&="
-        | BitXorAssn -> "^="
-      in
-      Environment.combine env [
-        Generator(generate_lvalue lvalue);
-        Verbatim(" " ^ _op ^ " ");
-        Generator(generate_expr e)
-      ]
-    )
+  | AssignOp(lvalue, op, e) ->
+      (* change lval op= expr to lval = lval op expr *)
+      generate_expr (Assign(lvalue, Binop(Lval(lvalue), op, e))) env
   | Unop(op,e) -> (
       let _op = match op with
           Neg -> "-"
