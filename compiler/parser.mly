@@ -130,7 +130,7 @@ expr:
 
   | ident LPAREN RPAREN               { FunctionCall($1, []) }
   | ident LPAREN expr_list RPAREN { FunctionCall ($1, $3) }
-  | AT ident LPAREN ident COMMA expr_list RPAREN
+  | AT ident LPAREN ident COMMA expr RPAREN
       { HigherOrderFunctionCall($2, $4, $6) }
 
 expr_list:

@@ -58,7 +58,11 @@ let rec infer_type expr env =
       | FunctionCall(i, _) -> Environment.get_func_type i env
       (* this depends on the HOF type: ex map is int list -> int list *)
 
-      | HigherOrderFunctionCall(hof, f, expr_list) -> raise Not_implemented
+      | HigherOrderFunctionCall(hof, f, expr) -> 
+          (match(hof) with
+            | Ident("map") -> infer_type expr env
+            | Ident("reduce") -> raise Not_implemented
+            | _ -> raise Invalid_operation)
 
 
 let generate_ident ident env =
@@ -245,15 +249,15 @@ and generate_expr expr env =
         Verbatim(")")
       ]
   | HigherOrderFunctionCall(i1,i2,es) ->
-      Environment.combine env [
+      Environment.update_global_funcs (HigherOrderFunctionCall(i1, i2, es)) (Environment.combine env [
         Verbatim("@");
         Generator(generate_ident i1);
         Verbatim("(");
         Generator(generate_ident i2);
         Verbatim(", ");
-        Generator(generate_expr_list es);
+        Generator(generate_expr es);
         Verbatim(")")
-      ]
+      ])
   | Lval(lvalue) ->
       Environment.combine env [Generator(generate_lvalue lvalue)]
 and generate_expr_list expr_list env =
@@ -429,9 +433,9 @@ let rec generate_statement statement env =
            Verbatim("}")
          ]
      | FunctionDecl(t, i, ds, ss) ->
-         Environment.update_functions i t (Environment.combine env [
+         Environment.update_function_content (FunctionDecl(t,i,ds,ss)) (Environment.update_functions i t (Environment.combine env [
              NewScopeGenerator(generate_function (t,i,ds,ss))
-           ])
+           ]))
      | ForwardDecl(t, i, ds) ->
          Environment.update_functions i t (Environment.combine env [
            Generator(generate_datatype t);
@@ -488,5 +492,6 @@ let generate_toplevel tree =
 let _ =
   let lexbuf = Lexing.from_channel stdin in
   let tree = Parser.top_level Scanner.token lexbuf in
-  let code, _ = generate_toplevel tree in
+  let code, env = generate_toplevel tree in
+  Environment.render_global_functions env;
   print_string code

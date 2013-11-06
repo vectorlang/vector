@@ -45,7 +45,7 @@ and expr =
   | ArrayLit of expr list
   | Cast of datatype * expr
   | FunctionCall of ident * expr list
-  | HigherOrderFunctionCall of ident * ident * expr list
+  | HigherOrderFunctionCall of ident * ident * expr
   | Lval of lvalue
 
 type decl =
