@@ -14,6 +14,7 @@ module FunctionDeclarationMap = Map.Make(struct type t = ident let compare = com
 exception Already_declared
 exception Invalid_environment
 exception Invalid_operation
+exception Not_implemented
 
 type 'a sourcecomponent =
   | Verbatim of string
@@ -95,7 +96,7 @@ let update_functions ident returntype (str, env) =
 let rec render_global_functions env =
   let global_funcs, func_content, func_map, scope_stack = env in
   match global_funcs with
-  | [] -> print_endline("")
+  | [] -> ""
   | HigherOrderFunctionCall(hof, ident, expr) :: tail -> (match hof with
       | Ident("map") ->
           "__global__ void " ^ "function_placeholder" ^ "map(#{type} *result, #{type} *input, size_t n) {
