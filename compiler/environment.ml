@@ -108,7 +108,7 @@ let generate_kernel_invocation_functions env =
         let new_str = str ^ "\nVectorArray<" ^ function_type ^ "> " ^ kernel_invoke_sym ^ "(" ^
         "VectorArray<" ^ function_type ^ "> input){
           int inputSize = input.size(); 
-          VectorArray<" ^ function_type ^ " > output = array_init<float>((size_t) inputSize);
+          VectorArray<" ^ function_type ^ " > output = array_init<" ^ function_type ^ ">((size_t) inputSize);
           input.copyToDevice();
           " ^ kernel_sym ^
           "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
