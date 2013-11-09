@@ -87,11 +87,9 @@ let set_func_type ident returntype env =
   let new_func_map = FunctionMap.add ident returntype func_map in
   kernel_funcs, global_funcs, func_content_map, new_func_map, scope_stack
 
-let update_function_content function_decl (str, env) = 
+let update_function_content str ident env = 
   let kernel_funcs, global_funcs, func_content_map, func_map, scope_stack = env in
-  let new_func_content_map = match function_decl with 
-    | FunctionDecl(t, ident, ds, ss) -> FunctionDeclarationMap.add ident (FunctionDecl(t,ident,ds,ss)) func_content_map
-    | _ -> raise Invalid_operation in
+  let new_func_content_map = FunctionDeclarationMap.add ident str func_content_map in
   (str, (kernel_funcs, global_funcs, new_func_content_map, func_map, scope_stack))
 
 let update_functions ident returntype (str, env) =
@@ -107,12 +105,13 @@ let generate_kernel_invocation_functions env =
     | [] -> str
     | head :: tail -> 
         (let kernel_invoke_sym, kernel_sym, function_type  = head in
-        let new_str = str ^ "\n" ^ function_type ^ " " ^ kernel_invoke_sym ^ "(" ^
+        let new_str = str ^ "\nVectorArray<" ^ function_type ^ "> " ^ kernel_invoke_sym ^ "(" ^
         "VectorArray<" ^ function_type ^ "> input){
           int inputSize = input.size(); 
-          VectorArray<" ^ function_type ^ " > output = array_init<float>((size_t) inputSize));
+          VectorArray<" ^ function_type ^ " > output = array_init<float>((size_t) inputSize);
           input.copyToDevice();
-          " ^ kernel_sym ^ "<<<ceil_div(inputSize, BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr, size);
+          " ^ kernel_sym ^
+          "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
           cudaDeviceSynchronize();
           output.copyFromDevice();
           return output;
@@ -120,7 +119,6 @@ let generate_kernel_invocation_functions env =
         " in
         generate_functions tail new_str) in
   generate_functions kernel_funcs " "
-    
 
 let generate_kernel_functions env =
   let kernel_funcs, global_funcs, func_content, func_map, scope_stack = env in
@@ -132,8 +130,8 @@ let generate_kernel_functions env =
         (match hof with
          | Ident("map") ->
             let new_str = str ^ 
-            "__global__ void " ^ kernel_sym ^ "(VectorArray<" ^ function_type ^ "> output,
-            VectorArray<" ^ function_type ^ "> input, size_t n){
+            "__global__ void " ^ kernel_sym ^ "(" ^ function_type ^ "* output,
+            " ^ function_type ^ "* input, size_t n){
               size_t i = threadIdx.x + blockDim.x * blockIdx.x;
               
               if (i < n)
@@ -143,26 +141,20 @@ let generate_kernel_functions env =
          | Ident("reduce") -> raise Not_implemented
          | _ -> raise Invalid_operation)) in
   generate_funcs global_funcs ""
-  
-         
-  
-  (*HigherOrderFunctionCall(hof, ident, expr) :: tail -> (match hof with
-      | Ident("map") ->
-          "__global__ void " ^ "function_placeholder" ^ "map(#{type} *result, #{type} *input, size_t n) {
 
-              size_t i = threadidx.x + blockdim.x * blockidx.x;
-             
-              #{varname} = input[i]
-              
-                #{content} 
-              
-              result[i] = #{return value} 
-            }
-          "   
-      | Ident("reduce") -> raise Not_implemented
-      | _ -> raise Invalid_operation)
-  | _  :: tail -> raise Invalid_operation*)
+let generate_device_functions env =
+  let kernel_funcs, global_funcs, func_content_map, func_map, scope_stack = env in
+  let rec generate_funcs funcs str =
+    match funcs with
+    | [] -> str
+    | head :: tail -> 
+        let function_name, hof, kernel_sym, function_type = head in
+        let func_content = FunctionDeclarationMap.find (Ident (function_name)) func_content_map in
+        let new_str = str ^ "\n__device__ " ^ func_content ^ "\n" in
+        generate_funcs tail new_str in
 
+  generate_funcs global_funcs ""
+        
 let combine initial_env components =
     let f (str, env) component =
         match component with

@@ -437,9 +437,13 @@ let rec generate_statement statement env =
            Verbatim("}")
          ]
      | FunctionDecl(t, i, ds, ss) ->
-         Environment.update_function_content (FunctionDecl(t,i,ds,ss)) (Environment.update_functions i t (Environment.combine env [
+         let str, env = Environment.combine env [
              NewScopeGenerator(generate_function (t,i,ds,ss))
-           ]))
+           ] in
+         let new_str, new_env = Environment.update_functions i t (str, env) in
+         let final_str, final_env = Environment.update_function_content new_str i new_env in
+         final_str, final_env
+
      | ForwardDecl(t, i, ds) ->
          Environment.update_functions i t (Environment.combine env [
            Generator(generate_datatype t);
@@ -493,6 +497,7 @@ let _ =
   let lexbuf = Lexing.from_channel stdin in
   let tree = Parser.top_level Scanner.token lexbuf in
   let code, env = generate_toplevel tree in
+  let device_functions =  Environment.generate_device_functions env in
   let kernel_invocations = Environment.generate_kernel_invocation_functions env in
   let kernel_functions  = Environment.generate_kernel_functions env in
   let header =  "#include <stdio.h>\n\
@@ -500,6 +505,7 @@ let _ =
                   #include <stdint.h>\n\
                   #include <libvector.hpp>\n\n" in
   print_string header;
+  print_string device_functions;
   print_string kernel_functions;
   print_string kernel_invocations;
   print_string code
