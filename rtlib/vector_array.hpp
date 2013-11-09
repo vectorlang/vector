@@ -15,15 +15,20 @@ class VectorArray {
 		size_t ndims;
 		size_t *dims;
 		size_t nelems;
+		int *refcount;
+		size_t bsize();
+		void deviceAllocate();
+		void incRef();
+		void decRef();
 	public:
 		VectorArray();
 		VectorArray(size_t ndims, ...);
+		VectorArray(const VectorArray<T> &orig);
 		T &elem(size_t first_ind, ...);
+		VectorArray<T>& operator= (const VectorArray<T> &orig);
 		~VectorArray();
-		size_t bsize();
 		size_t size();
 		size_t length(size_t dim = 0);
-		void deviceAllocate();
 		void copyToDevice();
 		void copyFromDevice();
 		T *devPtr();
@@ -36,6 +41,8 @@ VectorArray<T>::VectorArray()
 	this->dims = NULL;
 	this->values = NULL;
 	this->nelems = 0;
+	this->refcount = (int *) malloc(sizeof(int));
+	this->refcount[0] = 1;
 }
 
 template <class T>
@@ -49,6 +56,8 @@ VectorArray<T>::VectorArray(size_t ndims, ...)
 	this->ndims = ndims;
 	this->dims = (size_t *) calloc(ndims, sizeof(size_t));
 	this->nelems = 1;
+	this->refcount = (int *) malloc(sizeof(int));
+	this->refcount[0] = 1;
 
 	for (i = 0; i < ndims; i++) {
 		this->dims[i] = va_arg(dim_list, size_t);
@@ -59,6 +68,60 @@ VectorArray<T>::VectorArray(size_t ndims, ...)
 
 	this->values = (T *) calloc(this->nelems, sizeof(T));
 	this->d_values = NULL;
+}
+
+template <class T>
+VectorArray<T>::VectorArray(const VectorArray<T> &orig)
+{
+	this->ndims = orig.ndims;
+	this->dims = orig.dims;
+	this->nelems = orig.nelems;
+	this->refcount = orig.refcount;
+	this->values = orig.values;
+	this->d_values = orig.d_values;
+
+	incRef();
+}
+
+template <class T>
+VectorArray<T>& VectorArray<T>::operator= (const VectorArray<T>& orig)
+{
+	// avoid self-assignment
+	if (this == &orig)
+		return *this;
+
+	decRef();
+
+	this->ndims = orig.ndims;
+	this->dims = orig.dims;
+	this->nelems = orig.nelems;
+	this->refcount = orig.refcount;
+	this->values = orig.values;
+	this->d_values = orig.d_values;
+
+	incRef();
+
+	return *this;
+}
+
+template <class T>
+void VectorArray<T>::incRef(void)
+{
+	(*this->refcount)++;
+}
+
+template <class T>
+void VectorArray<T>::decRef(void)
+{
+	if (--(*this->refcount) > 0)
+		return;
+	free(this->refcount);
+	if (this->dims != NULL)
+		free(this->dims);
+	if (this->values != NULL)
+		free(this->values);
+	if (this->d_values != NULL)
+		cudaFree(this->d_values);
 }
 
 template <class T>
@@ -83,12 +146,7 @@ T &VectorArray<T>::elem(size_t first_ind, ...)
 template <class T>
 VectorArray<T>::~VectorArray()
 {
-	if (this->dims != NULL)
-		free(this->dims);
-	if (this->values != NULL)
-		free(this->values);
-	if (this->d_values != NULL)
-		cudaFree(this->d_values);
+	decRef();
 }
 
 template <class T>
