@@ -4,7 +4,7 @@ int square(int x) {
 
 int vec_main()
 {
-    squares := @map(square, {1,2,3});
+    squares := @map(square, {1.0,2.0,3.0});
     i := 0;
 
     while (i < 3) {

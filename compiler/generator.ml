@@ -1,6 +1,7 @@
 open Ast
 open Complex
 open Environment
+open Symgen
 
 exception Unknown_type
 exception Empty_list
@@ -58,7 +59,7 @@ let rec infer_type expr env =
       | FunctionCall(i, _) -> Environment.get_func_type i env
       (* this depends on the HOF type: ex map is int list -> int list *)
 
-      | HigherOrderFunctionCall(hof, f, expr) -> 
+      | HigherOrderFunctionCall(hof, f, expr) ->
           (match(hof) with
             | Ident("map") -> infer_type expr env
             | Ident("reduce") -> raise Not_implemented
@@ -249,15 +250,18 @@ and generate_expr expr env =
         Verbatim(")")
       ]
   | HigherOrderFunctionCall(i1,i2,es) ->
-      Environment.update_global_funcs (HigherOrderFunctionCall(i1, i2, es)) (Environment.combine env [
-        Verbatim("@");
-        Generator(generate_ident i1);
-        Verbatim("(");
-        Generator(generate_ident i2);
-        Verbatim(", ");
-        Generator(generate_expr es);
-        Verbatim(")")
-      ])
+      (match infer_type es env with
+        | ArrayType(function_type) ->
+            let function_type_str, _ = generate_datatype function_type env in
+            let kernel_invoke_sym = Symgen.gensym () in
+            let kernel_sym = Symgen.gensym () in
+            let function_name, _ = generate_ident i2 env in
+            Environment.update_global_funcs function_type_str kernel_invoke_sym function_name i1 kernel_sym (Environment.combine env [
+                Verbatim(kernel_invoke_sym ^ "(");
+                Generator(generate_expr es);
+                Verbatim(");")
+            ])
+        | _ -> raise Type_mismatch)
   | Lval(lvalue) ->
       Environment.combine env [Generator(generate_lvalue lvalue)]
 and generate_expr_list expr_list env =
@@ -481,10 +485,6 @@ and generate_function (returntype, ident, params, statements) env =
 let generate_toplevel tree =
     let env = Environment.create in
     Environment.combine env [
-        Verbatim("#include <stdio.h>\n\
-                  #include <stdlib.h>\n\
-                  #include <stdint.h>\n\
-                  #include <libvector.hpp>\n\n");
         Generator(generate_statement_list tree);
         Verbatim("\nint main(void) { return vec_main(); }")
     ]
@@ -493,5 +493,13 @@ let _ =
   let lexbuf = Lexing.from_channel stdin in
   let tree = Parser.top_level Scanner.token lexbuf in
   let code, env = generate_toplevel tree in
-  Environment.render_global_functions env;
+  let kernel_invocations = Environment.generate_kernel_invocation_functions env in
+  let kernel_functions  = Environment.generate_kernel_functions env in
+  let header =  "#include <stdio.h>\n\
+                  #include <stdlib.h>\n\
+                  #include <stdint.h>\n\
+                  #include <libvector.hpp>\n\n" in
+  print_string header;
+  print_string kernel_functions;
+  print_string kernel_invocations;
   print_string code
