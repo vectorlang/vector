@@ -19,6 +19,7 @@ AddOption('--8400gs', dest='8400gs',
 rtlib = GetOption('rtlib')
 cuda_lib = GetOption('cuda_lib')
 cuda_arch = GetOption('cuda_arch')
+ccflags = "-Wall -g"
 
 # This is just a convenience for me to quickly choose the options for my GPU
 # If you're using ocelot, don't use this flag
@@ -26,13 +27,14 @@ if GetOption('8400gs'):
     rtlib = 'cudart'
     cuda_lib = '/opt/cuda/lib64'
     cuda_arch = 'sm_11'
+    ccflags += " -DBLOCK_SIZE=512"
 
 env['LINK'] = env['CXX']
 env.Append(LIBS = [rtlib, 'm'])
 env.Append(LIBPATH = [cuda_lib])
 env.Append(CPPPATH = ['./rtlib'])
 env.Append(CUDA_ARCH = cuda_arch)
-env.Append(CCFLAGS = '-Wall -g')
+env.Append(CCFLAGS = ccflags)
 env.Append(NVCC = 'nvcc', NVCC_FLAGS = '-arch=$CUDA_ARCH -I$CPPPATH -Xcompiler $CCFLAGS')
 env.Append(BUILDERS = {'CudaGen' : cuda_gen,
                        'CudaObject' : cuda_object,
