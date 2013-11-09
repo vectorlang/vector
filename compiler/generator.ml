@@ -437,11 +437,15 @@ let rec generate_statement statement env =
            Verbatim("}")
          ]
      | FunctionDecl(t, i, ds, ss) ->
+         let new_func_sym = Symgen.gensym () in
          let str, env = Environment.combine env [
              NewScopeGenerator(generate_function (t,i,ds,ss))
            ] in
+         let mod_str, _ = Environment.combine env [
+           NewScopeGenerator(generate_function (t,Ident (new_func_sym),ds,ss))
+         ] in
          let new_str, new_env = Environment.update_functions i t (str, env) in
-         let final_str, final_env = Environment.update_function_content new_str i new_env in
+         let final_str, final_env = Environment.update_function_content new_str mod_str new_func_sym i new_env in
          final_str, final_env
 
      | ForwardDecl(t, i, ds) ->
