@@ -132,7 +132,7 @@ let generate_kernel_functions env =
         (match hof with
          | Ident("map") ->
             let new_str = str ^ 
-            "__global__ void " ^ kernel_sym ^ "(VectorArray<function_type> output,
+            "__global__ void " ^ kernel_sym ^ "(VectorArray<" ^ function_type ^ "> output,
             VectorArray<" ^ function_type ^ "> input, size_t n){
               size_t i = threadIdx.x + blockDim.x * blockIdx.x;
               
