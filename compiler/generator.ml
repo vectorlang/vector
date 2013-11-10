@@ -53,7 +53,11 @@ let rec infer_type expr env =
       | AssignOp(lval, _, expr) ->
             let l = Lval(lval) in
             match_type [infer_type l env; infer_type expr env]
-      | Unop(op, expr) -> (if op = Neg then Bool else infer_type expr env)
+      | Unop(op, expr) -> (match op with
+            Neg -> Bool
+          | Len -> Int
+          | _ -> infer_type expr env
+        )
       | PostOp(lval, _) -> let l = Lval(lval) in infer_type l env
       | Assign(lval, expr) ->
             let l = Lval(lval) in
