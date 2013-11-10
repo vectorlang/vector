@@ -31,6 +31,7 @@ rule token = parse
 
   | '!' { LOGNOT } | '~' { BITNOT }
   | "++" { INC } | "--" { DEC }
+  | "len" { LEN }
 
   | "+=" { PLUS_EQUALS } | "-=" { MINUS_EQUALS }
   | "*=" { TIMES_EQUALS } | "/-" { DIVIDE_EQUALS }
@@ -69,7 +70,7 @@ rule token = parse
   | "pfor" { PFOR }
   | "in" { IN }
 
-  | "__sym" decdigit+ "_" { raise Illegal_identifier }
+  | "__sym" decdigit+ "_" letter* { raise Illegal_identifier }
   | letter (letter | decdigit)* as ident { IDENT(ident) }
 
   | "/*" { comments lexbuf }

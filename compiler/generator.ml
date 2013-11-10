@@ -3,6 +3,8 @@ open Complex
 open Environment
 open Symgen
 
+module StringMap = Map.Make(String);;
+
 exception Unknown_type
 exception Empty_list
 exception Type_mismatch
@@ -161,24 +163,31 @@ and generate_expr expr env =
           | LogOr -> "||"
         in
         Environment.combine env [
+          Verbatim("(");
           Generator(generate_expr e1);
-          Verbatim(" " ^ _op ^ " ");
-          Generator(generate_expr e2)
+          Verbatim(") " ^ _op ^ " (");
+          Generator(generate_expr e2);
+          Verbatim(")");
         ])
 
   | AssignOp(lvalue, op, e) ->
       (* change lval op= expr to lval = lval op expr *)
       generate_expr (Assign(lvalue, Binop(Lval(lvalue), op, e))) env
   | Unop(op,e) -> (
-      let _op = match op with
-          Neg -> "-"
-        | LogNot -> "!"
-        | BitNot -> "~"
-      in
-      Environment.combine env [
-        Verbatim(_op);
-        Generator(generate_expr e)
-      ]
+      let simple_unop _op e = Environment.combine env [
+          Verbatim(_op);
+          Generator(generate_expr e)
+      ] in
+      let len_unop e = Environment.combine env [
+          Verbatim("(");
+          Generator(generate_expr e);
+          Verbatim(").size()")
+      ] in
+      match op with
+          Neg -> simple_unop "-" e
+        | LogNot -> simple_unop "!" e
+        | BitNot -> simple_unop "~" e
+        | Len -> len_unop e
     )
   
       
@@ -422,11 +431,7 @@ let rec generate_statement statement env =
          ]
      | ForStatement(is, s) ->
          Environment.combine env [
-           Verbatim("for (");
-           NewScopeGenerator(generate_iterator_list is);
-           Verbatim(") {\n");
-           NewScopeGenerator(generate_statement s);
-           Verbatim("}")
+           NewScopeGenerator(generate_for_statement (is, s));
          ]
      | PforStatement(is, s) ->
          Environment.combine env [
@@ -490,11 +495,173 @@ and generate_function (returntype, ident, params, statements) env =
            Verbatim("}");
          ]
 
+(* TODO: support multi-dimensional arrays *)
+(* TODO: clean up this humongous mess *)
+(* TODO: support negative integers in ranges *)
+(* TODO: modify the type system so we can use size_t where appropriate *)
+and generate_for_statement (iterators, statements) env =
+
+  let iter_name iterator = match iterator with
+    ArrayIterator(Ident(s),_) -> s
+  | RangeIterator(Ident(s),_) -> s
+  in
+
+  (* map iterators to their properties
+   * key on s rather than Ident(s) to save some effort... *)
+  let iter_map =
+
+    (* create symbols for an iterator's length and index.
+     *
+     * there is also a mod symbol - since we're flattening multiple
+     * iterators into a single loop, we need to know how often each one
+     * wraps around
+     *
+     * the output symbol is simply the symbol requested in the original
+     * vector code
+     *
+     * for ranges, we have start:_:inc
+     * for arrays, start = 0, inc = 1
+     *)
+    let get_iter_properties iterator =
+      let len_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_len") in
+      let mod_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_mod") in
+      let output_sym = match iterator with
+        ArrayIterator(i,_) -> i
+      | RangeIterator(i,_) -> i
+      in
+      (* start_sym and inc_sym are never actually used for array iterators...
+       * the only consequence is that the generated symbols in our output code
+       * will be non-consecutive because of these "wasted" identifiers *)
+      let start_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_start") in
+      let inc_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_inc") in
+      (iterator, len_sym, mod_sym, output_sym, start_sym, inc_sym)
+    in
+
+    List.fold_left (fun m i -> StringMap.add (iter_name i) (get_iter_properties i) (m)) (StringMap.empty) (iterators)
+  in
+
+  (* generate code to calculate the length of each iterator
+   * and initialize the corresponding variables
+   *
+   * also calculate start and inc *)
+  let iter_length_initializers =
+
+    let iter_length_inits _ (iter, len_sym, _, _, start_sym, inc_sym) acc =
+      match iter with
+        ArrayIterator(_,e) -> [ Declaration(AssigningDecl(len_sym, Unop(Len, e))) ] :: acc
+      | RangeIterator(_,Range(start_expr,stop_expr,inc_expr)) -> (
+          (* the number of iterations in the iterator a:b:c is n, where
+           * n = (b-a-1) / c + 1 *)
+          (* TODO: make sure we never get negative lengths *)
+          let delta = Binop(stop_expr, Sub, Lval(Variable(start_sym))) in
+          let delta_fencepost = Binop(delta, Sub, IntLit(Int32.of_int 1)) in
+          let n = Binop(delta_fencepost, Div, Lval(Variable(inc_sym))) in
+          let len_expr = Binop(n, Add, IntLit(Int32.of_int 1)) in
+          [
+            Declaration(AssigningDecl(start_sym, start_expr));
+            Declaration(AssigningDecl(inc_sym, inc_expr));
+            Declaration(AssigningDecl(len_sym, len_expr));
+          ] :: acc
+        )
+    in
+
+    List.concat (StringMap.fold (iter_length_inits) (iter_map) ([]))
+  in
+
+  (* the total length of our for loop is the product
+   * of lengths of all iterators *)
+  let iter_max =
+    StringMap.fold (fun _ (_, len_sym, _, _, _, _) acc ->
+      Binop(acc, Mul, Lval(Variable(len_sym)))) (iter_map) (IntLit(Int32.of_int 1))
+  in
+
+  (* figure out how often each iterator wraps around
+   * the rightmost iterator wraps the fastest (i.e. mod its own length)
+   * all other iterators wrap modulo (their own length times the mod of
+   * the iterator directly to the right) *)
+  let iter_mod_initializers =
+    let iter_initializer iterator acc =
+      let name = iter_name iterator in
+      let mod_ident, len_ident = match (StringMap.find name iter_map) with (_,l,m,_,_,_) -> m,l in
+      match acc with
+        [] -> [ Declaration(AssigningDecl(mod_ident, Lval(Variable(len_ident)))) ]
+      | Declaration(AssigningDecl(prev_mod_ident, _)) :: _ -> (
+          Declaration(AssigningDecl(mod_ident, Binop(Lval(Variable(len_ident)), Mul, Lval(Variable(prev_mod_ident)))))
+          :: acc)
+      | _ -> [] (* TODO: how do we represent impossible outcomes? *)
+    in
+    (* we've built up the list with the leftmost iterator first,
+     * but we need the rightmost declared first due to dependencies.
+     * reverse it! *)
+    List.rev (List.fold_right (iter_initializer) (iterators) ([]))
+  in
+
+  (* initializers for the starting and ending value
+   * of the index we're generating *)
+  let iter_ptr_ident = Ident(Symgen.gensym () ^ "iter_ptr") in
+  let iter_max_ident = Ident(Symgen.gensym () ^ "iter_max") in
+  let bounds_initializers = [
+    Declaration(AssigningDecl(iter_ptr_ident, IntLit(Int32.of_int 0)));
+    Declaration(AssigningDecl(iter_max_ident, iter_max));
+  ] in
+
+  (* the variables that our iterators are actually generating *)
+  (* TODO: proper type inference for the output of array iterators *)
+  let output_initializers =
+    let iter_ident iterator = match iterator with
+      ArrayIterator(i,_) -> i
+    | RangeIterator(i,_) -> i
+    in
+    List.map (fun iter -> Declaration(PrimitiveDecl(Int, iter_ident iter))) (iterators)
+  in
+
+  (* these assignments will occur at the beginning of each iteration *)
+  let output_assignments =
+    let iter_properties s = match (StringMap.find s iter_map) with
+      (_, _, mod_sym, output_sym, start_sym, inc_sym) ->
+        (mod_sym, output_sym, start_sym, inc_sym)
+    in
+    let idx mod_sym = Binop(Lval(Variable(iter_ptr_ident)), Div, Lval(Variable(mod_sym))) in
+    let iter_assignment iterator = match iterator with
+      (* TODO: to avoid unnecessary copies, we really want to use pointers here *)
+      ArrayIterator(Ident(s),e) -> (
+        let mod_sym, output_sym, _, _ = iter_properties s in
+        (* TODO: we really should store the result of e in a variable, to
+         * avoid evaluating it more than once *)
+        Expression(Assign(Variable(output_sym), Lval(ArrayElem(e, [idx mod_sym]))))
+      )
+    | RangeIterator(Ident(s),_) -> (
+        let mod_sym, output_sym, start_sym, inc_sym = iter_properties s in
+        let offset = Binop(idx mod_sym, Mul, Lval(Variable(inc_sym))) in
+        let origin = Lval(Variable(start_sym)) in
+        Expression(Assign(Variable(output_sym), Binop(origin, Add, offset)))
+      )
+    in
+    List.map (iter_assignment) (iterators)
+  in
+
+  Environment.combine env [
+    Verbatim("{\n");
+    Generator(generate_statement_list iter_length_initializers);
+    Generator(generate_statement_list iter_mod_initializers);
+    Generator(generate_statement_list bounds_initializers);
+    Generator(generate_statement_list output_initializers);
+    Verbatim("for (; ");
+    Generator(generate_expr (Binop(Lval(Variable(iter_ptr_ident)), Less, Lval(Variable(iter_max_ident)))));
+    Verbatim("; ");
+    Generator(generate_expr (PostOp(Variable(iter_ptr_ident), Inc)));
+    Verbatim(") {\n");
+    Generator(generate_statement_list output_assignments);
+    Generator(generate_statement statements);
+    Verbatim("}\n");
+    Verbatim("}\n");
+  ]
+
 let generate_toplevel tree =
     let env = Environment.create in
     Environment.combine env [
         Generator(generate_statement_list tree);
-        Verbatim("\nint main(void) { return vec_main(); }")
+        Verbatim("\nint main(void) { return vec_main(); }\n")
     ]
 
 let _ =
