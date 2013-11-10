@@ -498,6 +498,9 @@ and generate_for_statement (iterators, statements) env =
      *
      * the output symbol is simply the symbol requested in the original
      * vector code
+     *
+     * for ranges, we have start:_:inc
+     * for arrays, start = 0, inc = 1
      *)
     let get_iter_properties iterator =
       let len_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_len") in
@@ -506,39 +509,43 @@ and generate_for_statement (iterators, statements) env =
         ArrayIterator(i,_) -> i
       | RangeIterator(i,_) -> i
       in
-      (iterator, len_sym, mod_sym, output_sym)
+      let start_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_start") in
+      let inc_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_inc") in
+      (iterator, len_sym, mod_sym, output_sym, start_sym, inc_sym)
     in
 
     List.fold_left (fun m i -> StringMap.add (iter_name i) (get_iter_properties i) (m)) (StringMap.empty) (iterators)
   in
 
   (* generate code to calculate the length of each iterator
-   * and initialize the corresponding variables *)
+   * and initialize the corresponding variables
+   *
+   * also calculate start and inc *)
   let iter_length_initializers =
 
-    let iter_length iterator = match iterator with
-      ArrayIterator(_, e) -> Unop(Len, e)
-    | RangeIterator(_, Range(start, stop, inc)) -> (
-      (* iterator a:b:c runs n times, where
-       * n = (b-a-1) / c + 1 *)
-        let delta = Binop(stop, Sub, start) in
-        let delta_fencepost = Binop(delta, Sub, IntLit(Int32.of_int 1)) in
-        let n = Binop(delta_fencepost, Div, inc) in
-        Binop(n, Add, IntLit(Int32.of_int 1))
-      )
+    let iter_length_inits _ (iter, len_sym, _, _, start_sym, inc_sym) acc =
+      match iter with
+        ArrayIterator(_,e) -> [ Declaration(AssigningDecl(len_sym, Unop(Len, e))) ] :: acc
+      | RangeIterator(_,Range(start_expr,stop_expr,inc_expr)) -> (
+          let delta = Binop(stop_expr, Sub, Lval(Variable(start_sym))) in
+          let delta_fencepost = Binop(delta, Sub, IntLit(Int32.of_int 1)) in
+          let n = Binop(delta_fencepost, Div, Lval(Variable(inc_sym))) in
+          let len_expr = Binop(n, Add, IntLit(Int32.of_int 1)) in
+          [
+            Declaration(AssigningDecl(start_sym, start_expr));
+            Declaration(AssigningDecl(inc_sym, inc_expr));
+            Declaration(AssigningDecl(len_sym, len_expr));
+          ] :: acc
+        )
     in
 
-    let iter_length_init _ (iter, len_sym, _, _) acc = 
-      Declaration(AssigningDecl(len_sym, iter_length iter)) :: acc
-    in
-
-    StringMap.fold (iter_length_init) (iter_map) ([])
+    List.concat (StringMap.fold (iter_length_inits) (iter_map) ([]))
   in
 
   (* the total length of our for loop is the product
    * of lengths of all iterators *)
   let iter_max =
-    StringMap.fold (fun _ (_, len_sym, _, _) acc ->
+    StringMap.fold (fun _ (_, len_sym, _, _, _, _) acc ->
       Binop(acc, Mul, Lval(Variable(len_sym)))) (iter_map) (IntLit(Int32.of_int 1))
   in
 
@@ -549,12 +556,13 @@ and generate_for_statement (iterators, statements) env =
   let iter_mod_initializers =
     let iter_initializer iterator acc =
       let name = iter_name iterator in
-      let mod_ident, len_ident = match (StringMap.find name iter_map) with (_,l,m,_) -> m,l in
+      let mod_ident, len_ident = match (StringMap.find name iter_map) with (_,l,m,_,_,_) -> m,l in
       match acc with
         [] -> [ Declaration(AssigningDecl(mod_ident, Lval(Variable(len_ident)))) ]
       | Declaration(AssigningDecl(prev_mod_ident, _)) :: _ -> (
           Declaration(AssigningDecl(mod_ident, Binop(Lval(Variable(len_ident)), Mul, Lval(Variable(prev_mod_ident)))))
           :: acc)
+      | _ -> [] (* TODO: how do we represent impossible outcomes? *)
     in
     (* we've built up the list with the leftmost iterator first,
      * but we need the rightmost declared first due to dependencies.
