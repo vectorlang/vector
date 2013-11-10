@@ -525,6 +525,7 @@ and generate_for_statement (iterators, statements) env =
     let get_iter_properties iterator =
       let len_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_len") in
       let mod_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_mod") in
+      let div_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_div") in
       let output_sym = match iterator with
         ArrayIterator(i,_) -> i
       | RangeIterator(i,_) -> i
@@ -534,7 +535,7 @@ and generate_for_statement (iterators, statements) env =
        * will be non-consecutive because of these "wasted" identifiers *)
       let start_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_start") in
       let inc_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_inc") in
-      (iterator, len_sym, mod_sym, output_sym, start_sym, inc_sym)
+      (iterator, len_sym, mod_sym, div_sym, output_sym, start_sym, inc_sym)
     in
 
     List.fold_left (fun m i -> StringMap.add (iter_name i) (get_iter_properties i) (m)) (StringMap.empty) (iterators)
@@ -546,7 +547,7 @@ and generate_for_statement (iterators, statements) env =
    * also calculate start and inc *)
   let iter_length_initializers =
 
-    let iter_length_inits _ (iter, len_sym, _, _, start_sym, inc_sym) acc =
+    let iter_length_inits _ (iter, len_sym, _, _, _, start_sym, inc_sym) acc =
       match iter with
         ArrayIterator(_,e) -> [ Declaration(AssigningDecl(len_sym, Unop(Len, e))) ] :: acc
       | RangeIterator(_,Range(start_expr,stop_expr,inc_expr)) -> (
@@ -571,7 +572,7 @@ and generate_for_statement (iterators, statements) env =
   (* the total length of our for loop is the product
    * of lengths of all iterators *)
   let iter_max =
-    StringMap.fold (fun _ (_, len_sym, _, _, _, _) acc ->
+    StringMap.fold (fun _ (_, len_sym, _, _, _, _, _) acc ->
       Binop(acc, Mul, Lval(Variable(len_sym)))) (iter_map) (IntLit(Int32.of_int 1))
   in
 
@@ -582,12 +583,17 @@ and generate_for_statement (iterators, statements) env =
   let iter_mod_initializers =
     let iter_initializer iterator acc =
       let name = iter_name iterator in
-      let mod_ident, len_ident = match (StringMap.find name iter_map) with (_,l,m,_,_,_) -> m,l in
+      let mod_ident, div_ident, len_ident = match (StringMap.find name iter_map) with (_,l,m,d,_,_,_) -> m,d,l in
       match acc with
-        [] -> [ Declaration(AssigningDecl(mod_ident, Lval(Variable(len_ident)))) ]
+        [] -> [
+          Declaration(AssigningDecl(mod_ident, Lval(Variable(len_ident))));
+          Declaration(AssigningDecl(div_ident, IntLit(Int32.of_int 1)));
+        ]
       | Declaration(AssigningDecl(prev_mod_ident, _)) :: _ -> (
-          Declaration(AssigningDecl(mod_ident, Binop(Lval(Variable(len_ident)), Mul, Lval(Variable(prev_mod_ident)))))
-          :: acc)
+          List.append [
+            Declaration(AssigningDecl(mod_ident, Binop(Lval(Variable(len_ident)), Mul, Lval(Variable(prev_mod_ident)))));
+            Declaration(AssigningDecl(div_ident, Lval(Variable(prev_mod_ident))));
+          ] acc)
       | _ -> [] (* TODO: how do we represent impossible outcomes? *)
     in
     (* we've built up the list with the leftmost iterator first,
@@ -618,21 +624,26 @@ and generate_for_statement (iterators, statements) env =
   (* these assignments will occur at the beginning of each iteration *)
   let output_assignments =
     let iter_properties s = match (StringMap.find s iter_map) with
-      (_, _, mod_sym, output_sym, start_sym, inc_sym) ->
-        (mod_sym, output_sym, start_sym, inc_sym)
+      (_, _, mod_sym, div_sym, output_sym, start_sym, inc_sym) ->
+        (mod_sym, div_sym, output_sym, start_sym, inc_sym)
     in
-    let idx mod_sym = Binop(Lval(Variable(iter_ptr_ident)), Div, Lval(Variable(mod_sym))) in
+    let idx mod_sym div_sym =
+      Binop(
+        Binop(Lval(Variable(iter_ptr_ident)), Mod, Lval(Variable(mod_sym))),
+        Div,
+        Lval(Variable(div_sym)))
+    in
     let iter_assignment iterator = match iterator with
       (* TODO: to avoid unnecessary copies, we really want to use pointers here *)
       ArrayIterator(Ident(s),e) -> (
-        let mod_sym, output_sym, _, _ = iter_properties s in
+        let mod_sym, div_sym, output_sym, _, _ = iter_properties s in
         (* TODO: we really should store the result of e in a variable, to
          * avoid evaluating it more than once *)
-        Expression(Assign(Variable(output_sym), Lval(ArrayElem(e, [idx mod_sym]))))
+        Expression(Assign(Variable(output_sym), Lval(ArrayElem(e, [idx mod_sym div_sym]))))
       )
     | RangeIterator(Ident(s),_) -> (
-        let mod_sym, output_sym, start_sym, inc_sym = iter_properties s in
-        let offset = Binop(idx mod_sym, Mul, Lval(Variable(inc_sym))) in
+        let mod_sym, div_sym, output_sym, start_sym, inc_sym = iter_properties s in
+        let offset = Binop(idx mod_sym div_sym, Mul, Lval(Variable(inc_sym))) in
         let origin = Lval(Variable(start_sym)) in
         Expression(Assign(Variable(output_sym), Binop(origin, Add, offset)))
       )
