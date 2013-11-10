@@ -33,7 +33,7 @@ let rec infer_type expr env =
             | (Float32, Float32) -> Complex64
             | (Float64, Float64) -> Complex128
             | _ -> raise Type_mismatch)
-      | FloatLit(_) -> Float
+      | FloatLit(_) -> Float64
       | Int64Lit(_) -> Int64
       | IntLit(_) -> Int
       | StringLit(_) -> ArrayType(Char)
