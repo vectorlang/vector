@@ -491,22 +491,21 @@ and generate_for_statement (iterators, statements) env =
   let iter_map =
 
     (* create symbols for an iterator's length and index.
-     * - for range iterators, the iterator just returns the index.
-     * - for array iterators, the iterator takes the index and gets the
-     *   corresponding value from the array. so array iterators have a third
-     *   symbol to refer to this value - hence Some/None
      *
      * there is also a mod symbol - since we're flattening multiple
      * iterators into a single loop, we need to know how often each one
      * wraps around
+     *
+     * the output symbol is simply the symbol requested in the original
+     * vector code
      *)
     let get_iter_properties iterator =
       let len_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_len") in
       let mod_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_mod") in
-      let idx_sym, output_sym = match iterator with
-        ArrayIterator(i,_) ->
-          (Ident(Symgen.gensym () ^ iter_name iterator ^ "_idx"), Some i)
-      | RangeIterator(i,_) -> (i, None)
+      let idx_sym = (Ident(Symgen.gensym () ^ iter_name iterator ^ "_idx")) in
+      let output_sym = match iterator with
+        ArrayIterator(i,_) -> i
+      | RangeIterator(i,_) -> i
       in
       (iterator, len_sym, mod_sym, idx_sym, output_sym)
     in
