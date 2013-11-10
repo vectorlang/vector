@@ -571,12 +571,22 @@ and generate_for_statement (iterators, statements) env =
     Declaration(AssigningDecl(iter_max_ident, iter_max));
   ] in
 
-  (*let iter_initializers = List.map (get_iter_decl) (iterators) in *)
+  (* the variables that our iterators are actually generating *)
+  (* TODO: proper type inference for the output of array iterators *)
+  let output_initializers =
+    let iter_ident iterator = match iterator with
+      ArrayIterator(i,_) -> i
+    | RangeIterator(i,_) -> i
+    in
+    List.map (fun iter -> Declaration(PrimitiveDecl(Int, iter_ident iter))) (iterators)
+  in
+
   Environment.combine env [
     Verbatim("{\n");
     Generator(generate_statement_list iter_length_initializers);
     Generator(generate_statement_list iter_mod_initializers);
     Generator(generate_statement_list bounds_initializers);
+    Generator(generate_statement_list output_initializers);
     Verbatim("for (; ");
     Generator(generate_expr (Binop(Lval(Variable(iter_ptr_ident)), Less, Lval(Variable(iter_max_ident)))));
     Verbatim("; ");
