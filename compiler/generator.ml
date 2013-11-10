@@ -54,7 +54,7 @@ let rec infer_type expr env =
             let l = Lval(lval) in
             match_type [infer_type l env; infer_type expr env]
       | Unop(op, expr) -> (match op with
-            Neg -> Bool
+            LogNot -> Bool
           | Len -> Int
           | _ -> infer_type expr env
         )
