@@ -551,7 +551,10 @@ and generate_for_statement (iterators, statements) env =
     Verbatim("{\n");
     Generator(generate_statement_list iter_length_initializers);
     Generator(generate_statement_list bounds_initializers);
-    Verbatim("for (");
+    Verbatim("for (; ");
+    Generator(generate_expr (Binop(Lval(Variable(iter_ptr_ident)), Less, Lval(Variable(iter_max_ident)))));
+    Verbatim("; ");
+    Generator(generate_expr (PostOp(Variable(iter_ptr_ident), Inc)));
     (* stuff *)
     Verbatim(") {\n");
     Generator(generate_statement statements);
