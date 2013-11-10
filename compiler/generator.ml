@@ -165,15 +165,20 @@ and generate_expr expr env =
       (* change lval op= expr to lval = lval op expr *)
       generate_expr (Assign(lvalue, Binop(Lval(lvalue), op, e))) env
   | Unop(op,e) -> (
-      let _op = match op with
-          Neg -> "-"
-        | LogNot -> "!"
-        | BitNot -> "~"
-      in
-      Environment.combine env [
-        Verbatim(_op);
-        Generator(generate_expr e)
-      ]
+      let simple_unop _op e = Environment.combine env [
+          Verbatim(_op);
+          Generator(generate_expr e)
+      ] in
+      let len_unop e = Environment.combine env [
+          Verbatim("(");
+          Generator(generate_expr e);
+          Verbatim(").size()")
+      ] in
+      match op with
+          Neg -> simple_unop "-" e
+        | LogNot -> simple_unop "!" e
+        | BitNot -> simple_unop "~" e
+        | Len -> len_unop e
     )
   
       
