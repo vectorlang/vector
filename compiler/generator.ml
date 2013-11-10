@@ -413,7 +413,7 @@ let rec generate_statement statement env =
          ]
      | IncludeStatement(s) ->
          Environment.combine env [
-           Verbatim("include \"" ^ s ^ "\";")
+           Verbatim("#include <" ^ s ^ ">\n")
          ]
      | EmptyStatement ->
          Environment.combine env [Verbatim(";")]
