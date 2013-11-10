@@ -489,14 +489,18 @@ and generate_for_statement (iterators, statements) env =
         let delta = Binop(stop, Sub, start) in
         let delta_fencepost = Binop(delta, Sub, IntLit(Int32.of_int 1)) in
         let n = Binop(delta_fencepost, Div, inc) in
-        Binop(n, Sub, IntLit(Int32.of_int 1))
+        Binop(n, Add, IntLit(Int32.of_int 1))
       )
     in
     List.fold_left (fun acc x -> Binop(acc, Mul, iter_length x)) (IntLit(Int32.of_int 1)) iterators
   in
+  let initializers = [
+    Declaration(AssigningDecl(iter_ptr_ident, IntLit(Int32.of_int 0)));
+    Declaration(AssigningDecl(iter_max_ident, iter_max));
+  ] in
   Environment.combine env [
     Verbatim("{\n");
-    (* initializers *)
+    Generator(generate_statement_list initializers);
     Verbatim("for (");
     (* stuff *)
     Verbatim(") {\n");
