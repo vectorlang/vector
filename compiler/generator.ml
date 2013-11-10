@@ -479,6 +479,10 @@ and generate_function (returntype, ident, params, statements) env =
            Verbatim("}");
          ]
 
+(* TODO: support multi-dimensional arrays *)
+(* TODO: clean up this humongous mess *)
+(* TODO: support negative integers in ranges *)
+(* TODO: modify the type system so we can use size_t where appropriate *)
 and generate_for_statement (iterators, statements) env =
 
   let iter_name iterator = match iterator with
@@ -509,6 +513,9 @@ and generate_for_statement (iterators, statements) env =
         ArrayIterator(i,_) -> i
       | RangeIterator(i,_) -> i
       in
+      (* start_sym and inc_sym are never actually used for array iterators...
+       * the only consequence is that the generated symbols in our output code
+       * will be non-consecutive because of these "wasted" identifiers *)
       let start_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_start") in
       let inc_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_inc") in
       (iterator, len_sym, mod_sym, output_sym, start_sym, inc_sym)
@@ -527,6 +534,9 @@ and generate_for_statement (iterators, statements) env =
       match iter with
         ArrayIterator(_,e) -> [ Declaration(AssigningDecl(len_sym, Unop(Len, e))) ] :: acc
       | RangeIterator(_,Range(start_expr,stop_expr,inc_expr)) -> (
+          (* the number of iterations in the iterator a:b:c is n, where
+           * n = (b-a-1) / c + 1 *)
+          (* TODO: make sure we never get negative lengths *)
           let delta = Binop(stop_expr, Sub, Lval(Variable(start_sym))) in
           let delta_fencepost = Binop(delta, Sub, IntLit(Int32.of_int 1)) in
           let n = Binop(delta_fencepost, Div, Lval(Variable(inc_sym))) in
@@ -589,6 +599,31 @@ and generate_for_statement (iterators, statements) env =
     List.map (fun iter -> Declaration(PrimitiveDecl(Int, iter_ident iter))) (iterators)
   in
 
+  (* these assignments will occur at the beginning of each iteration *)
+  let output_assignments =
+    let iter_properties s = match (StringMap.find s iter_map) with
+      (_, _, mod_sym, output_sym, start_sym, inc_sym) ->
+        (mod_sym, output_sym, start_sym, inc_sym)
+    in
+    let idx mod_sym = Binop(Lval(Variable(iter_ptr_ident)), Div, Lval(Variable(mod_sym))) in
+    let iter_assignment iterator = match iterator with
+      (* TODO: to avoid unnecessary copies, we really want to use pointers here *)
+      ArrayIterator(Ident(s),e) -> (
+        let mod_sym, output_sym, _, _ = iter_properties s in
+        (* TODO: we really should store the result of e in a variable, to
+         * avoid evaluating it more than once *)
+        Expression(Assign(Variable(output_sym), Lval(ArrayElem(e, [idx mod_sym]))))
+      )
+    | RangeIterator(Ident(s),_) -> (
+        let mod_sym, output_sym, start_sym, inc_sym = iter_properties s in
+        let offset = Binop(idx mod_sym, Mul, Lval(Variable(inc_sym))) in
+        let origin = Lval(Variable(start_sym)) in
+        Expression(Assign(Variable(output_sym), Binop(origin, Add, offset)))
+      )
+    in
+    List.map (iter_assignment) (iterators)
+  in
+
   Environment.combine env [
     Verbatim("{\n");
     Generator(generate_statement_list iter_length_initializers);
@@ -599,10 +634,11 @@ and generate_for_statement (iterators, statements) env =
     Generator(generate_expr (Binop(Lval(Variable(iter_ptr_ident)), Less, Lval(Variable(iter_max_ident)))));
     Verbatim("; ");
     Generator(generate_expr (PostOp(Variable(iter_ptr_ident), Inc)));
-    (* stuff *)
     Verbatim(") {\n");
+    Generator(generate_statement_list output_assignments);
     Generator(generate_statement statements);
-    Verbatim("}");
+    Verbatim("}\n");
+    Verbatim("}\n");
   ]
 
 let generate_toplevel tree =
