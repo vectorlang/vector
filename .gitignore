@@ -21,3 +21,6 @@
 /test/arrays
 /test/functions
 /test/complex
+/test/float
+/test/highlevel
+/test/logic
