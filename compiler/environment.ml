@@ -5,7 +5,7 @@ open Symgen
  * is left, we pop.
  * *)
 
-(* Environmen is tuple of (kernel_invoke_function_list * kernel_function_list *
+(* Environment is tuple of (kernel_invoke_function_list * kernel_function_list *
   FunctionDeclarationMap * FunctionMap * list(VariableMap))
 *)
 
