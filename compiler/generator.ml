@@ -480,8 +480,6 @@ and generate_function (returntype, ident, params, statements) env =
          ]
 
 and generate_for_statement (iterators, statements) env =
-  let iter_ptr_ident = Ident(Symgen.gensym () ^ "iter_ptr") in
-  let iter_max_ident = Ident(Symgen.gensym () ^ "iter_max") in
 
   (* map iterators to their properties
    * key on s rather than Ident(s) to save some effort... *)
@@ -499,10 +497,11 @@ and generate_for_statement (iterators, statements) env =
      *   symbol to refer to this value - hence Some/None *)
     let get_iter_properties iterator =
       let len_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_len") in
-      let idx_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_idx") in
-      let output_sym = match iterator with
-        ArrayIterator(_,_) -> Some(Ident(Symgen.gensym () ^ iter_name iterator ^ "_yield"))
-      | RangeIterator(_,_) -> None in
+      let idx_sym, output_sym = match iterator with
+        ArrayIterator(i,_) ->
+          (Ident(Symgen.gensym () ^ iter_name iterator ^ "_idx"), Some i)
+      | RangeIterator(i,_) -> (i, None)
+      in
       (iterator, len_sym, idx_sym, output_sym)
     in
 
@@ -541,6 +540,8 @@ and generate_for_statement (iterators, statements) env =
 
   (* initializers for the starting and ending value
    * of the index we're generating *)
+  let iter_ptr_ident = Ident(Symgen.gensym () ^ "iter_ptr") in
+  let iter_max_ident = Ident(Symgen.gensym () ^ "iter_max") in
   let bounds_initializers = [
     Declaration(AssigningDecl(iter_ptr_ident, IntLit(Int32.of_int 0)));
     Declaration(AssigningDecl(iter_max_ident, iter_max));
