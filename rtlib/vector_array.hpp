@@ -24,6 +24,7 @@ class VectorArray {
 		VectorArray();
 		VectorArray(size_t ndims, ...);
 		VectorArray(const VectorArray<T> &orig);
+                T &oned_elem(size_t ind);
 		T &elem(size_t first_ind, ...);
 		VectorArray<T>& operator= (const VectorArray<T> &orig);
 		~VectorArray();
@@ -125,6 +126,12 @@ void VectorArray<T>::decRef(void)
 }
 
 template <class T>
+T &VectorArray<T>::oned_elem(size_t ind)
+{
+    return this->values[ind];
+}
+
+template <class T>
 T &VectorArray<T>::elem(size_t first_ind, ...)
 {
 	size_t ind = first_ind, onedind = first_ind;
@@ -159,7 +166,7 @@ VectorArray<T> array_init(size_t length, ...)
     va_start(elem_list, length);
 
     for (i = 0; i < length; i++)
-        array.elem(i) = va_arg(elem_list, T);
+        array.oned_elem(i) = va_arg(elem_list, T);
 
     va_end(elem_list);
 
