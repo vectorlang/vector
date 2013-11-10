@@ -481,28 +481,34 @@ and generate_function (returntype, ident, params, statements) env =
 
 and generate_for_statement (iterators, statements) env =
 
+  let iter_name iterator = match iterator with
+    ArrayIterator(Ident(s),_) -> s
+  | RangeIterator(Ident(s),_) -> s
+  in
+
   (* map iterators to their properties
    * key on s rather than Ident(s) to save some effort... *)
   let iter_map =
-
-    let iter_name iterator = match iterator with
-      ArrayIterator(Ident(s),_) -> s
-    | RangeIterator(Ident(s),_) -> s
-    in
 
     (* create symbols for an iterator's length and index.
      * - for range iterators, the iterator just returns the index.
      * - for array iterators, the iterator takes the index and gets the
      *   corresponding value from the array. so array iterators have a third
-     *   symbol to refer to this value - hence Some/None *)
+     *   symbol to refer to this value - hence Some/None
+     *
+     * there is also a mod symbol - since we're flattening multiple
+     * iterators into a single loop, we need to know how often each one
+     * wraps around
+     *)
     let get_iter_properties iterator =
       let len_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_len") in
+      let mod_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_mod") in
       let idx_sym, output_sym = match iterator with
         ArrayIterator(i,_) ->
           (Ident(Symgen.gensym () ^ iter_name iterator ^ "_idx"), Some i)
       | RangeIterator(i,_) -> (i, None)
       in
-      (iterator, len_sym, idx_sym, output_sym)
+      (iterator, len_sym, mod_sym, idx_sym, output_sym)
     in
 
     List.fold_left (fun m i -> StringMap.add (iter_name i) (get_iter_properties i) (m)) (StringMap.empty) (iterators)
@@ -524,7 +530,7 @@ and generate_for_statement (iterators, statements) env =
       )
     in
 
-    let iter_length_init _ (iter, len_sym, _, _) acc = 
+    let iter_length_init _ (iter, len_sym, _, _, _) acc = 
       Declaration(AssigningDecl(len_sym, iter_length iter)) :: acc
     in
 
@@ -534,8 +540,28 @@ and generate_for_statement (iterators, statements) env =
   (* the total length of our for loop is the product
    * of lengths of all iterators *)
   let iter_max =
-    StringMap.fold (fun _ (_, len_sym, _, _) acc ->
+    StringMap.fold (fun _ (_, len_sym, _, _, _) acc ->
       Binop(acc, Mul, Lval(Variable(len_sym)))) (iter_map) (IntLit(Int32.of_int 1))
+  in
+
+  (* figure out how often each iterator wraps around
+   * the rightmost iterator wraps the fastest (i.e. mod its own length)
+   * all other iterators wrap modulo (their own length times the mod of
+   * the iterator directly to the right) *)
+  let iter_mod_initializers =
+    let iter_initializer iterator acc =
+      let name = iter_name iterator in
+      let mod_ident, len_ident = match (StringMap.find name iter_map) with (_,l,m,_,_) -> m,l in
+      match acc with
+        [] -> [ Declaration(AssigningDecl(mod_ident, Lval(Variable(len_ident)))) ]
+      | Declaration(AssigningDecl(prev_mod_ident, _)) :: _ -> (
+          Declaration(AssigningDecl(mod_ident, Binop(Lval(Variable(len_ident)), Mul, Lval(Variable(prev_mod_ident)))))
+          :: acc)
+    in
+    (* we've built up the list with the leftmost iterator first,
+     * but we need the rightmost declared first due to dependencies.
+     * reverse it! *)
+    List.rev (List.fold_right (iter_initializer) (iterators) ([]))
   in
 
   (* initializers for the starting and ending value
@@ -551,6 +577,7 @@ and generate_for_statement (iterators, statements) env =
   Environment.combine env [
     Verbatim("{\n");
     Generator(generate_statement_list iter_length_initializers);
+    Generator(generate_statement_list iter_mod_initializers);
     Generator(generate_statement_list bounds_initializers);
     Verbatim("for (; ");
     Generator(generate_expr (Binop(Lval(Variable(iter_ptr_ident)), Less, Lval(Variable(iter_max_ident)))));
