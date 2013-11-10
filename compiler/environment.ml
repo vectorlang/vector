@@ -1,10 +1,12 @@
 open Ast
 open Symgen
-(* The environment is a stack of (VariableMap * FunctionMap) tuples. When a new
- * scope is entered, we push to the stack; when a scope is left, we pop. *)
+(*
+ * When a new scope is entered, we push to the VariableMap stack; when a scope
+ * is left, we pop.
+ * *)
 
 (* Environmen is tuple of (kernel_invoke_function_list * kernel_function_list *
-  FunctionDeclarationMap * FunctionMap * list(VariableMap)) 
+  FunctionDeclarationMap * FunctionMap * list(VariableMap))
 *)
 
 
@@ -87,7 +89,7 @@ let set_func_type ident returntype env =
   let new_func_map = FunctionMap.add ident returntype func_map in
   kernel_funcs, global_funcs, func_content_map, new_func_map, scope_stack
 
-let update_function_content main_str mod_str new_func_sym ident env = 
+let update_function_content main_str mod_str new_func_sym ident env =
   let kernel_funcs, global_funcs, func_content_map, func_map, scope_stack = env in
   let new_func_content_map = FunctionDeclarationMap.add ident (new_func_sym, mod_str) func_content_map in
   (main_str, (kernel_funcs, global_funcs, new_func_content_map, func_map, scope_stack))
@@ -98,66 +100,9 @@ let update_functions ident returntype (str, env) =
   else
     (str, set_func_type ident returntype env)
 
-let generate_kernel_invocation_functions env =
-  let kernel_funcs, _, _, _, _ = env in
-  let rec generate_functions funcs str = 
-    match funcs with
-    | [] -> str
-    | head :: tail -> 
-        (let kernel_invoke_sym, kernel_sym, function_type  = head in
-        let new_str = str ^ "\nVectorArray<" ^ function_type ^ "> " ^ kernel_invoke_sym ^ "(" ^
-        "VectorArray<" ^ function_type ^ "> input){
-          int inputSize = input.size(); 
-          VectorArray<" ^ function_type ^ " > output = array_init<" ^ function_type ^ ">((size_t) inputSize);
-          input.copyToDevice();
-          " ^ kernel_sym ^
-          "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
-          cudaDeviceSynchronize();
-          output.copyFromDevice();
-          return output;
-          }\n
-        " in
-        generate_functions tail new_str) in
-  generate_functions kernel_funcs " "
+let lookup_function_content function_name function_content_map =
+  FunctionDeclarationMap.find (Ident (function_name)) function_content_map
 
-let generate_kernel_functions env =
-  let kernel_funcs, global_funcs, func_content, func_map, scope_stack = env in
-  let rec generate_funcs funcs str =
-    (match funcs with
-    | [] -> str
-    | head :: tail ->
-       (* function_name  here needs to be changed to be
-        *   the symbolic function name, can do a lookup somewhere *) 
-        let function_name, hof, kernel_sym, function_type = head in 
-        let symbolized_function_name, _ = FunctionDeclarationMap.find (Ident (function_name)) func_content in
-        (match hof with
-         | Ident("map") ->
-            let new_str = str ^ 
-            "__global__ void " ^ kernel_sym ^ "(" ^ function_type ^ "* output,
-            " ^ function_type ^ "* input, size_t n){
-              size_t i = threadIdx.x + blockDim.x * blockIdx.x;
-              
-              if (i < n)
-                output[i] = " ^ symbolized_function_name ^ "(input[i]);
-            }\n"  in 
-            generate_funcs tail new_str
-         | Ident("reduce") -> raise Not_implemented
-         | _ -> raise Invalid_operation)) in
-  generate_funcs global_funcs ""
-
-let generate_device_functions env =
-  let kernel_funcs, global_funcs, func_content_map, func_map, scope_stack = env in
-  let rec generate_funcs funcs str =
-    match funcs with
-    | [] -> str
-    | head :: tail -> 
-        let function_name, hof, kernel_sym, function_type = head in
-        let _, func_content = FunctionDeclarationMap.find (Ident (function_name)) func_content_map in
-        let new_str = str ^ "\n__device__ " ^ func_content ^ "\n" in
-        generate_funcs tail new_str in
-
-  generate_funcs global_funcs ""
-        
 let combine initial_env components =
     let f (str, env) component =
         match component with
