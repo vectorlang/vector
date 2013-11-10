@@ -419,11 +419,7 @@ let rec generate_statement statement env =
          ]
      | ForStatement(is, s) ->
          Environment.combine env [
-           Verbatim("for (");
-           NewScopeGenerator(generate_iterator_list is);
-           Verbatim(") {\n");
-           NewScopeGenerator(generate_statement s);
-           Verbatim("}")
+           NewScopeGenerator(generate_for_statement (is, s));
          ]
      | PforStatement(is, s) ->
          Environment.combine env [
@@ -478,6 +474,33 @@ and generate_function (returntype, ident, params, statements) env =
            Generator(generate_statement_list statements);
            Verbatim("}");
          ]
+
+and generate_for_statement (iterators, statements) env =
+  let iter_ptr_ident = Ident(Symgen.gensym ()) in
+  let iter_max_ident = Ident(Symgen.gensym ()) in
+  let iter_max =
+    let iter_length iterator = match iterator with
+      ArrayIterator(_, e) -> Unop(Len, e)
+    | RangeIterator(_, Range(start, stop, inc)) -> (
+      (* iterator a:b:c runs n times, where
+       * n = (b-a-1) / c *)
+        let delta = Binop(stop, Sub, start) in
+        let delta_fencepost = Binop(delta, Sub, IntLit(Int32.of_int 1)) in
+        let n = Binop(delta_fencepost, Div, inc) in
+        Binop(n, Sub, IntLit(Int32.of_int 1))
+      )
+    in
+    List.fold_left (fun acc x -> Binop(acc, Mul, iter_length x)) (IntLit(Int32.of_int 1)) iterators
+  in
+  Environment.combine env [
+    Verbatim("{\n");
+    (* initializers *)
+    Verbatim("for (");
+    (* stuff *)
+    Verbatim(") {\n");
+    Generator(generate_statement statements);
+    Verbatim("}");
+  ]
 
 let generate_toplevel tree =
     let env = Environment.create in
