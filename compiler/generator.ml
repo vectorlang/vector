@@ -480,12 +480,17 @@ and generate_function (returntype, ident, params, statements) env =
          ]
 
 and generate_for_statement (iterators, statements) env =
-  let iter_ptr_ident = Ident(Symgen.gensym ()) in
-  let iter_max_ident = Ident(Symgen.gensym ()) in
+  let iter_ptr_ident = Ident(Symgen.gensym () ^ "iter_ptr") in
+  let iter_max_ident = Ident(Symgen.gensym () ^ "iter_max") in
 
   (* map iterators to their properties
    * key on s rather than Ident(s) to save some effort... *)
   let iter_map =
+
+    let iter_name iterator = match iterator with
+      ArrayIterator(Ident(s),_) -> s
+    | RangeIterator(Ident(s),_) -> s
+    in
 
     (* create symbols for an iterator's length and index.
      * - for range iterators, the iterator just returns the index.
@@ -493,17 +498,12 @@ and generate_for_statement (iterators, statements) env =
      *   corresponding value from the array. so array iterators have a third
      *   symbol to refer to this value - hence Some/None *)
     let get_iter_properties iterator =
-      let len_sym = Ident(Symgen.gensym ()) in
-      let idx_sym = Ident(Symgen.gensym ()) in
+      let len_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_len") in
+      let idx_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_idx") in
       let output_sym = match iterator with
-        ArrayIterator(_,_) -> Some(Ident(Symgen.gensym ()))
+        ArrayIterator(_,_) -> Some(Ident(Symgen.gensym () ^ iter_name iterator ^ "_yield"))
       | RangeIterator(_,_) -> None in
       (iterator, len_sym, idx_sym, output_sym)
-    in
-
-    let iter_name iterator = match iterator with
-      ArrayIterator(Ident(s),_) -> s
-    | RangeIterator(Ident(s),_) -> s
     in
 
     List.fold_left (fun m i -> StringMap.add (iter_name i) (get_iter_properties i) (m)) (StringMap.empty) (iterators)
