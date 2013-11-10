@@ -611,16 +611,6 @@ and generate_for_statement (iterators, statements) env =
     Declaration(AssigningDecl(iter_max_ident, iter_max));
   ] in
 
-  (* the variables that our iterators are actually generating *)
-  (* TODO: proper type inference for the output of array iterators *)
-  let output_initializers =
-    let iter_ident iterator = match iterator with
-      ArrayIterator(i,_) -> i
-    | RangeIterator(i,_) -> i
-    in
-    List.map (fun iter -> Declaration(PrimitiveDecl(Int, iter_ident iter))) (iterators)
-  in
-
   (* these assignments will occur at the beginning of each iteration *)
   let output_assignments =
     let iter_properties s = match (StringMap.find s iter_map) with
@@ -639,13 +629,14 @@ and generate_for_statement (iterators, statements) env =
         let mod_sym, div_sym, output_sym, _, _ = iter_properties s in
         (* TODO: we really should store the result of e in a variable, to
          * avoid evaluating it more than once *)
-        Expression(Assign(Variable(output_sym), Lval(ArrayElem(e, [idx mod_sym div_sym]))))
+        Declaration(AssigningDecl(output_sym, e))
       )
     | RangeIterator(Ident(s),_) -> (
         let mod_sym, div_sym, output_sym, start_sym, inc_sym = iter_properties s in
         let offset = Binop(idx mod_sym div_sym, Mul, Lval(Variable(inc_sym))) in
         let origin = Lval(Variable(start_sym)) in
-        Expression(Assign(Variable(output_sym), Binop(origin, Add, offset)))
+        let rhs = Binop(origin, Add, offset) in
+        Declaration(AssigningDecl(output_sym, rhs))
       )
     in
     List.map (iter_assignment) (iterators)
@@ -656,7 +647,6 @@ and generate_for_statement (iterators, statements) env =
     Generator(generate_statement_list iter_length_initializers);
     Generator(generate_statement_list iter_mod_initializers);
     Generator(generate_statement_list bounds_initializers);
-    Generator(generate_statement_list output_initializers);
     Verbatim("for (; ");
     Generator(generate_expr (Binop(Lval(Variable(iter_ptr_ident)), Less, Lval(Variable(iter_max_ident)))));
     Verbatim("; ");
