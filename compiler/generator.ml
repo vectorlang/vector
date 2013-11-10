@@ -516,7 +516,7 @@ let generate_toplevel tree =
                   #include <stdint.h>\n\
                   #include <libvector.hpp>\n\n");
         Generator(generate_statement_list tree);
-        Verbatim("\nint main(void) { return vec_main(); }")
+        Verbatim("\nint main(void) { return vec_main(); }\n")
     ]
 
 let _ =
