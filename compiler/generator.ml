@@ -633,7 +633,7 @@ and generate_for_statement (iterators, statements) env =
         let mod_sym, div_sym, output_sym, _, _ = iter_properties s in
         (* TODO: we really should store the result of e in a variable, to
          * avoid evaluating it more than once *)
-        Declaration(AssigningDecl(output_sym, e))
+        Declaration(AssigningDecl(output_sym, Lval(ArrayElem(e,[idx mod_sym div_sym]))))
       )
     | RangeIterator(Ident(s),_) -> (
         let mod_sym, div_sym, output_sym, start_sym, inc_sym = iter_properties s in
