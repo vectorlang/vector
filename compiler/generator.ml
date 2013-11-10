@@ -156,9 +156,11 @@ and generate_expr expr env =
           | LogOr -> "||"
         in
         Environment.combine env [
+          Verbatim("(");
           Generator(generate_expr e1);
-          Verbatim(" " ^ _op ^ " ");
-          Generator(generate_expr e2)
+          Verbatim(") " ^ _op ^ " (");
+          Generator(generate_expr e2);
+          Verbatim(")");
         ])
 
   | AssignOp(lvalue, op, e) ->
