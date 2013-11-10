@@ -1,17 +1,17 @@
-complex add(complex a, complex b)
+complex128 add(complex128 a, complex128 b)
 {
     return a + b;
 }
 
 int vec_main()
 {
-    i := #(float64(4.5), float64(2.3)) * #(float64(0.), float64(2.));
+    i := #(float32(4.5), float32(2.3)) * #(float32(0.), float32(2.));
     j := add(#(3.,4.),#(5., 4.));
 
-    k := #(float64(4.5), float64(2.3));
+    k := #(float32(4.5), float32(2.3));
 
-    k.im = float64(5);
-    k += #(float64(0), float64(5));
+    k.im = float32(5);
+    k += #(float32(0), float32(5));
     printf("%0.1f + %0.1fj\n", i.re, i.im);
     printf("%0.1f + %0.1fj\n", j.re, j.im);
     printf("%0.1f + %0.1fj\n", k.re, k.im);
