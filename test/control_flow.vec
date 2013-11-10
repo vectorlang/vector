@@ -8,5 +8,8 @@ int vec_main()
         i++;
     }
 
+    for (i in 0:5:2)
+        printf("%d\n", i);
+
     return 0;
 }
