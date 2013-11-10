@@ -2,6 +2,8 @@ open Ast
 open Complex
 open Environment
 
+module StringMap = Map.Make(String);;
+
 exception Unknown_type
 exception Empty_list
 exception Type_mismatch
@@ -480,27 +482,75 @@ and generate_function (returntype, ident, params, statements) env =
 and generate_for_statement (iterators, statements) env =
   let iter_ptr_ident = Ident(Symgen.gensym ()) in
   let iter_max_ident = Ident(Symgen.gensym ()) in
-  let iter_max =
+
+  (* map iterators to their properties
+   * key on s rather than Ident(s) to save some effort... *)
+  let iter_map =
+
+    (* create symbols for an iterator's length and index.
+     * - for range iterators, the iterator just returns the index.
+     * - for array iterators, the iterator takes the index and gets the
+     *   corresponding value from the array. so array iterators have a third
+     *   symbol to refer to this value - hence Some/None *)
+    let get_iter_properties iterator =
+      let len_sym = Ident(Symgen.gensym ()) in
+      let idx_sym = Ident(Symgen.gensym ()) in
+      let output_sym = match iterator with
+        ArrayIterator(_,_) -> Some(Ident(Symgen.gensym ()))
+      | RangeIterator(_,_) -> None in
+      (iterator, len_sym, idx_sym, output_sym)
+    in
+
+    let iter_name iterator = match iterator with
+      ArrayIterator(Ident(s),_) -> s
+    | RangeIterator(Ident(s),_) -> s
+    in
+
+    List.fold_left (fun m i -> StringMap.add (iter_name i) (get_iter_properties i) (m)) (StringMap.empty) (iterators)
+  in
+
+  (* generate code to calculate the length of each iterator
+   * and initialize the corresponding variables *)
+  let iter_length_initializers =
+
     let iter_length iterator = match iterator with
       ArrayIterator(_, e) -> Unop(Len, e)
     | RangeIterator(_, Range(start, stop, inc)) -> (
       (* iterator a:b:c runs n times, where
-       * n = (b-a-1) / c *)
+       * n = (b-a-1) / c + 1 *)
         let delta = Binop(stop, Sub, start) in
         let delta_fencepost = Binop(delta, Sub, IntLit(Int32.of_int 1)) in
         let n = Binop(delta_fencepost, Div, inc) in
         Binop(n, Add, IntLit(Int32.of_int 1))
       )
     in
-    List.fold_left (fun acc x -> Binop(acc, Mul, iter_length x)) (IntLit(Int32.of_int 1)) iterators
+
+    let iter_length_init _ (iter, len_sym, _, _) acc = 
+      Declaration(AssigningDecl(len_sym, iter_length iter)) :: acc
+    in
+
+    StringMap.fold (iter_length_init) (iter_map) ([])
   in
-  let initializers = [
+
+  (* the total length of our for loop is the product
+   * of lengths of all iterators *)
+  let iter_max =
+    StringMap.fold (fun _ (_, len_sym, _, _) acc ->
+      Binop(acc, Mul, Lval(Variable(len_sym)))) (iter_map) (IntLit(Int32.of_int 1))
+  in
+
+  (* initializers for the starting and ending value
+   * of the index we're generating *)
+  let bounds_initializers = [
     Declaration(AssigningDecl(iter_ptr_ident, IntLit(Int32.of_int 0)));
     Declaration(AssigningDecl(iter_max_ident, iter_max));
   ] in
+
+  (*let iter_initializers = List.map (get_iter_decl) (iterators) in *)
   Environment.combine env [
     Verbatim("{\n");
-    Generator(generate_statement_list initializers);
+    Generator(generate_statement_list iter_length_initializers);
+    Generator(generate_statement_list bounds_initializers);
     Verbatim("for (");
     (* stuff *)
     Verbatim(") {\n");
