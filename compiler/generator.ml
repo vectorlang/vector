@@ -502,12 +502,11 @@ and generate_for_statement (iterators, statements) env =
     let get_iter_properties iterator =
       let len_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_len") in
       let mod_sym = Ident(Symgen.gensym () ^ iter_name iterator ^ "_mod") in
-      let idx_sym = (Ident(Symgen.gensym () ^ iter_name iterator ^ "_idx")) in
       let output_sym = match iterator with
         ArrayIterator(i,_) -> i
       | RangeIterator(i,_) -> i
       in
-      (iterator, len_sym, mod_sym, idx_sym, output_sym)
+      (iterator, len_sym, mod_sym, output_sym)
     in
 
     List.fold_left (fun m i -> StringMap.add (iter_name i) (get_iter_properties i) (m)) (StringMap.empty) (iterators)
@@ -529,7 +528,7 @@ and generate_for_statement (iterators, statements) env =
       )
     in
 
-    let iter_length_init _ (iter, len_sym, _, _, _) acc = 
+    let iter_length_init _ (iter, len_sym, _, _) acc = 
       Declaration(AssigningDecl(len_sym, iter_length iter)) :: acc
     in
 
@@ -539,7 +538,7 @@ and generate_for_statement (iterators, statements) env =
   (* the total length of our for loop is the product
    * of lengths of all iterators *)
   let iter_max =
-    StringMap.fold (fun _ (_, len_sym, _, _, _) acc ->
+    StringMap.fold (fun _ (_, len_sym, _, _) acc ->
       Binop(acc, Mul, Lval(Variable(len_sym)))) (iter_map) (IntLit(Int32.of_int 1))
   in
 
@@ -550,7 +549,7 @@ and generate_for_statement (iterators, statements) env =
   let iter_mod_initializers =
     let iter_initializer iterator acc =
       let name = iter_name iterator in
-      let mod_ident, len_ident = match (StringMap.find name iter_map) with (_,l,m,_,_) -> m,l in
+      let mod_ident, len_ident = match (StringMap.find name iter_map) with (_,l,m,_) -> m,l in
       match acc with
         [] -> [ Declaration(AssigningDecl(mod_ident, Lval(Variable(len_ident)))) ]
       | Declaration(AssigningDecl(prev_mod_ident, _)) :: _ -> (
