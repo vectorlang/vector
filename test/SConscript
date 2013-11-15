@@ -42,7 +42,7 @@ env.Append(BUILDERS = {'CudaGen' : cuda_gen,
 
 # Add the name of your example to this list to get it compiled
 test_cases = ['hello', 'control_flow', 'arrays', 'functions', 'float',
-              'complex', 'highlevel', 'logic']
+              'complex', 'map', 'logic']
 cuda_test_cases = ['dotprod', 'vecmult']
 headers = ['libvector', 'vector_utils', 'vector_array']
 
