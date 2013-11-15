@@ -15,5 +15,7 @@ static inline void _check(cudaError_t err, const char *file, int line)
 #endif
 #define checkError(err) _check((err), __FILE__, __LINE__)
 #define ceil_div(n, d) (((n) - 1) / (d) + 1)
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 
 #endif
