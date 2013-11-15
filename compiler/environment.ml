@@ -24,13 +24,49 @@ exception Invalid_environment
 exception Invalid_operation
 exception Not_implemented
 
+type kernel_invocation_function = {
+  kernel_invoke_sym: string;
+  kernel_sym: string;
+  func_type: string;
+  };;
+
+type global_function = {
+  function_name: string;
+  hof: ident;
+  kernel_symbol: string;
+  function_type: string;
+};;
+
+type 'a env = {
+  kernel_invocation_functions: kernel_invocation_function list;
+  global_functions: global_function list;
+  func_decl_map: 'a FunctionDeclarationMap.t;
+  func_map: datatype FunctionMap.t;
+  scope_stack: datatype VariableMap.t list;
+}
 type 'a sourcecomponent =
   | Verbatim of string
   | Generator of ('a -> (string * 'a))
   | NewScopeGenerator of ('a -> (string * 'a))
-let create =
-  ([], [], FunctionDeclarationMap.empty, FunctionMap.empty, VariableMap.empty :: []);;
 
+let create =
+  {
+    kernel_invocation_functions = [];
+    global_functions = [];
+    func_decl_map = FunctionDeclarationMap.empty;
+    func_map = FunctionMap.empty;
+    scope_stack = VariableMap.empty ::[];
+  }
+
+let update_env kernel_invocation_functs global_functions func_decl_map
+  func_map var_map_list =
+    {
+      kernel_invocation_functions = kernel_invocation_functs;
+      global_functions = global_functions;
+      func_decl_map = func_decl_map;
+      func_map = func_map;
+      scope_stack = var_map_list;
+    }
 let get_var_type ident env =
   let rec check_scope scopes =
     match scopes with
@@ -40,22 +76,21 @@ let get_var_type ident env =
            VariableMap.find ident scope
          else
            check_scope tail in
-  let _, _, _, _, scope_stack = env in
+  let scope_stack = env.scope_stack in
   check_scope scope_stack
 
 let is_var_declared ident env =
-  let _,_, _,_, scope_stack = env in
-  match scope_stack with
+  match env.scope_stack with
    | [] -> false
    | scope :: tail -> VariableMap.mem ident scope
 
 let set_var_type ident datatype env =
-  let kernel_funcs, global_funcs, func_content_map, func_map, scope_stack = env in
-  let scope, tail = (match scope_stack with
+  let scope, tail = (match env.scope_stack with
                 | scope :: tail -> scope, tail
                 | [] -> raise Invalid_environment) in
   let new_scope = VariableMap.add ident datatype scope in
-  kernel_funcs, global_funcs, func_content_map, func_map, new_scope :: tail
+  update_env env.kernel_invocation_functions env.global_functions
+    env.func_decl_map env.func_map (new_scope :: tail)
 
 let update_scope ident datatype (str, env) =
   if is_var_declared ident env then
@@ -63,36 +98,50 @@ let update_scope ident datatype (str, env) =
   else
     (str, set_var_type ident datatype env)
 
-let push_scope (kernel_funcs, global_funcs, func_content_map, func_map, scope_stack) =
-  kernel_funcs, global_funcs, func_content_map, func_map, VariableMap.empty :: scope_stack
+let push_scope env =
+  update_env env.kernel_invocation_functions env.global_functions
+    env.func_decl_map env.func_map (VariableMap.empty :: env.scope_stack)
 
-let pop_scope (kernel_funcs, global_funcs, func_content_map, func_map, scope_stack) =
-  match scope_stack with
-   | local_scope :: tail -> kernel_funcs, global_funcs, func_content_map, func_map, tail
+let pop_scope env =
+  match env.scope_stack with
+   | local_scope :: tail ->
+      update_env env.kernel_invocation_functions env.global_functions
+        env.func_decl_map env.func_map tail
    | [] -> raise Invalid_environment
 
-let get_func_type ident (_,_,_,func_map, _) =
-  FunctionMap.find ident func_map
+let get_func_type ident env =
+  FunctionMap.find ident env.func_map
 
 let is_func_declared ident env =
-  let _, _,_, func_map, _ = env in
-  FunctionMap.mem ident func_map
+  FunctionMap.mem ident env.func_map
 
 let update_global_funcs function_type kernel_invoke_sym function_name hof kernel_sym (str, env) =
-  let kernel_funcs, global_funcs, func_content_map, func_map, scope_stack = env in
-  let new_global_funcs = (function_name, hof, kernel_sym, function_type) :: global_funcs in
-  let new_kernel_funcs = (kernel_invoke_sym, kernel_sym, function_type) :: kernel_funcs in
-  (str, (new_kernel_funcs, new_global_funcs, func_content_map, func_map, scope_stack))
+  let new_kernel_funcs = {
+    kernel_invoke_sym = kernel_invoke_sym;
+    kernel_sym = kernel_sym;
+    func_type = function_type;
+  } :: env.kernel_invocation_functions in
+
+  let new_global_funcs = {
+    function_name = function_name;
+    hof = hof;
+    kernel_symbol = kernel_sym;
+    function_type = function_type;
+  } :: env.global_functions in
+
+  (str, update_env new_kernel_funcs new_global_funcs env.func_decl_map
+  env.func_map env.scope_stack)
 
 let set_func_type ident returntype env =
-  let kernel_funcs, global_funcs, func_content_map, func_map, scope_stack = env in
-  let new_func_map = FunctionMap.add ident returntype func_map in
-  kernel_funcs, global_funcs, func_content_map, new_func_map, scope_stack
+  let new_func_map = FunctionMap.add ident returntype env.func_map in
+  update_env env.kernel_invocation_functions env.global_functions
+    env.func_decl_map new_func_map env.scope_stack
 
 let update_function_content main_str mod_str new_func_sym ident env =
-  let kernel_funcs, global_funcs, func_content_map, func_map, scope_stack = env in
-  let new_func_content_map = FunctionDeclarationMap.add ident (new_func_sym, mod_str) func_content_map in
-  (main_str, (kernel_funcs, global_funcs, new_func_content_map, func_map, scope_stack))
+  let new_func_content_map = FunctionDeclarationMap.add ident (new_func_sym,
+  mod_str) env.func_decl_map in
+  (main_str, update_env env.kernel_invocation_functions env.global_functions
+    new_func_content_map env.func_map env.scope_stack)
 
 let update_functions ident returntype (str, env) =
   if is_func_declared ident env then

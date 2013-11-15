@@ -445,16 +445,19 @@ let rec generate_statement statement env =
            NewScopeGenerator(generate_statement s);
            Verbatim("}")
          ]
-     | FunctionDecl(t, i, ds, ss) ->
+     | FunctionDecl(return_type, identifier, arg_list, body_sequence) ->
          let new_func_sym = Symgen.gensym () in
          let str, env = Environment.combine env [
-             NewScopeGenerator(generate_function (t,i,ds,ss))
+             NewScopeGenerator(generate_function (return_type,identifier,arg_list,body_sequence))
            ] in
          let mod_str, _ = Environment.combine env [
-           NewScopeGenerator(generate_function (t,Ident (new_func_sym),ds,ss))
+           NewScopeGenerator(generate_function (return_type,Ident
+             (new_func_sym),arg_list,body_sequence))
          ] in
-         let new_str, new_env = Environment.update_functions i t (str, env) in
-         let final_str, final_env = Environment.update_function_content new_str mod_str new_func_sym i new_env in
+         let new_str, new_env = Environment.update_functions identifier
+           return_type (str, env) in
+         let final_str, final_env = Environment.update_function_content new_str
+           mod_str new_func_sym identifier new_env in
          final_str, final_env
 
      | ForwardDecl(t, i, ds) ->
@@ -670,18 +673,19 @@ let generate_toplevel tree =
     ]
 
 let generate_kernel_invocation_functions env =
-  let kernel_funcs, _, _, _, _ = env in
+  (*let b = {
+    function_name = "hello";hof=Ident("adaf");kernel_symbol="bob";function_type="jim";} ::
+    env.kernel_invocation_functions in*)
   let rec generate_functions funcs str =
     match funcs with
     | [] -> str
     | head :: tail ->
-        (let kernel_invoke_sym, kernel_sym, function_type  = head in
-        let new_str = str ^ "\nVectorArray<" ^ function_type ^ "> " ^ kernel_invoke_sym ^ "(" ^
-        "VectorArray<" ^ function_type ^ "> input){
+        (let new_str = str ^ "\nVectorArray<" ^ head.func_type ^ "> " ^ head.kernel_invoke_sym ^ "(" ^
+        "VectorArray<" ^ head.func_type ^ "> input){
           int inputSize = input.size();
-          VectorArray<" ^ function_type ^ " > output = array_init<" ^ function_type ^ ">((size_t) inputSize);
+          VectorArray<" ^ head.func_type ^ " > output = array_init<" ^ head.func_type ^ ">((size_t) inputSize);
           input.copyToDevice();
-          " ^ kernel_sym ^
+          " ^ head.kernel_sym ^
           "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
           cudaDeviceSynchronize();
           checkError(cudaGetLastError());
@@ -690,21 +694,21 @@ let generate_kernel_invocation_functions env =
           }\n
         " in
         generate_functions tail new_str) in
-  generate_functions kernel_funcs " "
+  generate_functions env.kernel_invocation_functions " "
 
 let generate_kernel_functions env =
-  let kernel_funcs, global_funcs, func_content, func_map, scope_stack = env in
+  let global_funcs, func_content = env.global_functions, env.func_decl_map in
   let rec generate_funcs funcs str =
     (match funcs with
     | [] -> str
     | head :: tail ->
-        let function_name, hof, kernel_sym, function_type = head in
-        let symbolized_function_name, _ = Environment.lookup_function_content function_name func_content in
-        (match hof with
+        let symbolized_function_name, _ = Environment.lookup_function_content
+          head.function_name func_content in
+        (match head.hof with
          | Ident("map") ->
             let new_str = str ^
-            "__global__ void " ^ kernel_sym ^ "(" ^ function_type ^ "* output,
-            " ^ function_type ^ "* input, size_t n){
+            "__global__ void " ^ head.kernel_symbol ^ "(" ^ head.function_type ^ "* output,
+            " ^ head.function_type ^ "* input, size_t n){
               size_t i = threadIdx.x + blockDim.x * blockIdx.x;
               if (i < n)
                 output[i] = " ^ symbolized_function_name ^ "(input[i]);
@@ -715,13 +719,12 @@ let generate_kernel_functions env =
   generate_funcs global_funcs ""
 
 let generate_device_functions env =
-  let kernel_funcs, global_funcs, func_content_map, func_map, scope_stack = env in
+  let global_funcs, func_content_map = env.global_functions, env.func_decl_map in
   let rec generate_funcs funcs str =
     match funcs with
     | [] -> str
     | head :: tail ->
-        let function_name, hof, kernel_sym, function_type = head in
-        let _, func_content = Environment.lookup_function_content function_name func_content_map in
+        let _, func_content = Environment.lookup_function_content head.function_name func_content_map in
         let new_str = str ^ "\n__device__ " ^ func_content ^ "\n" in
         generate_funcs tail new_str in
 
