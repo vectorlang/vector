@@ -5,12 +5,6 @@ open Symgen
  * is left, we pop.
  * *)
 
-(* Environment is tuple of (kernel_invoke_function_list * kernel_function_list *
-  FunctionDeclarationMap * FunctionMap * list(VariableMap))
-*)
-
-
-
 (* Maps variable idents to type *)
 module VariableMap = Map.Make(struct type t = ident let compare = compare end);;
 

@@ -673,9 +673,6 @@ let generate_toplevel tree =
     ]
 
 let generate_kernel_invocation_functions env =
-  (*let b = {
-    function_name = "hello";hof=Ident("adaf");kernel_symbol="bob";function_type="jim";} ::
-    env.kernel_invocation_functions in*)
   let rec generate_functions funcs str =
     match funcs with
     | [] -> str
