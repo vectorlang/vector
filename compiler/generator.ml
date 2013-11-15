@@ -67,8 +67,8 @@ let rec infer_type expr env =
 
       | HigherOrderFunctionCall(hof, f, expr) ->
           (match(hof) with
-            | Ident("map") -> infer_type expr env
-            | Ident("reduce") -> raise Not_implemented
+            | Ident("map") -> ArrayType(Environment.get_func_type f env)
+            | Ident("reduce") -> Environment.get_func_type f env
             | _ -> raise Invalid_operation)
 
 let generate_ident ident env =
@@ -710,7 +710,27 @@ let generate_kernel_functions env =
                 output[i] = " ^ symbolized_function_name ^ "(input[i]);
             }\n"  in
             generate_funcs tail new_str
-         | Ident("reduce") -> raise Not_implemented
+         | Ident("reduce") ->
+             let new_str = str ^
+             "__global void kernel_symbol(int *input, int *output, size_t n) {
+                int s;
+                int mod;
+                int block;
+
+                int bn = min(blockIdx.x * blockDim.x, threadDim.x)
+
+
+                int globalI = threadIdx.x + blockDim.x * blockIdx.x;
+
+                int bn = min(blockIdx.x * blockDim.x, threadDim.x)
+                for (s =1; s <(threadDim.x)/2 || ;s <<=1) {
+
+
+                }
+               }
+             " in
+             generate_funcs tail new_str
+
          | _ -> raise Invalid_operation)) in
   generate_funcs kernel_funcs ""
 

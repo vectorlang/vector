@@ -27,6 +27,7 @@ type kernel_invocation_function = {
   kernel_invoke_sym: string;
   kernel_sym: string;
   func_type: string;
+  higher_order_func: ident;
   };;
 
 (* Kernel functions are the functions that are executed on the GPU.
