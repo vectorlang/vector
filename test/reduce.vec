@@ -1,0 +1,9 @@
+int add(int x, int y){
+  return x + y;
+}
+
+int vec_main()
+{
+  sum := @reduce(add, {1,2,3,4});
+  printf("%d", sum);
+}
