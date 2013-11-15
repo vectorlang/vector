@@ -18,13 +18,26 @@ exception Invalid_environment
 exception Invalid_operation
 exception Not_implemented
 
+(* Kernel invocation functions are functions that invoke the kernel. The
+ * kernel_invoke_sym refers to the function name of this kernel invocation
+ * function, while the kernel_sym refers to the function name of the kernel
+ * function being invoked.
+ *)
 type kernel_invocation_function = {
   kernel_invoke_sym: string;
   kernel_sym: string;
   func_type: string;
   };;
 
-type global_function = {
+(* Kernel functions are the functions that are executed on the GPU.
+ * The function_name is the name of the function in the vector code
+ * that is being called, and kernel_symbol is the function name of the
+ * generated global function that the kernel is compiled to (it needs to
+ * have an additional __global__ directive and operate on arrays, which is
+ * why it is a seperate function.  The hof is the type of higher-order-function
+ * being invoked.
+ *)
+type kernel_function = {
   function_name: string;
   hof: ident;
   kernel_symbol: string;
@@ -33,9 +46,9 @@ type global_function = {
 
 type 'a env = {
   kernel_invocation_functions: kernel_invocation_function list;
-  global_functions: global_function list;
+  kernel_functions: kernel_function list;
   func_decl_map: 'a FunctionDeclarationMap.t;
-  func_map: datatype FunctionMap.t;
+  func_type_map: datatype FunctionMap.t;
   scope_stack: datatype VariableMap.t list;
 }
 type 'a sourcecomponent =
@@ -46,19 +59,19 @@ type 'a sourcecomponent =
 let create =
   {
     kernel_invocation_functions = [];
-    global_functions = [];
+    kernel_functions = [];
     func_decl_map = FunctionDeclarationMap.empty;
-    func_map = FunctionMap.empty;
+    func_type_map = FunctionMap.empty;
     scope_stack = VariableMap.empty ::[];
   }
 
-let update_env kernel_invocation_functs global_functions func_decl_map
-  func_map var_map_list =
+let update_env kernel_invocation_functions kernel_functions func_decl_map
+  func_type_map var_map_list =
     {
-      kernel_invocation_functions = kernel_invocation_functs;
-      global_functions = global_functions;
+      kernel_invocation_functions = kernel_invocation_functions;
+      kernel_functions = kernel_functions;
       func_decl_map = func_decl_map;
-      func_map = func_map;
+      func_type_map = func_type_map;
       scope_stack = var_map_list;
     }
 let get_var_type ident env =
@@ -83,8 +96,8 @@ let set_var_type ident datatype env =
                 | scope :: tail -> scope, tail
                 | [] -> raise Invalid_environment) in
   let new_scope = VariableMap.add ident datatype scope in
-  update_env env.kernel_invocation_functions env.global_functions
-    env.func_decl_map env.func_map (new_scope :: tail)
+  update_env env.kernel_invocation_functions env.kernel_functions
+    env.func_decl_map env.func_type_map (new_scope :: tail)
 
 let update_scope ident datatype (str, env) =
   if is_var_declared ident env then
@@ -93,21 +106,21 @@ let update_scope ident datatype (str, env) =
     (str, set_var_type ident datatype env)
 
 let push_scope env =
-  update_env env.kernel_invocation_functions env.global_functions
-    env.func_decl_map env.func_map (VariableMap.empty :: env.scope_stack)
+  update_env env.kernel_invocation_functions env.kernel_functions
+    env.func_decl_map env.func_type_map (VariableMap.empty :: env.scope_stack)
 
 let pop_scope env =
   match env.scope_stack with
    | local_scope :: tail ->
-      update_env env.kernel_invocation_functions env.global_functions
-        env.func_decl_map env.func_map tail
+      update_env env.kernel_invocation_functions env.kernel_functions
+        env.func_decl_map env.func_type_map tail
    | [] -> raise Invalid_environment
 
 let get_func_type ident env =
-  FunctionMap.find ident env.func_map
+  FunctionMap.find ident env.func_type_map
 
 let is_func_declared ident env =
-  FunctionMap.mem ident env.func_map
+  FunctionMap.mem ident env.func_type_map
 
 let update_global_funcs function_type kernel_invoke_sym function_name hof kernel_sym (str, env) =
   let new_kernel_funcs = {
@@ -121,21 +134,21 @@ let update_global_funcs function_type kernel_invoke_sym function_name hof kernel
     hof = hof;
     kernel_symbol = kernel_sym;
     function_type = function_type;
-  } :: env.global_functions in
+  } :: env.kernel_functions in
 
   (str, update_env new_kernel_funcs new_global_funcs env.func_decl_map
-  env.func_map env.scope_stack)
+  env.func_type_map env.scope_stack)
 
 let set_func_type ident returntype env =
-  let new_func_map = FunctionMap.add ident returntype env.func_map in
-  update_env env.kernel_invocation_functions env.global_functions
-    env.func_decl_map new_func_map env.scope_stack
+  let new_func_type_map = FunctionMap.add ident returntype env.func_type_map in
+  update_env env.kernel_invocation_functions env.kernel_functions
+    env.func_decl_map new_func_type_map env.scope_stack
 
-let update_function_content main_str mod_str new_func_sym ident env =
+let update_function_content main_str new_func_body new_func_sym ident env =
   let new_func_content_map = FunctionDeclarationMap.add ident (new_func_sym,
-  mod_str) env.func_decl_map in
-  (main_str, update_env env.kernel_invocation_functions env.global_functions
-    new_func_content_map env.func_map env.scope_stack)
+  new_func_body) env.func_decl_map in
+  (main_str, update_env env.kernel_invocation_functions env.kernel_functions
+    new_func_content_map env.func_type_map env.scope_stack)
 
 let update_functions ident returntype (str, env) =
   if is_func_declared ident env then

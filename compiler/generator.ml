@@ -71,7 +71,6 @@ let rec infer_type expr env =
             | Ident("reduce") -> raise Not_implemented
             | _ -> raise Invalid_operation)
 
-
 let generate_ident ident env =
   match ident with
     Ident(s) -> Environment.combine env [Verbatim(s)]
@@ -131,7 +130,7 @@ and generate_expr expr env =
       (match datatype with
         | Complex | Complex64 | Complex128 ->
             let func = match op with
-              | Add -> "cuCadd"
+             | Add -> "cuCadd"
               | Sub -> "cuCsub"
               | Mul -> "cuCmul"
               | Div -> "cuCdiv"
@@ -694,7 +693,7 @@ let generate_kernel_invocation_functions env =
   generate_functions env.kernel_invocation_functions " "
 
 let generate_kernel_functions env =
-  let global_funcs, func_content = env.global_functions, env.func_decl_map in
+  let kernel_funcs, func_content = env.kernel_functions, env.func_decl_map in
   let rec generate_funcs funcs str =
     (match funcs with
     | [] -> str
@@ -713,10 +712,10 @@ let generate_kernel_functions env =
             generate_funcs tail new_str
          | Ident("reduce") -> raise Not_implemented
          | _ -> raise Invalid_operation)) in
-  generate_funcs global_funcs ""
+  generate_funcs kernel_funcs ""
 
 let generate_device_functions env =
-  let global_funcs, func_content_map = env.global_functions, env.func_decl_map in
+  let kernel_funcs, func_content_map = env.kernel_functions, env.func_decl_map in
   let rec generate_funcs funcs str =
     match funcs with
     | [] -> str
@@ -725,7 +724,7 @@ let generate_device_functions env =
         let new_str = str ^ "\n__device__ " ^ func_content ^ "\n" in
         generate_funcs tail new_str in
 
-  generate_funcs global_funcs ""
+  generate_funcs kernel_funcs ""
 
 let _ =
   let lexbuf = Lexing.from_channel stdin in
