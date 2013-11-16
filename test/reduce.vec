@@ -4,7 +4,12 @@ int add(int x, int y){
 
 int vec_main()
 {
-  sum := @reduce(add, {1,2,3,4});
-  printf("%d", sum);
-  return 0;
+    int arr[1900];
+
+    for (i in 0:1900)
+        arr[i] = random();
+
+    sum := @reduce(add, arr);
+    printf("%d", sum);
+    return 0;
 }
