@@ -694,25 +694,25 @@ let generate_kernel_invocation_functions env =
             generate_functions tail new_str
           | Ident("reduce") ->
               let new_str = str ^ "
-              int reduce_kernel_invocation(VectorArray<int> &arr)
+              int " ^ head.kernel_invoke_sym ^ "(VectorArray<" ^ head.func_type ^ "> arr)
               {
                   int n = arr.size();
                   int num_blocks = ceil_div(n, BLOCK_SIZE);
                   int atob = 1;
-                  int shared_size = BLOCK_SIZE * sizeof(int);
-                  VectorArray<int> tempa(num_blocks);
-                  VectorArray<int> tempb(num_blocks);
+                  int shared_size = BLOCK_SIZE * sizeof(" ^ head.func_type ^ ");
+                  VectorArray<" ^ head.func_type ^ "> tempa(num_blocks);
+                  VectorArray<" ^ head.func_type ^ "> tempb(num_blocks);
 
                   arr.copyToDevice();
-                  kernel<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), input.devPtr(), n);
+                  " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), arr.devPtr(), n);
                   n = num_blocks;
 
                   while (n > 1) {
                       num_blocks = ceil_div(n, BLOCK_SIZE);
                       if (atob)
-                          kernel<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempb.devPtr(), tempa.devPtr(), n);
+                          " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempb.devPtr(), tempa.devPtr(), n);
                       else
-                          kernel<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), tempb.devPtr(), n);
+                          " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), tempb.devPtr(), n);
                       atob = !atob;
                       n = num_blocks;
                   }
@@ -748,8 +748,9 @@ let generate_kernel_functions env =
             generate_funcs tail new_str
          | Ident("reduce") ->
              let new_str = str ^
-             "__global void kernel_symbol(int *output, int *input, size_t n) {
-                  extern __shared__ type temp[];
+             "__global__ void " ^ head.kernel_symbol ^ "( " ^ head.function_type ^
+               " *output, " ^ head.function_type ^ " *input, size_t n) {
+                  extern __shared__ " ^ head.function_type ^ " temp[];
 
                   int ti = threadIdx.x;
                   int bi = blockIdx.x;
@@ -764,7 +765,7 @@ let generate_kernel_functions env =
 
                   for (s = 1; s < blockDim.x; s *= 2) {
                       if (ti % (2 * s) == 0 && ti + s < bn)
-                          temp[ti] = func(temp[ti] + temp[ti + s];
+                          temp[ti] = " ^ symbolized_function_name ^ "(temp[ti], temp[ti + s]);
                       __syncthreads();
                   }
 
