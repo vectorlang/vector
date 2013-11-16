@@ -708,6 +708,8 @@ let generate_kernel_invocation_functions env =
 
                   arr.copyToDevice();
                   " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), arr.devPtr(), n);
+                  cudaDeviceSynchronize();
+                  checkError(cudaGetLastError());
                   n = num_blocks;
 
                   while (n > 1) {
@@ -716,6 +718,8 @@ let generate_kernel_invocation_functions env =
                           " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempb.devPtr(), tempa.devPtr(), n);
                       else
                           " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), tempb.devPtr(), n);
+                      cudaDeviceSynchronize();
+                      checkError(cudaGetLastError());
                       atob = !atob;
                       n = num_blocks;
                   }
