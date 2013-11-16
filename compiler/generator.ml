@@ -321,7 +321,7 @@ and generate_decl decl env =
          Generator(generate_ident i)
        ])
    | ArrayDecl(d,i,es) ->
-       Environment.update_scope i d (match es with
+       Environment.update_scope i (ArrayType(d)) (match es with
           | [] -> "", env
           | _ ->
               Environment.combine env [
