@@ -769,7 +769,7 @@ let generate_kernel_functions env =
                   int s;
 
                   if (ti < bn)
-                      temp[ti] = output[gi];
+                      temp[ti] = input[gi];
                   __syncthreads();
 
                   for (s = 1; s < blockDim.x; s *= 2) {
