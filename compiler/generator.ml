@@ -703,8 +703,8 @@ let generate_kernel_invocation_functions env =
                   int num_blocks = ceil_div(n, BLOCK_SIZE);
                   int atob = 1;
                   int shared_size = BLOCK_SIZE * sizeof(" ^ head.func_type ^ ");
-                  VectorArray<" ^ head.func_type ^ "> tempa(num_blocks);
-                  VectorArray<" ^ head.func_type ^ "> tempb(num_blocks);
+                  VectorArray<" ^ head.func_type ^ "> tempa(1, num_blocks);
+                  VectorArray<" ^ head.func_type ^ "> tempb(1, num_blocks);
 
                   arr.copyToDevice();
                   " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), arr.devPtr(), n);
