@@ -80,30 +80,29 @@ let generate_ident ident env =
 
 let generate_datatype datatype env =
     match datatype with
-     | Bool -> Environment.combine env [Verbatim("bool")]
-     | Char -> Environment.combine env [Verbatim("char")]
-     | Int8 -> Environment.combine env [Verbatim("int8_t")]
-     | UInt8 -> Environment.combine env [Verbatim("uint8_t")]
-     | Int16 -> Environment.combine env [Verbatim("int16_t")]
-     | UInt16 -> Environment.combine env [Verbatim("uint16_t")]
-     | Int -> Environment.combine env [Verbatim("int32_t")]
-     | Int32 -> Environment.combine env [Verbatim("int32_t")]
-     | UInt -> Environment.combine env [Verbatim("uint32_t")]
-     | UInt32 -> Environment.combine env [Verbatim("uint32_t")]
-     | Int64 -> Environment.combine env [Verbatim("int64_t")]
-     | UInt64 -> Environment.combine env [Verbatim("uint64_t")]
-     | Double -> Environment.combine env [Verbatim("double")]
-     | Float -> Environment.combine env [Verbatim("float")]
-     | Float32 -> Environment.combine env [Verbatim("float")]
-     | Float64 -> Environment.combine env [Verbatim("double")]
+      | Bool -> Environment.combine env [Verbatim("bool")]
+      | Char -> Environment.combine env [Verbatim("char")]
+      | Int8 -> Environment.combine env [Verbatim("int8_t")]
+      | UInt8 -> Environment.combine env [Verbatim("uint8_t")]
+      | Int16 -> Environment.combine env [Verbatim("int16_t")]
+      | UInt16 -> Environment.combine env [Verbatim("uint16_t")]
+      | Int -> Environment.combine env [Verbatim("int32_t")]
+      | Int32 -> Environment.combine env [Verbatim("int32_t")]
+      | UInt -> Environment.combine env [Verbatim("uint32_t")]
+      | UInt32 -> Environment.combine env [Verbatim("uint32_t")]
+      | Int64 -> Environment.combine env [Verbatim("int64_t")]
+      | UInt64 -> Environment.combine env [Verbatim("uint64_t")]
+      | Double -> Environment.combine env [Verbatim("double")]
+      | Float -> Environment.combine env [Verbatim("float")]
+      | Float32 -> Environment.combine env [Verbatim("float")]
+      | Float64 -> Environment.combine env [Verbatim("double")]
 
 
-     | Complex -> Environment.combine env [Verbatim("cuFloatComplex")]
-     | Complex64 -> Environment.combine env [Verbatim("cuFloatComplex")]
-     | Complex128 -> Environment.combine env [Verbatim("cuDoubleComplex")]
+      | Complex -> Environment.combine env [Verbatim("cuFloatComplex")]
+      | Complex64 -> Environment.combine env [Verbatim("cuFloatComplex")]
+      | Complex128 -> Environment.combine env [Verbatim("cuDoubleComplex")]
 
-
-     | _ -> raise Unknown_type
+      | _ -> raise Unknown_type
 
 let rec generate_lvalue lval env =
   match lval with
