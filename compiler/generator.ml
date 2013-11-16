@@ -713,21 +713,28 @@ let generate_kernel_functions env =
          | Ident("reduce") ->
              let new_str = str ^
              "__global void kernel_symbol(int *input, int *output, size_t n) {
-                int s;
-                int mod;
-                int block;
+                  extern __shared__ type temp[];
 
-                int bn = min(blockIdx.x * blockDim.x, threadDim.x)
+                  int ti = threadIdx.x;
+                  int bi = blockIdx.x;
+                  int starti = blockIdx.x * blockDim.x;
+                  int gi = starti + ti;
+                  int bn = min(n - starti, blockDim.x);
+                  int s;
 
+                  if (ti < bn)
+                      temp[ti] = output[gi];
+                  __syncthreads();
 
-                int globalI = threadIdx.x + blockDim.x * blockIdx.x;
+                  for (s = 1; s < blockDim.x; s *= 2) {
+                      if (ti % (2 * s) == 0 && ti + s < bn)
+                          temp[ti] = func(temp[ti] + temp[ti + s];
+                      __syncthreads();
+                  }
 
-                int bn = min(blockIdx.x * blockDim.x, threadDim.x)
-                for (s =1; s <(threadDim.x)/2 || ;s <<=1) {
-
-
-                }
-               }
+                  if (ti == 0)
+                      output[bi] = temp[0];
+              }
              " in
              generate_funcs tail new_str
 
