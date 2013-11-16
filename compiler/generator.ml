@@ -676,20 +676,26 @@ let generate_kernel_invocation_functions env =
     match funcs with
     | [] -> str
     | head :: tail ->
-        (let new_str = str ^ "\nVectorArray<" ^ head.func_type ^ "> " ^ head.kernel_invoke_sym ^ "(" ^
-        "VectorArray<" ^ head.func_type ^ "> input){
-          int inputSize = input.size();
-          VectorArray<" ^ head.func_type ^ " > output = array_init<" ^ head.func_type ^ ">((size_t) inputSize);
-          input.copyToDevice();
-          " ^ head.kernel_sym ^
-          "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
-          cudaDeviceSynchronize();
-          checkError(cudaGetLastError());
-          output.copyFromDevice();
-          return output;
-          }\n
-        " in
-        generate_functions tail new_str) in
+        (match head.higher_order_func with
+          | Ident("map") ->
+            let new_str = str ^ "\nVectorArray<" ^ head.func_type ^ "> " ^ head.kernel_invoke_sym ^ "(" ^
+            "VectorArray<" ^ head.func_type ^ "> input){
+              int inputSize = input.size();
+              VectorArray<" ^ head.func_type ^ " > output = array_init<" ^ head.func_type ^ ">((size_t) inputSize);
+              input.copyToDevice();
+              " ^ head.kernel_sym ^
+              "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
+              cudaDeviceSynchronize();
+              checkError(cudaGetLastError());
+              output.copyFromDevice();
+              return output;
+              }\n
+            " in
+            generate_functions tail new_str
+          | Ident("reduce") ->
+              let new_str = str ^ " "  in
+              generate_functions tail new_str
+          | _ -> raise Invalid_operation) in
   generate_functions env.kernel_invocation_functions " "
 
 let generate_kernel_functions env =
