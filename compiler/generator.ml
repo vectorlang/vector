@@ -693,7 +693,37 @@ let generate_kernel_invocation_functions env =
             " in
             generate_functions tail new_str
           | Ident("reduce") ->
-              let new_str = str ^ " "  in
+              let new_str = str ^ "
+              int reduce_kernel_invocation(VectorArray<int> &arr)
+              {
+                  int n = arr.size();
+                  int num_blocks = ceil_div(n, BLOCK_SIZE);
+                  int atob = 1;
+                  int shared_size = BLOCK_SIZE * sizeof(int);
+                  VectorArray<int> tempa(num_blocks);
+                  VectorArray<int> tempb(num_blocks);
+
+                  arr.copyToDevice();
+                  kernel<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), input.devPtr(), n);
+                  n = num_blocks;
+
+                  while (n > 1) {
+                      num_blocks = ceil_div(n, BLOCK_SIZE);
+                      if (atob)
+                          kernel<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempb.devPtr(), tempa.devPtr(), n);
+                      else
+                          kernel<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), tempb.devPtr(), n);
+                      atob = !atob;
+                      n = num_blocks;
+                  }
+
+                  if (atob) {
+                      tempa.copyFromDevice(1);
+                      return tempa.elem(0);
+                  }
+                  tempb.copyFromDevice(1);
+                  return tempb.elem(0);
+              }"  in
               generate_functions tail new_str
           | _ -> raise Invalid_operation) in
   generate_functions env.kernel_invocation_functions " "
@@ -718,7 +748,7 @@ let generate_kernel_functions env =
             generate_funcs tail new_str
          | Ident("reduce") ->
              let new_str = str ^
-             "__global void kernel_symbol(int *input, int *output, size_t n) {
+             "__global void kernel_symbol(int *output, int *input, size_t n) {
                   extern __shared__ type temp[];
 
                   int ti = threadIdx.x;
