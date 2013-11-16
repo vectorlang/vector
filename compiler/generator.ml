@@ -7,14 +7,15 @@ module StringMap = Map.Make(String);;
 
 exception Unknown_type
 exception Empty_list
-exception Type_mismatch
+exception Type_mismatch of string
 exception Not_implemented (* this should go away *)
 exception Invalid_operation
 
 let rec infer_type expr env =
     let f type1 type2 =
         match type1 with
-         | Some(t) -> (if t = type2 then Some(t) else raise Type_mismatch)
+         | Some(t) -> (if t = type2 then Some(t)
+                        else raise (Type_mismatch "wrong type in list"))
          | None -> Some(type2) in
     let match_type expr_list =
       let a = List.fold_left f None expr_list in
@@ -32,7 +33,7 @@ let rec infer_type expr env =
             | (Float, Float) -> Complex
             | (Float32, Float32) -> Complex64
             | (Float64, Float64) -> Complex128
-            | _ -> raise Type_mismatch)
+            | (t1, t2) -> raise (Type_mismatch "expected complex"))
       | FloatLit(_) -> Float64
       | Int64Lit(_) -> Int64
       | IntLit(_) -> Int
@@ -220,7 +221,7 @@ and generate_expr expr env =
       let make_func = (match (infer_type lit env) with
         | Complex | Complex64 -> "make_cuFloatComplex"
         | Complex128 -> "make_cuDoubleComplex"
-        | _ -> raise Type_mismatch) in
+        | t -> raise (Type_mismatch "Mismatch in ComplexLit")) in
       Environment.combine env [
         Verbatim(make_func ^ "(");
         Generator(generate_expr re);
@@ -237,7 +238,7 @@ and generate_expr expr env =
   | ArrayLit(es) as lit ->
       let typ = (match (infer_type lit env) with
        | ArrayType(t) -> t
-       | _ -> raise Type_mismatch) in
+       | t -> raise (Type_mismatch "ArrayLit")) in
       let len = Int32.of_int (List.length es) in
       Environment.combine env [
         Verbatim("array_init<");
@@ -268,12 +269,14 @@ and generate_expr expr env =
             let kernel_invoke_sym = Symgen.gensym () in
             let kernel_sym = Symgen.gensym () in
             let function_name, _ = generate_ident i2 env in
-            Environment.update_global_funcs function_type_str kernel_invoke_sym function_name i1 kernel_sym (Environment.combine env [
-                Verbatim(kernel_invoke_sym ^ "(");
-                Generator(generate_expr es);
-                Verbatim(");")
-            ])
-        | _ -> raise Type_mismatch)
+            Environment.update_global_funcs function_type_str kernel_invoke_sym 
+                function_name i1 kernel_sym (Environment.combine env [
+                    Verbatim(kernel_invoke_sym ^ "(");
+                    Generator(generate_expr es);
+                    Verbatim(");")])
+        | t -> let dtype, _ = generate_datatype t env in
+            raise (Type_mismatch
+                    ("Expected array as argument to HOF, got " ^ dtype)))
   | Lval(lvalue) ->
       Environment.combine env [Generator(generate_lvalue lvalue)]
 and generate_expr_list expr_list env =
