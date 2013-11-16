@@ -43,7 +43,9 @@ let rec infer_type expr env =
           ArrayType(match_type (List.map f exprs))
       | Cast(datatype, expr) -> datatype
       | Lval(lval) -> (match lval with
-          | ArrayElem(e, _) -> infer_type e env
+          | ArrayElem(e, _) -> (match infer_type e env with
+              | ArrayType(t) -> t
+              | _ -> raise (Type_mismatch "Cannot access element of non-array"))
           | Variable(i) -> Environment.get_var_type i env
           | ComplexAccess(expr1,ident) ->
               (match (infer_type expr1 env) with
