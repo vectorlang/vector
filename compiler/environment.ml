@@ -51,7 +51,9 @@ type 'a env = {
   func_decl_map: 'a FunctionDeclarationMap.t;
   func_type_map: datatype FunctionMap.t;
   scope_stack: datatype VariableMap.t list;
+  on_gpu: bool;
 }
+
 type 'a sourcecomponent =
   | Verbatim of string
   | Generator of ('a -> (string * 'a))
@@ -64,17 +66,30 @@ let create =
     func_decl_map = FunctionDeclarationMap.empty;
     func_type_map = FunctionMap.empty;
     scope_stack = VariableMap.empty ::[];
+    on_gpu = false;
   }
 
 let update_env kernel_invocation_functions kernel_functions func_decl_map
-  func_type_map var_map_list =
+  func_type_map var_map_list on_gpu =
     {
       kernel_invocation_functions = kernel_invocation_functions;
       kernel_functions = kernel_functions;
       func_decl_map = func_decl_map;
       func_type_map = func_type_map;
       scope_stack = var_map_list;
+      on_gpu = on_gpu;
     }
+
+let var_in_scope ident env =
+    let rec check_scope scopes =
+        match scopes with
+          | [] -> false
+          | scope :: tail ->
+                if VariableMap.mem ident scope then
+                    true
+                else check_scope tail
+    in check_scope env.scope_stack
+
 let get_var_type ident env =
   let rec check_scope scopes =
     match scopes with
@@ -98,7 +113,7 @@ let set_var_type ident datatype env =
                 | [] -> raise Invalid_environment) in
   let new_scope = VariableMap.add ident datatype scope in
   update_env env.kernel_invocation_functions env.kernel_functions
-    env.func_decl_map env.func_type_map (new_scope :: tail)
+    env.func_decl_map env.func_type_map (new_scope :: tail) env.on_gpu
 
 let update_scope ident datatype (str, env) =
   if is_var_declared ident env then
@@ -108,13 +123,14 @@ let update_scope ident datatype (str, env) =
 
 let push_scope env =
   update_env env.kernel_invocation_functions env.kernel_functions
-    env.func_decl_map env.func_type_map (VariableMap.empty :: env.scope_stack)
+    env.func_decl_map env.func_type_map
+    (VariableMap.empty :: env.scope_stack) env.on_gpu
 
 let pop_scope env =
   match env.scope_stack with
    | local_scope :: tail ->
       update_env env.kernel_invocation_functions env.kernel_functions
-        env.func_decl_map env.func_type_map tail
+        env.func_decl_map env.func_type_map tail env.on_gpu
    | [] -> raise Invalid_environment
 
 let get_func_type ident env =
@@ -139,18 +155,18 @@ let update_global_funcs function_type kernel_invoke_sym function_name hof kernel
   } :: env.kernel_functions in
 
   (str, update_env new_kernel_funcs new_global_funcs env.func_decl_map
-  env.func_type_map env.scope_stack)
+  env.func_type_map env.scope_stack env.on_gpu)
 
 let set_func_type ident returntype env =
   let new_func_type_map = FunctionMap.add ident returntype env.func_type_map in
   update_env env.kernel_invocation_functions env.kernel_functions
-    env.func_decl_map new_func_type_map env.scope_stack
+    env.func_decl_map new_func_type_map env.scope_stack env.on_gpu
 
 let update_function_content main_str new_func_body new_func_sym ident env =
   let new_func_content_map = FunctionDeclarationMap.add ident (new_func_sym,
   new_func_body) env.func_decl_map in
   (main_str, update_env env.kernel_invocation_functions env.kernel_functions
-    new_func_content_map env.func_type_map env.scope_stack)
+    new_func_content_map env.func_type_map env.scope_stack env.on_gpu)
 
 let update_functions ident returntype (str, env) =
   if is_func_declared ident env then
