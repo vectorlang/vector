@@ -30,8 +30,8 @@ class VectorArray {
 		~VectorArray();
 		size_t size();
 		size_t length(size_t dim = 0);
-		void copyToDevice();
-		void copyFromDevice();
+		void copyToDevice(size_t n = 0);
+		void copyFromDevice(size_t n = 0);
 		T *devPtr();
 };
 
@@ -202,25 +202,29 @@ void VectorArray<T>::deviceAllocate()
 }
 
 template <class T>
-void VectorArray<T>::copyToDevice()
+void VectorArray<T>::copyToDevice(size_t n)
 {
+        if (n == 0)
+            n = size();
 	cudaError_t err;
 	deviceAllocate();
 	err = cudaMemcpy(this->d_values, this->values,
-			bsize(), cudaMemcpyHostToDevice);
+			sizeof(T) * n, cudaMemcpyHostToDevice);
 	checkError(err);
 }
 
 template <class T>
-void VectorArray<T>::copyFromDevice()
+void VectorArray<T>::copyFromDevice(size_t n)
 {
 	cudaError_t err;
 	if (this->d_values == NULL) {
 		fprintf(stderr, "The device data has not yet been allocated\n");
 		exit(EXIT_FAILURE);
 	}
-	err = cudaMemcpy(this->values, this->d_values,
-			bsize(), cudaMemcpyDeviceToHost);
+        if (n == 0)
+            n = size();
+        err = cudaMemcpy(this->values, this->d_values,
+                        sizeof(T) * n, cudaMemcpyDeviceToHost);
 	checkError(err);
 }
 

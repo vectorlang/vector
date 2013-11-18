@@ -1,0 +1,24 @@
+int add(int x, int y){
+  return x + y;
+}
+
+int vec_main()
+{
+    int arr[1900];
+    reference := 0;
+
+    for (i in 0:1900)
+        arr[i] = random();
+
+    for (i in 0:1900)
+        reference += arr[i];
+
+    sum := @reduce(add, arr);
+
+    if (sum == reference)
+        printf("correct\n");
+    else
+        printf("incorrect\n");
+
+    return 0;
+}

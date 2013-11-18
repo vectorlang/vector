@@ -27,6 +27,7 @@ type kernel_invocation_function = {
   kernel_invoke_sym: string;
   kernel_sym: string;
   func_type: string;
+  higher_order_func: ident;
   };;
 
 (* Kernel functions are the functions that are executed on the GPU.
@@ -125,6 +126,7 @@ let is_func_declared ident env =
 let update_global_funcs function_type kernel_invoke_sym function_name hof kernel_sym (str, env) =
   let new_kernel_funcs = {
     kernel_invoke_sym = kernel_invoke_sym;
+    higher_order_func = hof; 
     kernel_sym = kernel_sym;
     func_type = function_type;
   } :: env.kernel_invocation_functions in

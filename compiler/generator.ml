@@ -7,14 +7,15 @@ module StringMap = Map.Make(String);;
 
 exception Unknown_type
 exception Empty_list
-exception Type_mismatch
+exception Type_mismatch of string
 exception Not_implemented (* this should go away *)
 exception Invalid_operation
 
 let rec infer_type expr env =
     let f type1 type2 =
         match type1 with
-         | Some(t) -> (if t = type2 then Some(t) else raise Type_mismatch)
+         | Some(t) -> (if t = type2 then Some(t)
+                        else raise (Type_mismatch "wrong type in list"))
          | None -> Some(type2) in
     let match_type expr_list =
       let a = List.fold_left f None expr_list in
@@ -32,7 +33,7 @@ let rec infer_type expr env =
             | (Float, Float) -> Complex
             | (Float32, Float32) -> Complex64
             | (Float64, Float64) -> Complex128
-            | _ -> raise Type_mismatch)
+            | (t1, t2) -> raise (Type_mismatch "expected complex"))
       | FloatLit(_) -> Float64
       | Int64Lit(_) -> Int64
       | IntLit(_) -> Int
@@ -42,7 +43,9 @@ let rec infer_type expr env =
           ArrayType(match_type (List.map f exprs))
       | Cast(datatype, expr) -> datatype
       | Lval(lval) -> (match lval with
-          | ArrayElem(e, _) -> infer_type e env
+          | ArrayElem(e, _) -> (match infer_type e env with
+              | ArrayType(t) -> t
+              | _ -> raise (Type_mismatch "Cannot access element of non-array"))
           | Variable(i) -> Environment.get_var_type i env
           | ComplexAccess(expr1,ident) ->
               (match (infer_type expr1 env) with
@@ -67,8 +70,8 @@ let rec infer_type expr env =
 
       | HigherOrderFunctionCall(hof, f, expr) ->
           (match(hof) with
-            | Ident("map") -> infer_type expr env
-            | Ident("reduce") -> raise Not_implemented
+            | Ident("map") -> ArrayType(Environment.get_func_type f env)
+            | Ident("reduce") -> Environment.get_func_type f env
             | _ -> raise Invalid_operation)
 
 let generate_ident ident env =
@@ -77,30 +80,29 @@ let generate_ident ident env =
 
 let generate_datatype datatype env =
     match datatype with
-     | Bool -> Environment.combine env [Verbatim("bool")]
-     | Char -> Environment.combine env [Verbatim("char")]
-     | Int8 -> Environment.combine env [Verbatim("int8_t")]
-     | UInt8 -> Environment.combine env [Verbatim("uint8_t")]
-     | Int16 -> Environment.combine env [Verbatim("int16_t")]
-     | UInt16 -> Environment.combine env [Verbatim("uint16_t")]
-     | Int -> Environment.combine env [Verbatim("int")]
-     | Int32 -> Environment.combine env [Verbatim("int32_t")]
-     | UInt -> Environment.combine env [Verbatim("uint")]
-     | UInt32 -> Environment.combine env [Verbatim("uint32_t")]
-     | Int64 -> Environment.combine env [Verbatim("int64_t")]
-     | UInt64 -> Environment.combine env [Verbatim("uint64_t")]
-     | Double -> Environment.combine env [Verbatim("double")]
-     | Float -> Environment.combine env [Verbatim("float")]
-     | Float32 -> Environment.combine env [Verbatim("float")]
-     | Float64 -> Environment.combine env [Verbatim("double")]
+      | Bool -> Environment.combine env [Verbatim("bool")]
+      | Char -> Environment.combine env [Verbatim("char")]
+      | Int8 -> Environment.combine env [Verbatim("int8_t")]
+      | UInt8 -> Environment.combine env [Verbatim("uint8_t")]
+      | Int16 -> Environment.combine env [Verbatim("int16_t")]
+      | UInt16 -> Environment.combine env [Verbatim("uint16_t")]
+      | Int -> Environment.combine env [Verbatim("int32_t")]
+      | Int32 -> Environment.combine env [Verbatim("int32_t")]
+      | UInt -> Environment.combine env [Verbatim("uint32_t")]
+      | UInt32 -> Environment.combine env [Verbatim("uint32_t")]
+      | Int64 -> Environment.combine env [Verbatim("int64_t")]
+      | UInt64 -> Environment.combine env [Verbatim("uint64_t")]
+      | Double -> Environment.combine env [Verbatim("double")]
+      | Float -> Environment.combine env [Verbatim("float")]
+      | Float32 -> Environment.combine env [Verbatim("float")]
+      | Float64 -> Environment.combine env [Verbatim("double")]
 
 
-     | Complex -> Environment.combine env [Verbatim("cuFloatComplex")]
-     | Complex64 -> Environment.combine env [Verbatim("cuFloatComplex")]
-     | Complex128 -> Environment.combine env [Verbatim("cuDoubleComplex")]
+      | Complex -> Environment.combine env [Verbatim("cuFloatComplex")]
+      | Complex64 -> Environment.combine env [Verbatim("cuFloatComplex")]
+      | Complex128 -> Environment.combine env [Verbatim("cuDoubleComplex")]
 
-
-     | _ -> raise Unknown_type
+      | _ -> raise Unknown_type
 
 let rec generate_lvalue lval env =
   match lval with
@@ -220,7 +222,7 @@ and generate_expr expr env =
       let make_func = (match (infer_type lit env) with
         | Complex | Complex64 -> "make_cuFloatComplex"
         | Complex128 -> "make_cuDoubleComplex"
-        | _ -> raise Type_mismatch) in
+        | t -> raise (Type_mismatch "Mismatch in ComplexLit")) in
       Environment.combine env [
         Verbatim(make_func ^ "(");
         Generator(generate_expr re);
@@ -237,7 +239,7 @@ and generate_expr expr env =
   | ArrayLit(es) as lit ->
       let typ = (match (infer_type lit env) with
        | ArrayType(t) -> t
-       | _ -> raise Type_mismatch) in
+       | t -> raise (Type_mismatch "ArrayLit")) in
       let len = Int32.of_int (List.length es) in
       Environment.combine env [
         Verbatim("array_init<");
@@ -268,12 +270,14 @@ and generate_expr expr env =
             let kernel_invoke_sym = Symgen.gensym () in
             let kernel_sym = Symgen.gensym () in
             let function_name, _ = generate_ident i2 env in
-            Environment.update_global_funcs function_type_str kernel_invoke_sym function_name i1 kernel_sym (Environment.combine env [
-                Verbatim(kernel_invoke_sym ^ "(");
-                Generator(generate_expr es);
-                Verbatim(");")
-            ])
-        | _ -> raise Type_mismatch)
+            Environment.update_global_funcs function_type_str kernel_invoke_sym 
+                function_name i1 kernel_sym (Environment.combine env [
+                    Verbatim(kernel_invoke_sym ^ "(");
+                    Generator(generate_expr es);
+                    Verbatim(");")])
+        | t -> let dtype, _ = generate_datatype t env in
+            raise (Type_mismatch
+                    ("Expected array as argument to HOF, got " ^ dtype)))
   | Lval(lvalue) ->
       Environment.combine env [Generator(generate_lvalue lvalue)]
 and generate_expr_list expr_list env =
@@ -321,7 +325,7 @@ and generate_decl decl env =
          Generator(generate_ident i)
        ])
    | ArrayDecl(d,i,es) ->
-       Environment.update_scope i d (match es with
+       Environment.update_scope i (ArrayType(d)) (match es with
           | [] -> "", env
           | _ ->
               Environment.combine env [
@@ -676,20 +680,60 @@ let generate_kernel_invocation_functions env =
     match funcs with
     | [] -> str
     | head :: tail ->
-        (let new_str = str ^ "\nVectorArray<" ^ head.func_type ^ "> " ^ head.kernel_invoke_sym ^ "(" ^
-        "VectorArray<" ^ head.func_type ^ "> input){
-          int inputSize = input.size();
-          VectorArray<" ^ head.func_type ^ " > output = array_init<" ^ head.func_type ^ ">((size_t) inputSize);
-          input.copyToDevice();
-          " ^ head.kernel_sym ^
-          "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
-          cudaDeviceSynchronize();
-          checkError(cudaGetLastError());
-          output.copyFromDevice();
-          return output;
-          }\n
-        " in
-        generate_functions tail new_str) in
+        (match head.higher_order_func with
+          | Ident("map") ->
+            let new_str = str ^ "\nVectorArray<" ^ head.func_type ^ "> " ^ head.kernel_invoke_sym ^ "(" ^
+            "VectorArray<" ^ head.func_type ^ "> input){
+              int inputSize = input.size();
+              VectorArray<" ^ head.func_type ^ " > output = array_init<" ^ head.func_type ^ ">((size_t) inputSize);
+              input.copyToDevice();
+              " ^ head.kernel_sym ^
+              "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
+              cudaDeviceSynchronize();
+              checkError(cudaGetLastError());
+              output.copyFromDevice();
+              return output;
+              }\n
+            " in
+            generate_functions tail new_str
+          | Ident("reduce") ->
+              let new_str = str ^ "
+              int " ^ head.kernel_invoke_sym ^ "(VectorArray<" ^ head.func_type ^ "> arr)
+              {
+                  int n = arr.size();
+                  int num_blocks = ceil_div(n, BLOCK_SIZE);
+                  int atob = 1;
+                  int shared_size = BLOCK_SIZE * sizeof(" ^ head.func_type ^ ");
+                  VectorArray<" ^ head.func_type ^ "> tempa(1, num_blocks);
+                  VectorArray<" ^ head.func_type ^ "> tempb(1, num_blocks);
+
+                  arr.copyToDevice();
+                  " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), arr.devPtr(), n);
+                  cudaDeviceSynchronize();
+                  checkError(cudaGetLastError());
+                  n = num_blocks;
+
+                  while (n > 1) {
+                      num_blocks = ceil_div(n, BLOCK_SIZE);
+                      if (atob)
+                          " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempb.devPtr(), tempa.devPtr(), n);
+                      else
+                          " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), tempb.devPtr(), n);
+                      cudaDeviceSynchronize();
+                      checkError(cudaGetLastError());
+                      atob = !atob;
+                      n = num_blocks;
+                  }
+
+                  if (atob) {
+                      tempa.copyFromDevice(1);
+                      return tempa.elem(0);
+                  }
+                  tempb.copyFromDevice(1);
+                  return tempb.elem(0);
+              }"  in
+              generate_functions tail new_str
+          | _ -> raise Invalid_operation) in
   generate_functions env.kernel_invocation_functions " "
 
 let generate_kernel_functions env =
@@ -710,7 +754,35 @@ let generate_kernel_functions env =
                 output[i] = " ^ symbolized_function_name ^ "(input[i]);
             }\n"  in
             generate_funcs tail new_str
-         | Ident("reduce") -> raise Not_implemented
+         | Ident("reduce") ->
+             let new_str = str ^
+             "__global__ void " ^ head.kernel_symbol ^ "( " ^ head.function_type ^
+               " *output, " ^ head.function_type ^ " *input, size_t n) {
+                  extern __shared__ " ^ head.function_type ^ " temp[];
+
+                  int ti = threadIdx.x;
+                  int bi = blockIdx.x;
+                  int starti = blockIdx.x * blockDim.x;
+                  int gi = starti + ti;
+                  int bn = min(n - starti, blockDim.x);
+                  int s;
+
+                  if (ti < bn)
+                      temp[ti] = input[gi];
+                  __syncthreads();
+
+                  for (s = 1; s < blockDim.x; s *= 2) {
+                      if (ti % (2 * s) == 0 && ti + s < bn)
+                          temp[ti] = " ^ symbolized_function_name ^ "(temp[ti], temp[ti + s]);
+                      __syncthreads();
+                  }
+
+                  if (ti == 0)
+                      output[bi] = temp[0];
+              }
+             " in
+             generate_funcs tail new_str
+
          | _ -> raise Invalid_operation)) in
   generate_funcs kernel_funcs ""
 
