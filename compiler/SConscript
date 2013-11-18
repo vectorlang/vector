@@ -31,7 +31,7 @@ env.Append(BUILDERS = {'OcamlObject': ocaml_object,
 parsers = ['parser']
 lexers = ['scanner']
 source_files = ['symgen', 'ast', 'parser', 'scanner',
-                'environment', 'generator']
+                'environment', 'detect', 'generator']
 
 for name in parsers:
     env.Ocamlyacc([name + '.ml', name + '.mli'], name + '.mly')
@@ -52,8 +52,9 @@ for name in source_files:
 env.Depends('ast' + obj_ext, 'symgen.cmi')
 env.Depends('parser' + obj_ext, 'ast.cmi')
 env.Depends('scanner' + obj_ext, 'parser.cmi')
+env.Depends('detect' + obj_ext, ['environment.cmi', 'ast.cmi'])
 env.Depends('generator' + obj_ext, ['environment.cmi', 'parser.cmi',
-                                    'scanner.cmi'])
+                                    'ast.cmi', 'scanner.cmi'])
 
 env.OcamlProgram('generator',
         [source_file + obj_ext for source_file in source_files])
