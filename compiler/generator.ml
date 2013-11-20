@@ -240,13 +240,12 @@ and generate_expr expr env =
       let typ = (match (infer_type lit env) with
        | ArrayType(t) -> t
        | t -> raise (Type_mismatch "ArrayLit")) in
-      let len = Int32.of_int (List.length es) in
+      let len = List.length es in
       Environment.combine env [
-        Verbatim("array_init<");
-        Generator(generate_datatype typ);
-        Verbatim(">((size_t) ");
-        Generator(generate_expr_list (IntLit(len) :: es));
-        Verbatim(")")
+          Verbatim("VectorArray<");
+          Generator(generate_datatype typ);
+          Verbatim(">(1, (size_t) " ^ string_of_int len ^ ")");
+          Generator(generate_array_init_chain 0 es)
       ]
   | Cast(d,e) ->
       Environment.combine env [
@@ -280,6 +279,16 @@ and generate_expr expr env =
                     ("Expected array as argument to HOF, got " ^ dtype)))
   | Lval(lvalue) ->
       Environment.combine env [Generator(generate_lvalue lvalue)]
+and generate_array_init_chain ind expr_list env =
+    match expr_list with
+      | [] -> "", env
+      | expr :: tail ->
+            Environment.combine env [
+                Verbatim(".chain_set(" ^ string_of_int ind ^ ", ");
+                Generator(generate_expr expr);
+                Verbatim(")");
+                Generator(generate_array_init_chain (ind + 1) tail)
+            ]
 and generate_expr_list expr_list env =
   match expr_list with
    | [] -> Environment.combine env []
