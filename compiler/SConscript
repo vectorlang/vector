@@ -50,6 +50,7 @@ for name in source_files:
     env.OcamlObject(target, deps)
 
 env.Depends('ast' + obj_ext, 'symgen.cmi')
+env.Depends('environment' + obj_ext, 'ast.cmi')
 env.Depends('parser' + obj_ext, 'ast.cmi')
 env.Depends('scanner' + obj_ext, 'parser.cmi')
 env.Depends('detect' + obj_ext, ['environment.cmi', 'ast.cmi'])
