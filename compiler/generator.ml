@@ -43,9 +43,10 @@ let rec infer_type expr env =
           ArrayType(match_type (List.map f exprs))
       | Cast(datatype, expr) -> datatype
       | Lval(lval) -> (match lval with
-          | ArrayElem(e, _) -> (match infer_type e env with
-              | ArrayType(t) -> t
-              | _ -> raise (Type_mismatch "Cannot access element of non-array"))
+          | ArrayElem(ident, _) ->
+                (match infer_type (Lval(Variable(ident))) env with
+                  | ArrayType(t) -> t
+                  | _ -> raise (Type_mismatch "Cannot access element of non-array"))
           | Variable(i) -> Environment.get_var_type i env
           | ComplexAccess(expr1,ident) ->
               (match (infer_type expr1 env) with
@@ -108,9 +109,9 @@ let rec generate_lvalue modify lval env =
   match lval with
    | Variable(i) ->
        Environment.combine env [Generator(generate_ident i)]
-   | ArrayElem(e, es) ->
+   | ArrayElem(ident, es) ->
        Environment.combine env [
-         Generator(generate_expr e);
+         Generator(generate_ident ident);
          Verbatim(".elem(" ^ (if modify then "true" else "false") ^ ", ");
          Generator(generate_expr_list es);
          Verbatim(")")
@@ -637,12 +638,11 @@ and generate_for_statement (iterators, statements) env =
     in
     let iter_assignment iterator = match iterator with
       (* TODO: to avoid unnecessary copies, we really want to use pointers here *)
-      ArrayIterator(Ident(s),e) -> (
+      ArrayIterator(Ident(s), Lval(Variable(ident))) -> (
         let mod_sym, div_sym, output_sym, _, _ = iter_properties s in
         (* TODO: we really should store the result of e in a variable, to
          * avoid evaluating it more than once *)
-        Declaration(AssigningDecl(output_sym, Lval(ArrayElem(e,[idx mod_sym div_sym]))))
-      )
+        Declaration(AssigningDecl(output_sym, Lval(ArrayElem(ident,[idx mod_sym div_sym])))))
     | RangeIterator(Ident(s),_) -> (
         let mod_sym, div_sym, output_sym, start_sym, inc_sym = iter_properties s in
         let offset = Binop(idx mod_sym div_sym, Mul, Lval(Variable(inc_sym))) in
@@ -650,6 +650,7 @@ and generate_for_statement (iterators, statements) env =
         let rhs = Binop(origin, Add, offset) in
         Declaration(AssigningDecl(output_sym, rhs))
       )
+    | _ -> raise Not_implemented
     in
     List.map (iter_assignment) (iterators)
   in

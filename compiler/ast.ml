@@ -28,7 +28,7 @@ type ident =
 
 type lvalue =
   | Variable of ident
-  | ArrayElem of expr * expr list
+  | ArrayElem of ident * expr list
   | ComplexAccess of expr * ident 
 and expr =
     Binop of expr * binop * expr

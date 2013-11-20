@@ -73,7 +73,7 @@ datatype:
 
 lvalue:
   | ident { Variable($1) }
-  | expr LSQUARE expr_list RSQUARE { ArrayElem($1, $3) }
+  | ident LSQUARE expr_list RSQUARE { ArrayElem($1, $3) }
   | expr DOT ident { ComplexAccess($1, $3) }
 
 expr:

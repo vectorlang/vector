@@ -58,16 +58,13 @@ and detect_lvalue lvalue ins outs env =
                     ([ident], [])
                 else ([], [])
             else ([], [])
-      | ArrayElem(expr, indices) ->
+      | ArrayElem(ident, indices) ->
             let (indins, indouts) as indtups =
                 detect_expr_list indices env in
-            (match expr with
-              | Lval(Variable(ident)) ->
-                    if var_in_scope ident env then
-                        ((if ins then ident :: indins else indins),
-                         (if outs then ident :: indouts else indouts))
-                    else indtups
-              | _ -> combine_detect_tuples [detect_expr expr env; indtups])
+            if var_in_scope ident env then
+                ((if ins then ident :: indins else indins),
+                 (if outs then ident :: indouts else indouts))
+            else indtups
       | ComplexAccess(expr, _) ->
             (match expr with
               | Lval(Variable(ident)) ->
