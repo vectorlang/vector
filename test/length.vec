@@ -1,0 +1,10 @@
+int vec_main() {
+    a := {1,2,3,4};
+    b := len(a);
+
+    c := len("length test");
+
+    printf("%d %d\n", b, c);
+
+    return 0;
+}

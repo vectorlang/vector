@@ -31,7 +31,6 @@ rule token = parse
 
   | '!' { LOGNOT } | '~' { BITNOT }
   | "++" { INC } | "--" { DEC }
-  | "len" { LEN }
 
   | "+=" { PLUS_EQUALS } | "-=" { MINUS_EQUALS }
   | "*=" { TIMES_EQUALS } | "/-" { DIVIDE_EQUALS }

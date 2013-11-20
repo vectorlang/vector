@@ -1,0 +1,9 @@
+int vec_main()
+{
+    key := "answer";
+    value := 42;
+
+    printf("%s: %d\n", key, value);
+
+    return 0;
+}

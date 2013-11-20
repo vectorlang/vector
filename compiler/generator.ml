@@ -37,7 +37,7 @@ let rec infer_type expr env =
       | FloatLit(_) -> Float64
       | Int64Lit(_) -> Int64
       | IntLit(_) -> Int
-      | StringLit(_) -> ArrayType(Char)
+      | StringLit(_) -> String
       | ArrayLit(exprs) ->
           let f expr = infer_type expr env in
           ArrayType(match_type (List.map f exprs))
@@ -58,14 +58,15 @@ let rec infer_type expr env =
             match_type [infer_type l env; infer_type expr env]
       | Unop(op, expr) -> (match op with
             LogNot -> Bool
-          | Len -> Int
           | _ -> infer_type expr env
         )
       | PostOp(lval, _) -> let l = Lval(lval) in infer_type l env
       | Assign(lval, expr) ->
             let l = Lval(lval) in
             match_type [infer_type l env; infer_type expr env]
-      | FunctionCall(i, _) -> Environment.get_func_type i env
+      | FunctionCall(i, _) -> (match i with
+          | Ident("len") -> Int
+          | _ -> Environment.get_func_type i env)
       (* this depends on the HOF type: ex map is int list -> int list *)
 
       | HigherOrderFunctionCall(hof, f, expr) ->
@@ -101,6 +102,8 @@ let generate_datatype datatype env =
       | Complex -> Environment.combine env [Verbatim("cuFloatComplex")]
       | Complex64 -> Environment.combine env [Verbatim("cuFloatComplex")]
       | Complex128 -> Environment.combine env [Verbatim("cuDoubleComplex")]
+
+      | String -> Environment.combine env [Verbatim("char *")]
 
       | _ -> raise Unknown_type
 
@@ -183,16 +186,10 @@ and generate_expr expr env =
           Verbatim(_op);
           Generator(generate_expr e)
       ] in
-      let len_unop e = Environment.combine env [
-          Verbatim("(");
-          Generator(generate_expr e);
-          Verbatim(").size()")
-      ] in
       match op with
           Neg -> simple_unop "-" e
         | LogNot -> simple_unop "!" e
         | BitNot -> simple_unop "~" e
-        | Len -> len_unop e
     )
   
       
@@ -256,12 +253,36 @@ and generate_expr expr env =
         Verbatim(")")
       ]
   | FunctionCall(i,es) ->
-      Environment.combine env [
+      Environment.combine env (match i with
+       | Ident("inline") -> (match es with
+           | StringLit(str) :: [] -> [Verbatim(str)]
+           | _ -> raise (Type_mismatch "expected string"))
+       | Ident("printf") -> [
+           Verbatim("printf(");
+           Generator(generate_expr_list es);
+           Verbatim(")");
+         ]
+       | Ident("len") -> (match es with
+            | expr :: [] -> (match (infer_type expr env) with
+              | ArrayType(_) -> [
+                Verbatim("(");
+                Generator(generate_expr expr);
+                Verbatim(").size()")
+              ]
+              | String -> [
+                Verbatim("strlen(");
+                Generator(generate_expr expr);
+                Verbatim(")")
+              ]
+              | _ -> raise (Type_mismatch "cannot compute length"))
+            | _ -> raise (Type_mismatch "too many parameters"))
+       | _ -> [
         Generator(generate_ident i);
         Verbatim("(");
         Generator(generate_expr_list es);
         Verbatim(")")
-      ]
+      ])
+
   | HigherOrderFunctionCall(i1,i2,es) ->
       (match infer_type es env with
         | ArrayType(function_type) ->
@@ -568,7 +589,10 @@ and generate_for_statement (iterators, statements) env =
 
     let iter_length_inits _ (iter, len_sym, _, _, _, start_sym, inc_sym) acc =
       match iter with
-        ArrayIterator(_,e) -> [ Declaration(AssigningDecl(len_sym, Unop(Len, e))) ] :: acc
+        ArrayIterator(_,e) -> [
+          Declaration(
+            AssigningDecl(len_sym, FunctionCall(Ident("len"), e :: [])))
+        ] :: acc
       | RangeIterator(_,Range(start_expr,stop_expr,inc_expr)) -> (
           (* the number of iterations in the iterator a:b:c is n, where
            * n = (b-a-1) / c + 1 *)
