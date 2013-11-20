@@ -37,7 +37,7 @@ let rec infer_type expr env =
       | FloatLit(_) -> Float64
       | Int64Lit(_) -> Int64
       | IntLit(_) -> Int
-      | StringLit(_) -> ArrayType(Char)
+      | StringLit(_) -> String
       | ArrayLit(exprs) ->
           let f expr = infer_type expr env in
           ArrayType(match_type (List.map f exprs))
@@ -101,6 +101,8 @@ let generate_datatype datatype env =
       | Complex -> Environment.combine env [Verbatim("cuFloatComplex")]
       | Complex64 -> Environment.combine env [Verbatim("cuFloatComplex")]
       | Complex128 -> Environment.combine env [Verbatim("cuDoubleComplex")]
+
+      | String -> Environment.combine env [Verbatim("char *")]
 
       | _ -> raise Unknown_type
 
