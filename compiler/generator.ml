@@ -104,14 +104,14 @@ let generate_datatype datatype env =
 
       | _ -> raise Unknown_type
 
-let rec generate_lvalue lval env =
+let rec generate_lvalue modify lval env =
   match lval with
    | Variable(i) ->
        Environment.combine env [Generator(generate_ident i)]
    | ArrayElem(e, es) ->
        Environment.combine env [
          Generator(generate_expr e);
-         Verbatim(".elem(");
+         Verbatim(".elem(" ^ (if modify then "true" else "false") ^ ", ");
          Generator(generate_expr_list es);
          Verbatim(")")
        ]
@@ -200,13 +200,13 @@ and generate_expr expr env =
         | Inc -> "++"
       in
       Environment.combine env [
-        Generator(generate_lvalue lvalue);
+        Generator(generate_lvalue true lvalue);
         Verbatim(_op)
       ]
     )
   | Assign(lvalue, e) ->
       Environment.combine env [
-        Generator(generate_lvalue lvalue);
+        Generator(generate_lvalue true lvalue);
         Verbatim(" = ");
         Generator(generate_expr e)
       ]
@@ -277,7 +277,7 @@ and generate_expr expr env =
             raise (Type_mismatch
                     ("Expected array as argument to HOF, got " ^ dtype)))
   | Lval(lvalue) ->
-      Environment.combine env [Generator(generate_lvalue lvalue)]
+      Environment.combine env [Generator(generate_lvalue false lvalue)]
 and generate_expr_list expr_list env =
   match expr_list with
    | [] -> Environment.combine env []
@@ -688,19 +688,19 @@ let generate_kernel_invocation_functions env =
             "VectorArray<" ^ head.func_type ^ "> input){
               int inputSize = input.size();
               VectorArray<" ^ head.func_type ^ " > output(1, inputSize);
-              input.copyToDevice();
               " ^ head.kernel_sym ^
               "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
               cudaDeviceSynchronize();
               checkError(cudaGetLastError());
-              output.copyFromDevice();
+              output.markDeviceDirty();
               return output;
               }\n
             " in
             generate_functions tail new_str
           | Ident("reduce") ->
-              let new_str = str ^ "
-              int " ^ head.kernel_invoke_sym ^ "(VectorArray<" ^ head.func_type ^ "> arr)
+              let new_str = str ^ head.func_type ^ " " ^
+                    head.kernel_invoke_sym ^
+                        "(VectorArray<" ^ head.func_type ^ "> arr)
               {
                   int n = arr.size();
                   int num_blocks = ceil_div(n, BLOCK_SIZE);
@@ -709,18 +709,21 @@ let generate_kernel_invocation_functions env =
                   VectorArray<" ^ head.func_type ^ "> tempa(1, num_blocks);
                   VectorArray<" ^ head.func_type ^ "> tempb(1, num_blocks);
 
-                  arr.copyToDevice();
                   " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), arr.devPtr(), n);
                   cudaDeviceSynchronize();
                   checkError(cudaGetLastError());
+                  tempa.markDeviceDirty();
                   n = num_blocks;
 
                   while (n > 1) {
                       num_blocks = ceil_div(n, BLOCK_SIZE);
-                      if (atob)
+                      if (atob) {
                           " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempb.devPtr(), tempa.devPtr(), n);
-                      else
+                          tempb.markDeviceDirty();
+                      } else {
                           " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), tempb.devPtr(), n);
+                          tempa.markDeviceDirty();
+                      }
                       cudaDeviceSynchronize();
                       checkError(cudaGetLastError());
                       atob = !atob;
@@ -729,10 +732,10 @@ let generate_kernel_invocation_functions env =
 
                   if (atob) {
                       tempa.copyFromDevice(1);
-                      return tempa.elem(0);
+                      return tempa.elem(false, 0);
                   }
                   tempb.copyFromDevice(1);
-                  return tempb.elem(0);
+                  return tempb.elem(false, 0);
               }"  in
               generate_functions tail new_str
           | _ -> raise Invalid_operation) in

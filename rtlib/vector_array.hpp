@@ -7,6 +7,12 @@
 
 using namespace std;
 
+struct array_ctrl {
+	int refcount;
+	char h_dirty;
+	char d_dirty;
+};
+
 template <class T>
 class VectorArray {
 	private:
@@ -15,9 +21,8 @@ class VectorArray {
 		size_t ndims;
 		size_t *dims;
 		size_t nelems;
-		int *refcount;
+		struct array_ctrl *ctrl;
 		size_t bsize();
-		void deviceAllocate();
 		void incRef();
 		void decRef();
 	public:
@@ -25,7 +30,7 @@ class VectorArray {
 		VectorArray(size_t ndims, ...);
 		VectorArray(const VectorArray<T> &orig);
                 T &oned_elem(size_t ind);
-		T &elem(size_t first_ind, ...);
+		T &elem(bool modify, size_t first_ind, ...);
 		VectorArray<T>& operator= (const VectorArray<T> &orig);
 		~VectorArray();
 		size_t size();
@@ -33,6 +38,7 @@ class VectorArray {
 		void copyToDevice(size_t n = 0);
 		void copyFromDevice(size_t n = 0);
 		T *devPtr();
+		void markDeviceDirty(void);
 };
 
 template <class T>
@@ -42,8 +48,10 @@ VectorArray<T>::VectorArray()
 	this->dims = NULL;
 	this->values = NULL;
 	this->nelems = 0;
-	this->refcount = (int *) malloc(sizeof(int));
-	this->refcount[0] = 1;
+	this->ctrl = (struct array_ctrl *) malloc(sizeof(struct array_ctrl));
+	this->ctrl->refcount = 1;
+	this->ctrl->h_dirty = 0;
+	this->ctrl->d_dirty = 0;
 }
 
 template <class T>
@@ -51,14 +59,17 @@ VectorArray<T>::VectorArray(size_t ndims, ...)
 {
 	size_t i;
 	va_list dim_list;
+	cudaError_t err;
 
 	va_start(dim_list, ndims);
 
 	this->ndims = ndims;
 	this->dims = (size_t *) calloc(ndims, sizeof(size_t));
 	this->nelems = 1;
-	this->refcount = (int *) malloc(sizeof(int));
-	this->refcount[0] = 1;
+	this->ctrl = (struct array_ctrl *) malloc(sizeof(struct array_ctrl));
+	this->ctrl->refcount = 1;
+	this->ctrl->h_dirty = 0;
+	this->ctrl->d_dirty = 0;
 
 	for (i = 0; i < ndims; i++) {
 		this->dims[i] = va_arg(dim_list, size_t);
@@ -68,7 +79,8 @@ VectorArray<T>::VectorArray(size_t ndims, ...)
 	va_end(dim_list);
 
 	this->values = (T *) calloc(this->nelems, sizeof(T));
-	this->d_values = NULL;
+	err = cudaMalloc(&this->d_values, bsize());
+	checkError(err);
 }
 
 template <class T>
@@ -77,7 +89,7 @@ VectorArray<T>::VectorArray(const VectorArray<T> &orig)
 	this->ndims = orig.ndims;
 	this->dims = orig.dims;
 	this->nelems = orig.nelems;
-	this->refcount = orig.refcount;
+	this->ctrl = orig.ctrl;
 	this->values = orig.values;
 	this->d_values = orig.d_values;
 
@@ -96,7 +108,7 @@ VectorArray<T>& VectorArray<T>::operator= (const VectorArray<T>& orig)
 	this->ndims = orig.ndims;
 	this->dims = orig.dims;
 	this->nelems = orig.nelems;
-	this->refcount = orig.refcount;
+	this->ctrl = orig.ctrl;
 	this->values = orig.values;
 	this->d_values = orig.d_values;
 
@@ -108,15 +120,15 @@ VectorArray<T>& VectorArray<T>::operator= (const VectorArray<T>& orig)
 template <class T>
 void VectorArray<T>::incRef(void)
 {
-	(*this->refcount)++;
+	this->ctrl->refcount++;
 }
 
 template <class T>
 void VectorArray<T>::decRef(void)
 {
-	if (--(*this->refcount) > 0)
+	if (--(this->ctrl->refcount) > 0)
 		return;
-	free(this->refcount);
+	free(this->ctrl);
 	if (this->dims != NULL)
 		free(this->dims);
 	if (this->values != NULL)
@@ -128,15 +140,25 @@ void VectorArray<T>::decRef(void)
 template <class T>
 T &VectorArray<T>::oned_elem(size_t ind)
 {
-    return this->values[ind];
+	if (this->ctrl->d_dirty)
+		copyFromDevice();
+
+	this->ctrl->h_dirty = 1;
+	return this->values[ind];
 }
 
 template <class T>
-T &VectorArray<T>::elem(size_t first_ind, ...)
+T &VectorArray<T>::elem(bool modify, size_t first_ind, ...)
 {
 	size_t ind = first_ind, onedind = first_ind;
 	int i;
 	va_list indices;
+
+	if (this->ctrl->d_dirty)
+		copyFromDevice();
+
+	if (modify)
+		this->ctrl->h_dirty = 1;
 
 	va_start(indices, first_ind);
 
@@ -192,47 +214,41 @@ size_t VectorArray<T>::length(size_t dim)
 }
 
 template <class T>
-void VectorArray<T>::deviceAllocate()
-{
-	cudaError_t err;
-	if (this->d_values == NULL) {
-		err = cudaMalloc(&this->d_values, bsize());
-		checkError(err);
-	}
-}
-
-template <class T>
 void VectorArray<T>::copyToDevice(size_t n)
 {
         if (n == 0)
             n = size();
 	cudaError_t err;
-	deviceAllocate();
 	err = cudaMemcpy(this->d_values, this->values,
 			sizeof(T) * n, cudaMemcpyHostToDevice);
 	checkError(err);
+	this->ctrl->h_dirty = 0;
 }
 
 template <class T>
 void VectorArray<T>::copyFromDevice(size_t n)
 {
 	cudaError_t err;
-	if (this->d_values == NULL) {
-		fprintf(stderr, "The device data has not yet been allocated\n");
-		exit(EXIT_FAILURE);
-	}
         if (n == 0)
             n = size();
         err = cudaMemcpy(this->values, this->d_values,
                         sizeof(T) * n, cudaMemcpyDeviceToHost);
 	checkError(err);
+	this->ctrl->d_dirty = 0;
 }
 
 template <class T>
 T *VectorArray<T>::devPtr()
 {
-	deviceAllocate();
+	if (this->ctrl->h_dirty)
+		copyToDevice();
 	return this->d_values;
+}
+
+template <class T>
+void VectorArray<T>::markDeviceDirty(void)
+{
+	this->ctrl->d_dirty = 1;
 }
 
 #endif
