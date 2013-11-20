@@ -457,13 +457,13 @@ let rec generate_statement statement env =
                               (Ident(new_func_sym)) arg_list body_sequence)
           ] in
           let new_str, new_env = Environment.update_functions identifier
-            return_type (str, env) in
+            device return_type (str, env) in
           let final_str, final_env = Environment.update_function_content new_str
             mod_str new_func_sym identifier new_env in
           final_str, final_env
 
       | ForwardDecl(device, return_type, ident, decl_list) ->
-            Environment.update_functions ident return_type
+            Environment.update_functions ident device return_type
                 (Environment.combine env [
                     Verbatim(if device then "__device__ " else "");
                     Generator(generate_datatype return_type);

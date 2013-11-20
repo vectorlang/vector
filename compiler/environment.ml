@@ -49,7 +49,7 @@ type 'a env = {
   kernel_invocation_functions: kernel_invocation_function list;
   kernel_functions: kernel_function list;
   func_decl_map: 'a FunctionDeclarationMap.t;
-  func_type_map: datatype FunctionMap.t;
+  func_type_map: (bool * datatype) FunctionMap.t;
   scope_stack: datatype VariableMap.t list;
   on_gpu: bool;
 }
@@ -134,7 +134,7 @@ let pop_scope env =
    | [] -> raise Invalid_environment
 
 let get_func_type ident env =
-  FunctionMap.find ident env.func_type_map
+    let (_, dtype) = FunctionMap.find ident env.func_type_map in dtype
 
 let is_func_declared ident env =
   FunctionMap.mem ident env.func_type_map
@@ -157,8 +157,8 @@ let update_global_funcs function_type kernel_invoke_sym function_name hof kernel
   (str, update_env new_kernel_funcs new_global_funcs env.func_decl_map
   env.func_type_map env.scope_stack env.on_gpu)
 
-let set_func_type ident returntype env =
-  let new_func_type_map = FunctionMap.add ident returntype env.func_type_map in
+let set_func_type ident device returntype env =
+  let new_func_type_map = FunctionMap.add ident (device, returntype) env.func_type_map in
   update_env env.kernel_invocation_functions env.kernel_functions
     env.func_decl_map new_func_type_map env.scope_stack env.on_gpu
 
@@ -168,11 +168,11 @@ let update_function_content main_str new_func_body new_func_sym ident env =
   (main_str, update_env env.kernel_invocation_functions env.kernel_functions
     new_func_content_map env.func_type_map env.scope_stack env.on_gpu)
 
-let update_functions ident returntype (str, env) =
+let update_functions ident device returntype (str, env) =
   if is_func_declared ident env then
     raise Already_declared
   else
-    (str, set_func_type ident returntype env)
+    (str, set_func_type ident device returntype env)
 
 let lookup_function_content function_name function_content_map =
   FunctionDeclarationMap.find (Ident (function_name)) function_content_map
