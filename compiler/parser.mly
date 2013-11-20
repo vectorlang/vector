@@ -9,7 +9,7 @@
 %token LSHIFT RSHIFT BITAND BITOR BITXOR LOGAND LOGOR
 %token LT LTE GT GTE EE NE
 %token PLUS MINUS TIMES DIVIDE MODULO
-%token LOGNOT BITNOT DEC INC LEN
+%token LOGNOT BITNOT DEC INC
 %token IF ELSE WHILE FOR PFOR IN
 %token RETURN VOID SYNC
 %token HASH
@@ -33,7 +33,7 @@
 %left LSHIFT RSHIFT
 %left PLUS MINUS
 %left TIMES DIVIDE MODULO
-%right UMINUS LOGNOT BITNOT DEC INC LEN
+%right UMINUS LOGNOT BITNOT DEC INC
 %nonassoc LPAREN RPAREN LSQUARE RSQUARE
 %nonassoc IFX
 %nonassoc ELSE
@@ -110,7 +110,6 @@ expr:
   | MINUS expr %prec UMINUS { Unop(Neg, $2) }
   | LOGNOT expr { Unop(LogNot, $2) }
   | BITNOT expr { Unop(BitNot, $2) }
-  | LEN expr { Unop(Len, $2) }
 
   | lvalue DEC { PostOp($1, Dec) }
   | lvalue INC { PostOp($1, Inc) }

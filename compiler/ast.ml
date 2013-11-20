@@ -3,7 +3,7 @@ type binop = Add | Sub | Mul | Div | Mod
     | Less | LessEq | Greater | GreaterEq | Eq | NotEq
     | BitAnd | BitXor | BitOr | LogAnd | LogOr
 
-type unop = Neg | LogNot | BitNot | Len
+type unop = Neg | LogNot | BitNot
 
 type postop = Dec | Inc
 

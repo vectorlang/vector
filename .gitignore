@@ -24,6 +24,7 @@
 /test/float
 /test/map
 /test/inline
+/test/length
 /test/logic
 /test/strings
 /test/reduce
