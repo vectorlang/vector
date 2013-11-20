@@ -685,7 +685,7 @@ let generate_kernel_invocation_functions env =
             let new_str = str ^ "\nVectorArray<" ^ head.func_type ^ "> " ^ head.kernel_invoke_sym ^ "(" ^
             "VectorArray<" ^ head.func_type ^ "> input){
               int inputSize = input.size();
-              VectorArray<" ^ head.func_type ^ " > output = array_init<" ^ head.func_type ^ ">((size_t) inputSize);
+              VectorArray<" ^ head.func_type ^ " > output(1, inputSize);
               input.copyToDevice();
               " ^ head.kernel_sym ^
               "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
