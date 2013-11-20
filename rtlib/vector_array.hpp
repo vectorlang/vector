@@ -26,6 +26,7 @@ class VectorArray {
 		VectorArray(const VectorArray<T> &orig);
                 T &oned_elem(size_t ind);
 		T &elem(size_t first_ind, ...);
+		VectorArray<T> &chain_set(size_t ind, T val);
 		VectorArray<T>& operator= (const VectorArray<T> &orig);
 		~VectorArray();
 		size_t size();
@@ -157,20 +158,10 @@ VectorArray<T>::~VectorArray()
 }
 
 template <class T>
-VectorArray<T> array_init(size_t length, ...)
+VectorArray<T>& VectorArray<T>::chain_set(size_t ind, T value)
 {
-    VectorArray<T> array(1, length);
-    va_list elem_list;
-    int i;
-
-    va_start(elem_list, length);
-
-    for (i = 0; i < length; i++)
-        array.oned_elem(i) = va_arg(elem_list, T);
-
-    va_end(elem_list);
-
-    return array;
+	oned_elem(ind) = value;
+	return *this;
 }
 
 template <class T>
