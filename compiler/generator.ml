@@ -255,11 +255,9 @@ and generate_expr expr env =
       ]
   | FunctionCall(i,es) ->
       Environment.combine env (match i with
-       | Ident("inline") -> [
-           Verbatim(match es with
-            | StringLit(str) :: [] -> str
-            | _ -> raise (Type_mismatch "expected string"))
-         ]
+       | Ident("inline") -> (match es with
+           | StringLit(str) :: [] -> [Verbatim(str)]
+           | _ -> raise (Type_mismatch "expected string"))
        | Ident("printf") -> [
            Verbatim("printf(");
            Generator(generate_expr_list es);
