@@ -4,18 +4,22 @@ float square(float x) {
 
 int vec_main()
 {
-    float inputs[3];
-    inputs[0] = float(1.0);
-    inputs[1] = float(2.0);
-    inputs[2] = float(3.0);
+    float inputs[2048];
+    int check;
+
+    for (i in 0:2048)
+        inputs[i] = float(i);
 
     squares := @map(square, inputs);
-    i := 0;
 
-    while (i < 3) {
-     printf("%.1f\n", squares[i]);
-     i += 1;
+    for (i in 0:2048) {
+        check = int(squares[i]);
+        if (check != i * i) {
+            printf("incorrect\n");
+            return -1;
+        }
     }
 
+    printf("correct\n");
     return 0;
 }
