@@ -4,11 +4,11 @@ open Ast
 exception Not_allowed_on_gpu
 
 let combine_detect_tuples tuplist =
-    let combine_pair tup1 tup2 = 
-        let (in1, out1, func1) = tup1 and
-            (in2, out2, func2) = tup2 in
-        (in1 @ in2, out1 @ out2, func1 @ func2) in
-    List.fold_left combine_pair ([], [], []) tuplist;;
+    let combine_pair tup1 tup2 =
+        let (in1, out1) = tup1 and
+            (in2, out2) = tup2 in
+        (in1 @ in2, out1 @ out2) in
+    List.fold_left combine_pair ([], []) tuplist;;
 
 let rec detect_statement stmt env =
     match stmt with
@@ -39,10 +39,9 @@ and detect_expr expr env =
             [detect_lvalue lvalue false true env; detect_expr expr env]
       | Cast(_, expr) -> detect_expr expr env
       | FunctionCall(ident, elist) ->
-            let (ins, outs, funcs) = detect_expr_list elist env in
-            (ins, outs, ident :: funcs)
+            detect_expr_list elist env
       | Lval(lvalue) -> detect_lvalue lvalue true false env
-      | _ -> ([], [], [])
+      | _ -> ([], [])
 and detect_expr_list elist env =
     let tuplist = List.map (fun expr -> detect_expr expr env) elist in
     combine_detect_tuples tuplist
@@ -54,20 +53,19 @@ and detect_lvalue lvalue ins outs env =
       | Variable(ident) ->
             if var_in_scope ident env then
                 if outs then
-                    ([], [], [])
+                    ([], [])
                 else if ins then
-                    ([ident], [], [])
-                else ([], [], [])
-            else ([], [], [])
+                    ([ident], [])
+                else ([], [])
+            else ([], [])
       | ArrayElem(expr, indices) ->
-            let (indins, indouts, indfuncs) as indtups =
+            let (indins, indouts) as indtups =
                 detect_expr_list indices env in
             (match expr with
               | Lval(Variable(ident)) ->
                     if var_in_scope ident env then
                         ((if ins then ident :: indins else indins),
-                         (if outs then ident :: indouts else indouts),
-                         indfuncs)
+                         (if outs then ident :: indouts else indouts))
                     else indtups
               | _ -> combine_detect_tuples [detect_expr expr env; indtups])
       | ComplexAccess(expr, _) ->
@@ -75,9 +73,8 @@ and detect_lvalue lvalue ins outs env =
               | Lval(Variable(ident)) ->
                     if var_in_scope ident env then
                         ((if ins then [ident] else []),
-                         (if outs then [ident] else []),
-                         [])
-                    else ([], [], [])
+                         (if outs then [ident] else []))
+                    else ([], [])
               | _ -> detect_expr expr env)
 and detect_iter iter env =
     match iter with
