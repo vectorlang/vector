@@ -20,9 +20,14 @@ void dotprod_kernel(int *dotprod, int *x, int *y, size_t n)
 
 int main(void)
 {
-    VectorArray<int> x = array_init<int>(4, 1, 2, 3, 4);
-    VectorArray<int> y = array_init<int>(4, 3, 5, 7, 9);
+    VectorArray<int> x(1, 4);
+    VectorArray<int> y(1, 4);
     VectorArray<int> dp(1, 4);
+
+    for (int i = 0; i < 4; i++) {
+        x.elem(i) = i + 1;
+        y.elem(i) = 2 * i + 3;
+    }
 
     x.copyToDevice();
     y.copyToDevice();
