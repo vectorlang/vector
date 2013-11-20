@@ -9,22 +9,26 @@
 *.cmx
 *.cmo
 .*.swp
+
+# Generated files
+/compiler/generator
 /compiler/parser.ml
 /compiler/parser.mli
 /compiler/scanner.ml
-/compiler/generator
-/test/hello
-/test/control_flow
-/test/mandelbrot
-/test/vecmult
-/test/dotprod
+
+# Test binaries
 /test/arrays
-/test/functions
 /test/complex
+/test/control_flow
+/test/dotprod
 /test/float
-/test/map
+/test/functions
+/test/hello
 /test/inline
 /test/length
 /test/logic
-/test/strings
+/test/mandelbrot
+/test/map
 /test/reduce
+/test/strings
+/test/vecmult
