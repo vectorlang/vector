@@ -71,6 +71,7 @@ rule token = parse
   | "in" { IN }
 
   | "__sym" decdigit+ "_" letter* { raise Illegal_identifier }
+  | "__device__" { DEVICE }
   | letter (letter | decdigit)* as ident { IDENT(ident) }
 
   | "/*" { comments lexbuf }

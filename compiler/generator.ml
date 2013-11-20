@@ -446,14 +446,15 @@ let rec generate_statement statement env =
             NewScopeGenerator(generate_statement s);
             Verbatim("}")
           ]
-      | FunctionDecl(return_type, identifier, arg_list, body_sequence) ->
+      | FunctionDecl(device, return_type, identifier, arg_list, body_sequence) ->
           let new_func_sym = Symgen.gensym () in
           let str, env = Environment.combine env [
-              NewScopeGenerator(generate_function (return_type,identifier,arg_list,body_sequence))
+              NewScopeGenerator(generate_function device return_type
+                                identifier arg_list body_sequence)
             ] in
           let mod_str, _ = Environment.combine env [
-            NewScopeGenerator(generate_function (return_type,Ident
-              (new_func_sym),arg_list,body_sequence))
+            NewScopeGenerator(generate_function device return_type 
+                              (Ident(new_func_sym)) arg_list body_sequence)
           ] in
           let new_str, new_env = Environment.update_functions identifier
             return_type (str, env) in
@@ -461,15 +462,17 @@ let rec generate_statement statement env =
             mod_str new_func_sym identifier new_env in
           final_str, final_env
 
-      | ForwardDecl(t, i, ds) ->
-          Environment.update_functions i t (Environment.combine env [
-            Generator(generate_datatype t);
-            Verbatim(" ");
-            Generator(generate_ident i);
-            Verbatim("(");
-            Generator(generate_decl_list ds);
-            Verbatim(");")
-          ])
+      | ForwardDecl(device, return_type, ident, decl_list) ->
+            Environment.update_functions ident return_type
+                (Environment.combine env [
+                    Verbatim(if device then "__device__ " else "");
+                    Generator(generate_datatype return_type);
+                    Verbatim(" ");
+                    Generator(generate_ident ident);
+                    Verbatim("(");
+                    Generator(generate_decl_list decl_list);
+                    Verbatim(");")
+                ])
       | ReturnStatement(e) ->
           Environment.combine env [
             Verbatim("return ");
@@ -491,17 +494,18 @@ and generate_statement_list statement_list env =
            Generator(generate_statement_list tail)
          ]
 
-and generate_function (returntype, ident, params, statements) env =
-         Environment.combine env [
-           Generator(generate_datatype returntype);
-           Verbatim(" ");
-           Generator(generate_ident ident);
-           Verbatim("(");
-           Generator(generate_decl_list params);
-           Verbatim(") {\n");
-           Generator(generate_statement_list statements);
-           Verbatim("}");
-         ]
+and generate_function device returntype ident params statements env =
+    Environment.combine env [
+        Verbatim(if device then "__device__ " else "");
+        Generator(generate_datatype returntype);
+        Verbatim(" ");
+        Generator(generate_ident ident);
+        Verbatim("(");
+        Generator(generate_decl_list params);
+        Verbatim(") {\n");
+        Generator(generate_statement_list statements);
+        Verbatim("}");
+    ]
 
 (* TODO: support multi-dimensional arrays *)
 (* TODO: clean up this humongous mess *)

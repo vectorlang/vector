@@ -70,8 +70,8 @@ type statement =
   | WhileStatement of expr * statement
   | ForStatement of iterator list * statement
   | PforStatement of iterator list * statement
-  | FunctionDecl of datatype * ident * decl list * statement list
-  | ForwardDecl of datatype * ident * decl list
+  | FunctionDecl of bool * datatype * ident * decl list * statement list
+  | ForwardDecl of bool * datatype * ident * decl list
   | ReturnStatement of expr
   | VoidReturnStatement
   | SyncStatement
