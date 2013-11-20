@@ -66,13 +66,14 @@ let rec infer_type expr env =
       | Assign(lval, expr) ->
             let l = Lval(lval) in
             match_type [infer_type l env; infer_type expr env]
-      | FunctionCall(i, _) -> Environment.get_func_type i env
+      | FunctionCall(i, _) -> let (_,dtype,_) = Environment.get_func_info i env in dtype
       (* this depends on the HOF type: ex map is int list -> int list *)
 
       | HigherOrderFunctionCall(hof, f, expr) ->
           (match(hof) with
-            | Ident("map") -> ArrayType(Environment.get_func_type f env)
-            | Ident("reduce") -> Environment.get_func_type f env
+            | Ident("map") -> ArrayType(let (_,dtype,_) = Environment.get_func_info f env
+                  in dtype)
+            | Ident("reduce") -> let (_,dtype,_) = Environment.get_func_info f env in dtype
             | _ -> raise Invalid_operation)
 
 let generate_ident ident env =
@@ -452,12 +453,24 @@ let rec generate_statement statement env =
               NewScopeGenerator(generate_function device return_type
                                 identifier arg_list body_sequence)
             ] in
+          let types = List.map (function x ->
+            match x with
+            |PrimitiveDecl(t, id) -> t
+            |ArrayDecl(t, id, expr_list) -> ArrayType(t)
+            | _ -> raise Invalid_operation
+          ) arg_list in
           let new_str, new_env = Environment.update_functions identifier
-            device return_type (str, env) in
+            device return_type types (str, env) in
           new_str, new_env
 
       | ForwardDecl(device, return_type, ident, decl_list) ->
-            Environment.update_functions ident device return_type
+            let types = List.map (function x ->
+              match x with
+              |PrimitiveDecl(t, id) -> t
+              |ArrayDecl(t, id, expr_list) -> ArrayType(t)
+              | _ -> raise Invalid_operation
+            ) decl_list in
+            Environment.update_functions ident device return_type types
                 (Environment.combine env [
                     Verbatim(if device then "__device__ " else "");
                     Generator(generate_datatype return_type);
@@ -783,10 +796,30 @@ let generate_kernel_functions env =
          | _ -> raise Invalid_operation)) in
   generate_funcs kernel_funcs ""
 
+let generate_device_forward_declarations env =
+  let kernel_funcs, func_map = env.kernel_functions, env.func_type_map in
+  let rec generate_funcs funcs str =
+    match funcs with
+    | [] -> str
+    | head :: tail ->
+        let device,_, arg_list = Environment.get_func_info
+            (Ident (head.function_name)) env in
+        let arg_str_list = List.map (fun x ->
+          let new_str, _ = generate_datatype x env in new_str) arg_list in
+        let arg_str = String.concat "," arg_str_list in
+        let new_str =
+          if device then str ^ "\n__device__ " ^ head.function_type ^ " " ^
+        head.function_name ^ "(" ^ arg_str ^  ");\n"
+          else "" in
+        generate_funcs tail new_str in
+
+  generate_funcs kernel_funcs ""
+
 let _ =
   let lexbuf = Lexing.from_channel stdin in
   let tree = Parser.top_level Scanner.token lexbuf in
   let code, env = generate_toplevel tree in
+  let forward_declarations = generate_device_forward_declarations env in
   let kernel_invocations = generate_kernel_invocation_functions env in
   let kernel_functions  = generate_kernel_functions env in
   let header =  "#include <stdio.h>\n\
@@ -794,6 +827,7 @@ let _ =
                   #include <stdint.h>\n\
                   #include <libvector.hpp>\n\n" in
   print_string header;
+  print_string forward_declarations;
   print_string kernel_functions;
   print_string kernel_invocations;
   print_string code

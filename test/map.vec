@@ -1,4 +1,4 @@
-float square(float x) {
+__device__ float square(float x) {
  return x * x;
 }
 
