@@ -448,20 +448,13 @@ let rec generate_statement statement env =
             Verbatim("}")
           ]
       | FunctionDecl(device, return_type, identifier, arg_list, body_sequence) ->
-          let new_func_sym = Symgen.gensym () in
           let str, env = Environment.combine env [
               NewScopeGenerator(generate_function device return_type
                                 identifier arg_list body_sequence)
             ] in
-          let mod_str, _ = Environment.combine env [
-            NewScopeGenerator(generate_function device return_type 
-                              (Ident(new_func_sym)) arg_list body_sequence)
-          ] in
           let new_str, new_env = Environment.update_functions identifier
             device return_type (str, env) in
-          let final_str, final_env = Environment.update_function_content new_str
-            mod_str new_func_sym identifier new_env in
-          final_str, final_env
+          new_str, new_env
 
       | ForwardDecl(device, return_type, ident, decl_list) ->
             Environment.update_functions ident device return_type
@@ -743,13 +736,11 @@ let generate_kernel_invocation_functions env =
   generate_functions env.kernel_invocation_functions " "
 
 let generate_kernel_functions env =
-  let kernel_funcs, func_content = env.kernel_functions, env.func_decl_map in
+  let kernel_funcs = env.kernel_functions in
   let rec generate_funcs funcs str =
     (match funcs with
     | [] -> str
     | head :: tail ->
-        let symbolized_function_name, _ = Environment.lookup_function_content
-          head.function_name func_content in
         (match head.hof with
          | Ident("map") ->
             let new_str = str ^
@@ -757,7 +748,7 @@ let generate_kernel_functions env =
             " ^ head.function_type ^ "* input, size_t n){
               size_t i = threadIdx.x + blockDim.x * blockIdx.x;
               if (i < n)
-                output[i] = " ^ symbolized_function_name ^ "(input[i]);
+                output[i] = " ^ head.function_name ^ "(input[i]);
             }\n"  in
             generate_funcs tail new_str
          | Ident("reduce") ->
@@ -779,7 +770,7 @@ let generate_kernel_functions env =
 
                   for (s = 1; s < blockDim.x; s *= 2) {
                       if (ti % (2 * s) == 0 && ti + s < bn)
-                          temp[ti] = " ^ symbolized_function_name ^ "(temp[ti], temp[ti + s]);
+                          temp[ti] = " ^ head.function_name ^ "(temp[ti], temp[ti + s]);
                       __syncthreads();
                   }
 
@@ -792,23 +783,10 @@ let generate_kernel_functions env =
          | _ -> raise Invalid_operation)) in
   generate_funcs kernel_funcs ""
 
-let generate_device_functions env =
-  let kernel_funcs, func_content_map = env.kernel_functions, env.func_decl_map in
-  let rec generate_funcs funcs str =
-    match funcs with
-    | [] -> str
-    | head :: tail ->
-        let _, func_content = Environment.lookup_function_content head.function_name func_content_map in
-        let new_str = str ^ "\n__device__ " ^ func_content ^ "\n" in
-        generate_funcs tail new_str in
-
-  generate_funcs kernel_funcs ""
-
 let _ =
   let lexbuf = Lexing.from_channel stdin in
   let tree = Parser.top_level Scanner.token lexbuf in
   let code, env = generate_toplevel tree in
-  let device_functions =  generate_device_functions env in
   let kernel_invocations = generate_kernel_invocation_functions env in
   let kernel_functions  = generate_kernel_functions env in
   let header =  "#include <stdio.h>\n\
@@ -816,7 +794,6 @@ let _ =
                   #include <stdint.h>\n\
                   #include <libvector.hpp>\n\n" in
   print_string header;
-  print_string device_functions;
   print_string kernel_functions;
   print_string kernel_invocations;
   print_string code
