@@ -23,5 +23,6 @@
 /test/complex
 /test/float
 /test/map
+/test/inline
 /test/logic
 /test/reduce

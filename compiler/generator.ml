@@ -257,12 +257,24 @@ and generate_expr expr env =
         Verbatim(")")
       ]
   | FunctionCall(i,es) ->
-      Environment.combine env [
+      Environment.combine env (match i with
+       | Ident("inline") -> [
+           Verbatim(match es with
+            | StringLit(str) :: [] -> str
+            | _ -> raise (Type_mismatch "expected string"))
+         ]
+       | Ident("printf") -> [
+           Verbatim("printf(");
+           Generator(generate_expr_list es);
+           Verbatim(")");
+         ]
+       | _ -> [
         Generator(generate_ident i);
         Verbatim("(");
         Generator(generate_expr_list es);
         Verbatim(")")
-      ]
+      ])
+
   | HigherOrderFunctionCall(i1,i2,es) ->
       (match infer_type es env with
         | ArrayType(function_type) ->

@@ -1,0 +1,18 @@
+int vec_main()
+{
+    length := 10;
+    value := 5;
+
+    inline("int *array = (int *) malloc(length * sizeof(int));");
+    for (i in 0:length) {
+        inline("array[i] = value;");
+    }
+    for (i in 0:length) {
+        int j;
+        inline("j = array[i];");
+        printf("%d\n", j);
+    }
+    inline("free(array)");
+
+    return 0;
+}
