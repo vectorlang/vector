@@ -396,90 +396,90 @@ let generate_decl_list decl_list env =
 
 let rec generate_statement statement env =
     match statement with
-     | CompoundStatement(ss) ->
-         Environment.combine env [
-           Verbatim("{\n");
-           NewScopeGenerator(generate_statement_list ss);
-           Verbatim("}\n")
-         ]
-     | Declaration(d) ->
-         Environment.combine env [
-           Generator(generate_decl d);
-           Verbatim(";")
-         ]
-     | Expression(e) ->
-         Environment.combine env [
-           Generator(generate_expr e);
-           Verbatim(";")
-         ]
-     | IncludeStatement(s) ->
-         Environment.combine env [
-           Verbatim("#include <" ^ s ^ ">\n")
-         ]
-     | EmptyStatement ->
-         Environment.combine env [Verbatim(";")]
-     | IfStatement(e, s1, s2) ->
-         Environment.combine env [
-           Verbatim("if (");
-           Generator(generate_expr e);
-           Verbatim(")\n");
-           NewScopeGenerator(generate_statement s1);
-           Verbatim("\nelse\n");
-           NewScopeGenerator(generate_statement s2)
-         ]
-     | WhileStatement(e, s) ->
-         Environment.combine env [
-           Verbatim("while (");
-           Generator(generate_expr e);
-           Verbatim(")\n");
-           NewScopeGenerator(generate_statement s)
-         ]
-     | ForStatement(is, s) ->
-         Environment.combine env [
-           NewScopeGenerator(generate_for_statement (is, s));
-         ]
-     | PforStatement(is, s) ->
-         Environment.combine env [
-           Verbatim("pfor (");
-           NewScopeGenerator(generate_iterator_list is);
-           Verbatim(") {\n");
-           NewScopeGenerator(generate_statement s);
-           Verbatim("}")
-         ]
-     | FunctionDecl(return_type, identifier, arg_list, body_sequence) ->
-         let new_func_sym = Symgen.gensym () in
-         let str, env = Environment.combine env [
-             NewScopeGenerator(generate_function (return_type,identifier,arg_list,body_sequence))
-           ] in
-         let mod_str, _ = Environment.combine env [
-           NewScopeGenerator(generate_function (return_type,Ident
-             (new_func_sym),arg_list,body_sequence))
-         ] in
-         let new_str, new_env = Environment.update_functions identifier
-           return_type (str, env) in
-         let final_str, final_env = Environment.update_function_content new_str
-           mod_str new_func_sym identifier new_env in
-         final_str, final_env
+      | CompoundStatement(ss) ->
+          Environment.combine env [
+            Verbatim("{\n");
+            NewScopeGenerator(generate_statement_list ss);
+            Verbatim("}\n")
+          ]
+      | Declaration(d) ->
+          Environment.combine env [
+            Generator(generate_decl d);
+            Verbatim(";")
+          ]
+      | Expression(e) ->
+          Environment.combine env [
+            Generator(generate_expr e);
+            Verbatim(";")
+          ]
+      | IncludeStatement(s) ->
+          Environment.combine env [
+            Verbatim("#include <" ^ s ^ ">\n")
+          ]
+      | EmptyStatement ->
+          Environment.combine env [Verbatim(";")]
+      | IfStatement(e, s1, s2) ->
+          Environment.combine env [
+            Verbatim("if (");
+            Generator(generate_expr e);
+            Verbatim(")\n");
+            NewScopeGenerator(generate_statement s1);
+            Verbatim("\nelse\n");
+            NewScopeGenerator(generate_statement s2)
+          ]
+      | WhileStatement(e, s) ->
+          Environment.combine env [
+            Verbatim("while (");
+            Generator(generate_expr e);
+            Verbatim(")\n");
+            NewScopeGenerator(generate_statement s)
+          ]
+      | ForStatement(is, s) ->
+          Environment.combine env [
+            NewScopeGenerator(generate_for_statement (is, s));
+          ]
+      | PforStatement(is, s) ->
+          Environment.combine env [
+            Verbatim("pfor (");
+            NewScopeGenerator(generate_iterator_list is);
+            Verbatim(") {\n");
+            NewScopeGenerator(generate_statement s);
+            Verbatim("}")
+          ]
+      | FunctionDecl(return_type, identifier, arg_list, body_sequence) ->
+          let new_func_sym = Symgen.gensym () in
+          let str, env = Environment.combine env [
+              NewScopeGenerator(generate_function (return_type,identifier,arg_list,body_sequence))
+            ] in
+          let mod_str, _ = Environment.combine env [
+            NewScopeGenerator(generate_function (return_type,Ident
+              (new_func_sym),arg_list,body_sequence))
+          ] in
+          let new_str, new_env = Environment.update_functions identifier
+            return_type (str, env) in
+          let final_str, final_env = Environment.update_function_content new_str
+            mod_str new_func_sym identifier new_env in
+          final_str, final_env
 
-     | ForwardDecl(t, i, ds) ->
-         Environment.update_functions i t (Environment.combine env [
-           Generator(generate_datatype t);
-           Verbatim(" ");
-           Generator(generate_ident i);
-           Verbatim("(");
-           Generator(generate_decl_list ds);
-           Verbatim(");")
-         ])
-     | ReturnStatement(e) ->
-         Environment.combine env [
-           Verbatim("return ");
-           Generator(generate_expr e);
-           Verbatim(";")
-         ]
-     | VoidReturnStatement ->
-         Environment.combine env [Verbatim("return;")]
-     | SyncStatement ->
-         Environment.combine env [Verbatim("sync;")]
+      | ForwardDecl(t, i, ds) ->
+          Environment.update_functions i t (Environment.combine env [
+            Generator(generate_datatype t);
+            Verbatim(" ");
+            Generator(generate_ident i);
+            Verbatim("(");
+            Generator(generate_decl_list ds);
+            Verbatim(");")
+          ])
+      | ReturnStatement(e) ->
+          Environment.combine env [
+            Verbatim("return ");
+            Generator(generate_expr e);
+            Verbatim(";")
+          ]
+      | VoidReturnStatement ->
+          Environment.combine env [Verbatim("return;")]
+      | SyncStatement ->
+          Environment.combine env [Verbatim("sync;")]
 
 and generate_statement_list statement_list env =
     match statement_list with
