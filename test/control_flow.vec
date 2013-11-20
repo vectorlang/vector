@@ -1,6 +1,7 @@
 int vec_main()
 {
     i := 0;
+    arr := {0, 1, 2};
 
     while (i < 10) {
         if (i % 2 == 0)
@@ -10,6 +11,9 @@ int vec_main()
 
     for (i in 0:5:2, j in 0:2)
         printf("%d %d\n", i, j);
+
+    for (x in arr)
+        printf("%d\n", x);
 
     return 0;
 }
