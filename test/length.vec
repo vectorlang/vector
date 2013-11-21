@@ -4,7 +4,11 @@ int vec_main() {
 
     c := len("length test");
 
-    printf("%d %d\n", b, c);
+    int d[3, 2];
+
+    e := len(d, 1);
+
+    printf("%d %d %d\n", b, c, e);
 
     return 0;
 }

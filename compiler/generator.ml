@@ -287,6 +287,17 @@ and generate_expr expr env =
                     Verbatim(")")
                 ]
                 | _ -> raise (Type_mismatch "cannot compute length"))
+            | expr1 :: expr2 :: [] ->
+                (match (infer_type expr1 env), (infer_type expr2 env) with
+                  | (ArrayType(_), Int) -> [
+                      Verbatim("(");
+                      Generator(generate_expr expr1);
+                      Verbatim(").length(");
+                      Generator(generate_expr expr2);
+                      Verbatim(")");
+                  ]
+                  | _ -> raise (Type_mismatch
+                      "len() with two arguments must have types array and int"))
             | _ -> raise (Type_mismatch "too many parameters"))
         | _ -> [
             Generator(generate_ident i);
