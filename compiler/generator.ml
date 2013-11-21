@@ -304,12 +304,22 @@ and generate_expr expr env =
         | Ident("random") -> (match es with
             | [] -> [ Verbatim("random()") ]
             | _ -> raise (Type_mismatch "Too many argument to random"))
-        | _ -> [
-            Generator(generate_ident i);
-            Verbatim("(");
-            Generator(generate_expr_list es);
-            Verbatim(")")
-      ])
+        | _ -> let _, _, arg_list = Environment.get_func_info i env in
+            let rec validate_type_list types expressions env =
+                match (types, expressions) with
+                  | typ :: ttail, expr :: etail ->
+                        if (typ == infer_type expr env) then
+                            validate_type_list ttail etail env
+                        else false
+                  | [], [] -> true
+                  | [], _ -> false
+                  | _, [] -> false in
+            if (validate_type_list arg_list es env) then [
+                Generator(generate_ident i);
+                Verbatim("(");
+                Generator(generate_expr_list es);
+                Verbatim(")")
+            ] else raise (Type_mismatch "Arguments of wrong type"))
 
   | HigherOrderFunctionCall(i1,i2,es) ->
       (match infer_type es env with

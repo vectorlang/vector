@@ -5,8 +5,7 @@ double divide(double a, double b)
 
 int vec_main()
 {
-    j := divide(3, 4);
-
+    j := divide(3., 4.);
 
     printf("%0.2f\n", j);
 
