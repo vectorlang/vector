@@ -25,8 +25,8 @@ int main(void)
     VectorArray<int> dp(1, 4);
 
     for (int i = 0; i < 4; i++) {
-        x.elem(i) = i + 1;
-        y.elem(i) = 2 * i + 3;
+        x.elem(true, i) = i + 1;
+        y.elem(true, i) = 2 * i + 3;
     }
 
     x.copyToDevice();
