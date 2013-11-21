@@ -29,6 +29,7 @@ class VectorArray {
 		VectorArray();
 		VectorArray(size_t ndims, ...);
 		VectorArray(const VectorArray<T> &orig);
+		VectorArray<T> dim_copy(void);
                 T &oned_elem(size_t ind);
 		T &elem(bool modify, size_t first_ind, ...);
 		VectorArray<T> &chain_set(size_t ind, T val);
@@ -96,6 +97,26 @@ VectorArray<T>::VectorArray(const VectorArray<T> &orig)
 	this->d_values = orig.d_values;
 
 	incRef();
+}
+
+template <class T>
+VectorArray<T> VectorArray<T>::dim_copy(void)
+{
+	VectorArray<T> copy;
+	cudaError_t err;
+
+	copy.ndims = this->ndims;
+	copy.dims = (size_t *) calloc(copy.ndims, sizeof(size_t));
+
+	for (int i = 0; i < this->ndims; i++)
+		copy.dims[i] = this->dims[i];
+
+	copy.nelems = this->nelems;
+	copy.values = (T *) calloc(this->nelems, sizeof(T));
+	err = cudaMalloc(&copy.d_values, copy.bsize());
+	checkError(err);
+
+	return copy;
 }
 
 template <class T>

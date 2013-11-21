@@ -69,7 +69,6 @@ let rec infer_type expr env =
           | Ident("len") -> Int
           | Ident("printf") | Ident("inline") -> Void
           | _ -> let (_,dtype,_) = Environment.get_func_info i env in dtype)
-      (* this depends on the HOF type: ex map is int list -> int list *)
 
       | HigherOrderFunctionCall(hof, f, expr) ->
           (match(hof) with
@@ -317,7 +316,7 @@ and generate_expr expr env =
                 function_name i1 kernel_sym (Environment.combine env [
                     Verbatim(kernel_invoke_sym ^ "(");
                     Generator(generate_expr es);
-                    Verbatim(");")])
+                    Verbatim(")")])
         | t -> let dtype, _ = generate_datatype t env in
             raise (Type_mismatch
                     ("Expected array as argument to HOF, got " ^ dtype)))
@@ -740,7 +739,7 @@ let generate_kernel_invocation_functions env =
             let new_str = str ^ "\nVectorArray<" ^ head.func_type ^ "> " ^ head.kernel_invoke_sym ^ "(" ^
             "VectorArray<" ^ head.func_type ^ "> input){
               int inputSize = input.size();
-              VectorArray<" ^ head.func_type ^ " > output(1, inputSize);
+              VectorArray<" ^ head.func_type ^ " > output = input.dim_copy();
               " ^ head.kernel_sym ^
               "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
               cudaDeviceSynchronize();

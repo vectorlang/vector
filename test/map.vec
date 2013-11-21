@@ -4,17 +4,25 @@ __device__ float square(float x) {
 
 int vec_main()
 {
-    float inputs[2048];
+    float inputs[1024, 3];
     int check;
+    int expected;
 
-    for (i in 0:2048)
-        inputs[i] = float(i);
+    for (i in 0:1024, j in 0:3)
+        inputs[i, j] = float(i * 3 + j);
 
     squares := @map(square, inputs);
 
-    for (i in 0:2048) {
-        check = int(squares[i]);
-        if (check != i * i) {
+    if (len(squares, 0) != 1024 || len(squares, 1) != 3) {
+        printf("dimensions incorrect\n");
+        return -1;
+    }
+
+    for (i in 0:1024, j in 0:3) {
+        check = int(squares[i, j]);
+        expected = i * 3 + j;
+        expected = expected * expected;
+        if (check != expected) {
             printf("incorrect\n");
             return -1;
         }
