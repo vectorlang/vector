@@ -266,33 +266,33 @@ and generate_expr expr env =
       ]
   | FunctionCall(i,es) ->
       Environment.combine env (match i with
-       | Ident("inline") -> (match es with
-           | StringLit(str) :: [] -> [Verbatim(str)]
-           | _ -> raise (Type_mismatch "expected string"))
-       | Ident("printf") -> [
-           Verbatim("printf(");
-           Generator(generate_expr_list es);
-           Verbatim(")");
-         ]
-       | Ident("len") -> (match es with
+        | Ident("inline") -> (match es with
+            | StringLit(str) :: [] -> [Verbatim(str)]
+            | _ -> raise (Type_mismatch "expected string"))
+        | Ident("printf") -> [
+            Verbatim("printf(");
+            Generator(generate_expr_list es);
+            Verbatim(")");
+          ]
+        | Ident("len") -> (match es with
             | expr :: [] -> (match (infer_type expr env) with
-              | ArrayType(_) -> [
-                Verbatim("(");
-                Generator(generate_expr expr);
-                Verbatim(").size()")
-              ]
-              | String -> [
-                Verbatim("strlen(");
-                Generator(generate_expr expr);
-                Verbatim(")")
-              ]
-              | _ -> raise (Type_mismatch "cannot compute length"))
+                | ArrayType(_) -> [
+                    Verbatim("(");
+                    Generator(generate_expr expr);
+                    Verbatim(").size()")
+                ]
+                | String -> [
+                    Verbatim("strlen(");
+                    Generator(generate_expr expr);
+                    Verbatim(")")
+                ]
+                | _ -> raise (Type_mismatch "cannot compute length"))
             | _ -> raise (Type_mismatch "too many parameters"))
-       | _ -> [
-        Generator(generate_ident i);
-        Verbatim("(");
-        Generator(generate_expr_list es);
-        Verbatim(")")
+        | _ -> [
+            Generator(generate_ident i);
+            Verbatim("(");
+            Generator(generate_expr_list es);
+            Verbatim(")")
       ])
 
   | HigherOrderFunctionCall(i1,i2,es) ->
