@@ -66,6 +66,7 @@ let rec infer_type expr env =
             match_type [infer_type l env; infer_type expr env]
       | FunctionCall(i, _) -> (match i with
           | Ident("len") -> Int
+          | Ident("printf") | Ident("inline") -> Void
           | _ -> Environment.get_func_type i env)
       (* this depends on the HOF type: ex map is int list -> int list *)
 
