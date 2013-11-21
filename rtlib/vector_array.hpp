@@ -48,6 +48,7 @@ VectorArray<T>::VectorArray()
 	this->ndims = 0;
 	this->dims = NULL;
 	this->values = NULL;
+	this->d_values = NULL;
 	this->nelems = 0;
 	this->ctrl = (struct array_ctrl *) malloc(sizeof(struct array_ctrl));
 	this->ctrl->refcount = 1;
