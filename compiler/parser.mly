@@ -12,6 +12,7 @@
 %token LOGNOT BITNOT DEC INC
 %token IF ELSE WHILE FOR PFOR IN
 %token RETURN VOID SYNC
+%token DEVICE
 %token HASH
 %token EOF
 %token <int32> INT_LITERAL
@@ -52,7 +53,7 @@ datatype:
 
 lvalue:
   | ident { Variable($1) }
-  | expr LSQUARE expr_list RSQUARE { ArrayElem($1, $3) }
+  | ident LSQUARE expr_list RSQUARE { ArrayElem($1, $3) }
   | expr DOT ident { ComplexAccess($1, $3) }
 
 expr:
@@ -160,9 +161,13 @@ range:
 
 top_level_statement:
   | datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
-      { FunctionDecl($1, $2, $4, $7) }
+      { FunctionDecl(false, $1, $2, $4, $7) }
+  | DEVICE datatype ident LPAREN param_list RPAREN LCURLY statement_seq RCURLY
+      { FunctionDecl(true, $2, $3, $5, $8) }
   | datatype ident LPAREN param_list RPAREN SC
-      { ForwardDecl($1, $2, $4) }
+      { ForwardDecl(false, $1, $2, $4) }
+  | DEVICE datatype ident LPAREN param_list RPAREN SC
+      { ForwardDecl(true, $2, $3, $5) }
   | decl { Declaration($1) }
   | INCLUDE STRING_LITERAL SC { IncludeStatement($2) }
 

@@ -43,8 +43,8 @@ int main(void)
     srandom(time(0));
 
     for (i = 0; i < VEC_SIZE; i++) {
-        a.elem(i) = random();
-        b.elem(i) = random();
+        a.elem(false, i) = random();
+        b.elem(false, i) = random();
     }
 
     a.copyToDevice();
@@ -53,8 +53,8 @@ int main(void)
     VectorArray<long> c = vec_mult(a, b);
 
     for (i = 0; i < VEC_SIZE; i++) {
-        if (c.elem(i) != a.elem(i) * b.elem(i)) {
-            fprintf(stderr, "Mismatched number %ld\n", c.elem(i));
+        if (c.elem(false, i) != a.elem(false, i) * b.elem(false, i)) {
+            fprintf(stderr, "Mismatched number %ld\n", c.elem(false, i));
             return -1;
         }
     }

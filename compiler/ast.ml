@@ -31,7 +31,7 @@ type ident =
 
 type lvalue =
   | Variable of ident
-  | ArrayElem of expr * expr list
+  | ArrayElem of ident * expr list
   | ComplexAccess of expr * ident 
 and expr =
     Binop of expr * binop * expr
@@ -73,8 +73,8 @@ type statement =
   | WhileStatement of expr * statement
   | ForStatement of iterator list * statement
   | PforStatement of iterator list * statement
-  | FunctionDecl of datatype * ident * decl list * statement list
-  | ForwardDecl of datatype * ident * decl list
+  | FunctionDecl of bool * datatype * ident * decl list * statement list
+  | ForwardDecl of bool * datatype * ident * decl list
   | ReturnStatement of expr
   | VoidReturnStatement
   | SyncStatement

@@ -37,7 +37,7 @@ int main(void)
     checkError(cudaGetLastError());
 
     dp.copyFromDevice();
-    printf("Dot product: %d\n", dp.elem(0));
+    printf("Dot product: %d\n", dp.elem(false, 0));
 
     return 0;
 }

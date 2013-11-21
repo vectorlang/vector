@@ -1,4 +1,4 @@
-int add(int x, int y){
+__device__ int add(int x, int y){
   return x + y;
 }
 

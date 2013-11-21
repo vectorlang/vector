@@ -43,9 +43,10 @@ let rec infer_type expr env =
           ArrayType(match_type (List.map f exprs))
       | Cast(datatype, expr) -> datatype
       | Lval(lval) -> (match lval with
-          | ArrayElem(e, _) -> (match infer_type e env with
-              | ArrayType(t) -> t
-              | _ -> raise (Type_mismatch "Cannot access element of non-array"))
+          | ArrayElem(ident, _) ->
+                (match infer_type (Lval(Variable(ident))) env with
+                  | ArrayType(t) -> t
+                  | _ -> raise (Type_mismatch "Cannot access element of non-array"))
           | Variable(i) -> Environment.get_var_type i env
           | ComplexAccess(expr1,ident) ->
               (match (infer_type expr1 env) with
@@ -67,13 +68,14 @@ let rec infer_type expr env =
       | FunctionCall(i, _) -> (match i with
           | Ident("len") -> Int
           | Ident("printf") | Ident("inline") -> Void
-          | _ -> Environment.get_func_type i env)
+          | _ -> let (_,dtype,_) = Environment.get_func_info i env in dtype)
       (* this depends on the HOF type: ex map is int list -> int list *)
 
       | HigherOrderFunctionCall(hof, f, expr) ->
           (match(hof) with
-            | Ident("map") -> ArrayType(Environment.get_func_type f env)
-            | Ident("reduce") -> Environment.get_func_type f env
+            | Ident("map") -> ArrayType(let (_,dtype,_) = Environment.get_func_info f env
+                  in dtype)
+            | Ident("reduce") -> let (_,dtype,_) = Environment.get_func_info f env in dtype
             | _ -> raise Invalid_operation)
 
 let generate_ident ident env =
@@ -119,14 +121,14 @@ let generate_rettype dtype env =
       | Void -> "void", env
       | _ -> generate_datatype dtype env
 
-let rec generate_lvalue lval env =
+let rec generate_lvalue modify lval env =
   match lval with
    | Variable(i) ->
        Environment.combine env [Generator(generate_ident i)]
-   | ArrayElem(e, es) ->
+   | ArrayElem(ident, es) ->
        Environment.combine env [
-         Generator(generate_expr e);
-         Verbatim(".elem(");
+         Generator(generate_ident ident);
+         Verbatim(".elem(" ^ (if modify then "true" else "false") ^ ", ");
          Generator(generate_expr_list es);
          Verbatim(")")
        ]
@@ -203,21 +205,19 @@ and generate_expr expr env =
         | LogNot -> simple_unop "!" e
         | BitNot -> simple_unop "~" e
     )
-  
-      
   | PostOp(lvalue, op) -> (
       let _op = match op with
           Dec -> "--"
         | Inc -> "++"
       in
       Environment.combine env [
-        Generator(generate_lvalue lvalue);
+        Generator(generate_lvalue true lvalue);
         Verbatim(_op)
       ]
     )
   | Assign(lvalue, e) ->
       Environment.combine env [
-        Generator(generate_lvalue lvalue);
+        Generator(generate_lvalue true lvalue);
         Verbatim(" = ");
         Generator(generate_expr e)
       ]
@@ -322,7 +322,7 @@ and generate_expr expr env =
             raise (Type_mismatch
                     ("Expected array as argument to HOF, got " ^ dtype)))
   | Lval(lvalue) ->
-      Environment.combine env [Generator(generate_lvalue lvalue)]
+      Environment.combine env [Generator(generate_lvalue false lvalue)]
 and generate_array_init_chain ind expr_list env =
     match expr_list with
       | [] -> "", env
@@ -441,90 +441,98 @@ let generate_decl_list decl_list env =
 
 let rec generate_statement statement env =
     match statement with
-     | CompoundStatement(ss) ->
-         Environment.combine env [
-           Verbatim("{\n");
-           NewScopeGenerator(generate_statement_list ss);
-           Verbatim("}\n")
-         ]
-     | Declaration(d) ->
-         Environment.combine env [
-           Generator(generate_decl d);
-           Verbatim(";")
-         ]
-     | Expression(e) ->
-         Environment.combine env [
-           Generator(generate_expr e);
-           Verbatim(";")
-         ]
-     | IncludeStatement(s) ->
-         Environment.combine env [
-           Verbatim("#include <" ^ s ^ ">\n")
-         ]
-     | EmptyStatement ->
-         Environment.combine env [Verbatim(";")]
-     | IfStatement(e, s1, s2) ->
-         Environment.combine env [
-           Verbatim("if (");
-           Generator(generate_expr e);
-           Verbatim(")\n");
-           NewScopeGenerator(generate_statement s1);
-           Verbatim("\nelse\n");
-           NewScopeGenerator(generate_statement s2)
-         ]
-     | WhileStatement(e, s) ->
-         Environment.combine env [
-           Verbatim("while (");
-           Generator(generate_expr e);
-           Verbatim(")\n");
-           NewScopeGenerator(generate_statement s)
-         ]
-     | ForStatement(is, s) ->
-         Environment.combine env [
-           NewScopeGenerator(generate_for_statement (is, s));
-         ]
-     | PforStatement(is, s) ->
-         Environment.combine env [
-           Verbatim("pfor (");
-           NewScopeGenerator(generate_iterator_list is);
-           Verbatim(") {\n");
-           NewScopeGenerator(generate_statement s);
-           Verbatim("}")
-         ]
-     | FunctionDecl(return_type, identifier, arg_list, body_sequence) ->
-         let new_func_sym = Symgen.gensym () in
-         let str, env = Environment.combine env [
-             NewScopeGenerator(generate_function (return_type,identifier,arg_list,body_sequence))
-           ] in
-         let mod_str, _ = Environment.combine env [
-           NewScopeGenerator(generate_function (return_type,Ident
-             (new_func_sym),arg_list,body_sequence))
-         ] in
-         let new_str, new_env = Environment.update_functions identifier
-           return_type (str, env) in
-         let final_str, final_env = Environment.update_function_content new_str
-           mod_str new_func_sym identifier new_env in
-         final_str, final_env
+      | CompoundStatement(ss) ->
+          Environment.combine env [
+            Verbatim("{\n");
+            NewScopeGenerator(generate_statement_list ss);
+            Verbatim("}\n")
+          ]
+      | Declaration(d) ->
+          Environment.combine env [
+            Generator(generate_decl d);
+            Verbatim(";")
+          ]
+      | Expression(e) ->
+          Environment.combine env [
+            Generator(generate_expr e);
+            Verbatim(";")
+          ]
+      | IncludeStatement(s) ->
+          Environment.combine env [
+            Verbatim("#include <" ^ s ^ ">\n")
+          ]
+      | EmptyStatement ->
+          Environment.combine env [Verbatim(";")]
+      | IfStatement(e, s1, s2) ->
+          Environment.combine env [
+            Verbatim("if (");
+            Generator(generate_expr e);
+            Verbatim(")\n");
+            NewScopeGenerator(generate_statement s1);
+            Verbatim("\nelse\n");
+            NewScopeGenerator(generate_statement s2)
+          ]
+      | WhileStatement(e, s) ->
+          Environment.combine env [
+            Verbatim("while (");
+            Generator(generate_expr e);
+            Verbatim(")\n");
+            NewScopeGenerator(generate_statement s)
+          ]
+      | ForStatement(is, s) ->
+          Environment.combine env [
+            NewScopeGenerator(generate_for_statement (is, s));
+          ]
+      | PforStatement(is, s) ->
+          Environment.combine env [
+            Verbatim("pfor (");
+            NewScopeGenerator(generate_iterator_list is);
+            Verbatim(") {\n");
+            NewScopeGenerator(generate_statement s);
+            Verbatim("}")
+          ]
+      | FunctionDecl(device, return_type, identifier, arg_list, body_sequence) ->
+          let str, env = Environment.combine env [
+              NewScopeGenerator(generate_function device return_type
+                                identifier arg_list body_sequence)
+            ] in
+          let types = List.map (function x ->
+            match x with
+            |PrimitiveDecl(t, id) -> t
+            |ArrayDecl(t, id, expr_list) -> ArrayType(t)
+            | _ -> raise Invalid_operation
+          ) arg_list in
+          let new_str, new_env = Environment.update_functions identifier
+            device return_type types (str, env) in
+          new_str, new_env
 
-     | ForwardDecl(t, i, ds) ->
-         Environment.update_functions i t (Environment.combine env [
-           Generator(generate_datatype t);
-           Verbatim(" ");
-           Generator(generate_ident i);
-           Verbatim("(");
-           Generator(generate_decl_list ds);
-           Verbatim(");")
-         ])
-     | ReturnStatement(e) ->
-         Environment.combine env [
-           Verbatim("return ");
-           Generator(generate_expr e);
-           Verbatim(";")
-         ]
-     | VoidReturnStatement ->
-         Environment.combine env [Verbatim("return;")]
-     | SyncStatement ->
-         Environment.combine env [Verbatim("sync;")]
+      | ForwardDecl(device, return_type, ident, decl_list) ->
+            let types = List.map (function x ->
+              match x with
+              |PrimitiveDecl(t, id) -> t
+              |ArrayDecl(t, id, expr_list) -> ArrayType(t)
+              | _ -> raise Invalid_operation
+            ) decl_list in
+            Environment.update_functions ident device return_type types
+                (Environment.combine env [
+                    Verbatim(if device then "__device__ " else "");
+                    Generator(generate_datatype return_type);
+                    Verbatim(" ");
+                    Generator(generate_ident ident);
+                    Verbatim("(");
+                    Generator(generate_decl_list decl_list);
+                    Verbatim(");")
+                ])
+      | ReturnStatement(e) ->
+          Environment.combine env [
+            Verbatim("return ");
+            Generator(generate_expr e);
+            Verbatim(";")
+          ]
+      | VoidReturnStatement ->
+          Environment.combine env [Verbatim("return;")]
+      | SyncStatement ->
+          Environment.combine env [Verbatim("sync;")]
 
 and generate_statement_list statement_list env =
     match statement_list with
@@ -536,17 +544,18 @@ and generate_statement_list statement_list env =
            Generator(generate_statement_list tail)
          ]
 
-and generate_function (returntype, ident, params, statements) env =
-         Environment.combine env [
-           Generator(generate_rettype returntype);
-           Verbatim(" ");
-           Generator(generate_ident ident);
-           Verbatim("(");
-           Generator(generate_decl_list params);
-           Verbatim(") {\n");
-           Generator(generate_statement_list statements);
-           Verbatim("}");
-         ]
+and generate_function device returntype ident params statements env =
+    Environment.combine env [
+        Verbatim(if device then "__device__ " else "");
+        Generator(generate_rettype returntype);
+        Verbatim(" ");
+        Generator(generate_ident ident);
+        Verbatim("(");
+        Generator(generate_decl_list params);
+        Verbatim(") {\n");
+        Generator(generate_statement_list statements);
+        Verbatim("}");
+    ]
 
 (* TODO: support multi-dimensional arrays *)
 (* TODO: clean up this humongous mess *)
@@ -681,12 +690,11 @@ and generate_for_statement (iterators, statements) env =
     in
     let iter_assignment iterator = match iterator with
       (* TODO: to avoid unnecessary copies, we really want to use pointers here *)
-      ArrayIterator(Ident(s),e) -> (
+      ArrayIterator(Ident(s), Lval(Variable(ident))) -> (
         let mod_sym, div_sym, output_sym, _, _ = iter_properties s in
         (* TODO: we really should store the result of e in a variable, to
          * avoid evaluating it more than once *)
-        Declaration(AssigningDecl(output_sym, Lval(ArrayElem(e,[idx mod_sym div_sym]))))
-      )
+        Declaration(AssigningDecl(output_sym, Lval(ArrayElem(ident,[idx mod_sym div_sym])))))
     | RangeIterator(Ident(s),_) -> (
         let mod_sym, div_sym, output_sym, start_sym, inc_sym = iter_properties s in
         let offset = Binop(idx mod_sym div_sym, Mul, Lval(Variable(inc_sym))) in
@@ -694,6 +702,7 @@ and generate_for_statement (iterators, statements) env =
         let rhs = Binop(origin, Add, offset) in
         Declaration(AssigningDecl(output_sym, rhs))
       )
+    | _ -> raise Not_implemented
     in
     List.map (iter_assignment) (iterators)
   in
@@ -732,19 +741,19 @@ let generate_kernel_invocation_functions env =
             "VectorArray<" ^ head.func_type ^ "> input){
               int inputSize = input.size();
               VectorArray<" ^ head.func_type ^ " > output(1, inputSize);
-              input.copyToDevice();
               " ^ head.kernel_sym ^
               "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
               cudaDeviceSynchronize();
               checkError(cudaGetLastError());
-              output.copyFromDevice();
+              output.markDeviceDirty();
               return output;
               }\n
             " in
             generate_functions tail new_str
           | Ident("reduce") ->
-              let new_str = str ^ "
-              int " ^ head.kernel_invoke_sym ^ "(VectorArray<" ^ head.func_type ^ "> arr)
+              let new_str = str ^ head.func_type ^ " " ^
+                    head.kernel_invoke_sym ^
+                        "(VectorArray<" ^ head.func_type ^ "> arr)
               {
                   int n = arr.size();
                   int num_blocks = ceil_div(n, BLOCK_SIZE);
@@ -753,18 +762,21 @@ let generate_kernel_invocation_functions env =
                   VectorArray<" ^ head.func_type ^ "> tempa(1, num_blocks);
                   VectorArray<" ^ head.func_type ^ "> tempb(1, num_blocks);
 
-                  arr.copyToDevice();
                   " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), arr.devPtr(), n);
                   cudaDeviceSynchronize();
                   checkError(cudaGetLastError());
+                  tempa.markDeviceDirty();
                   n = num_blocks;
 
                   while (n > 1) {
                       num_blocks = ceil_div(n, BLOCK_SIZE);
-                      if (atob)
+                      if (atob) {
                           " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempb.devPtr(), tempa.devPtr(), n);
-                      else
+                          tempb.markDeviceDirty();
+                      } else {
                           " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), tempb.devPtr(), n);
+                          tempa.markDeviceDirty();
+                      }
                       cudaDeviceSynchronize();
                       checkError(cudaGetLastError());
                       atob = !atob;
@@ -773,23 +785,21 @@ let generate_kernel_invocation_functions env =
 
                   if (atob) {
                       tempa.copyFromDevice(1);
-                      return tempa.elem(0);
+                      return tempa.elem(false, 0);
                   }
                   tempb.copyFromDevice(1);
-                  return tempb.elem(0);
+                  return tempb.elem(false, 0);
               }"  in
               generate_functions tail new_str
           | _ -> raise Invalid_operation) in
   generate_functions env.kernel_invocation_functions " "
 
 let generate_kernel_functions env =
-  let kernel_funcs, func_content = env.kernel_functions, env.func_decl_map in
+  let kernel_funcs = env.kernel_functions in
   let rec generate_funcs funcs str =
     (match funcs with
     | [] -> str
     | head :: tail ->
-        let symbolized_function_name, _ = Environment.lookup_function_content
-          head.function_name func_content in
         (match head.hof with
          | Ident("map") ->
             let new_str = str ^
@@ -797,7 +807,7 @@ let generate_kernel_functions env =
             " ^ head.function_type ^ "* input, size_t n){
               size_t i = threadIdx.x + blockDim.x * blockIdx.x;
               if (i < n)
-                output[i] = " ^ symbolized_function_name ^ "(input[i]);
+                output[i] = " ^ head.function_name ^ "(input[i]);
             }\n"  in
             generate_funcs tail new_str
          | Ident("reduce") ->
@@ -819,7 +829,7 @@ let generate_kernel_functions env =
 
                   for (s = 1; s < blockDim.x; s *= 2) {
                       if (ti % (2 * s) == 0 && ti + s < bn)
-                          temp[ti] = " ^ symbolized_function_name ^ "(temp[ti], temp[ti + s]);
+                          temp[ti] = " ^ head.function_name ^ "(temp[ti], temp[ti + s]);
                       __syncthreads();
                   }
 
@@ -832,14 +842,21 @@ let generate_kernel_functions env =
          | _ -> raise Invalid_operation)) in
   generate_funcs kernel_funcs ""
 
-let generate_device_functions env =
-  let kernel_funcs, func_content_map = env.kernel_functions, env.func_decl_map in
+let generate_device_forward_declarations env =
+  let kernel_funcs, func_map = env.kernel_functions, env.func_type_map in
   let rec generate_funcs funcs str =
     match funcs with
     | [] -> str
     | head :: tail ->
-        let _, func_content = Environment.lookup_function_content head.function_name func_content_map in
-        let new_str = str ^ "\n__device__ " ^ func_content ^ "\n" in
+        let device,_, arg_list = Environment.get_func_info
+            (Ident (head.function_name)) env in
+        let arg_str_list = List.map (fun x ->
+          let new_str, _ = generate_datatype x env in new_str) arg_list in
+        let arg_str = String.concat "," arg_str_list in
+        let new_str =
+          if device then str ^ "\n__device__ " ^ head.function_type ^ " " ^
+        head.function_name ^ "(" ^ arg_str ^  ");\n"
+          else "" in
         generate_funcs tail new_str in
 
   generate_funcs kernel_funcs ""
@@ -848,7 +865,7 @@ let _ =
   let lexbuf = Lexing.from_channel stdin in
   let tree = Parser.top_level Scanner.token lexbuf in
   let code, env = generate_toplevel tree in
-  let device_functions =  generate_device_functions env in
+  let forward_declarations = generate_device_forward_declarations env in
   let kernel_invocations = generate_kernel_invocation_functions env in
   let kernel_functions  = generate_kernel_functions env in
   let header =  "#include <stdio.h>\n\
@@ -856,7 +873,7 @@ let _ =
                   #include <stdint.h>\n\
                   #include <libvector.hpp>\n\n" in
   print_string header;
-  print_string device_functions;
+  print_string forward_declarations;
   print_string kernel_functions;
   print_string kernel_invocations;
   print_string code
