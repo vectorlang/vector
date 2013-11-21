@@ -874,9 +874,9 @@ let _ =
   let kernel_invocations = generate_kernel_invocation_functions env in
   let kernel_functions  = generate_kernel_functions env in
   let header =  "#include <stdio.h>\n\
-                  #include <stdlib.h>\n\
-                  #include <stdint.h>\n\
-                  #include <libvector.hpp>\n\n" in
+                 #include <stdlib.h>\n\
+                 #include <stdint.h>\n\
+                 #include <libvector.hpp>\n\n" in
   print_string header;
   print_string forward_declarations;
   print_string kernel_functions;
