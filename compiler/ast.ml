@@ -14,13 +14,13 @@ type datatype =
   | UInt8
   | Int16
   | UInt16
-  | Int | Int32
-  | UInt | UInt32
+  | Int32
+  | UInt32
   | Int64
   | UInt64
-  | Float | Float32
-  | Double | Float64
-  | Complex | Complex64
+  | Float32
+  | Float64
+  | Complex64
   | Complex128
   | String
   | Void
@@ -86,17 +86,17 @@ let type_of_string = function
     | "uint8" -> UInt8
     | "int16" -> Int16
     | "uint16" -> UInt16
-    | "int" -> Int
+    | "int" -> Int32
     | "int32" -> Int32
-    | "uint" -> UInt
+    | "uint" -> UInt32
     | "uint32" -> UInt32
     | "int64" -> Int64
     | "uint64" -> UInt64
-    | "double" -> Double
-    | "float" -> Float
+    | "double" -> Float64
+    | "float" -> Float32
     | "float32" -> Float32
     | "float64" -> Float64
-    | "complex" -> Complex
+    | "complex" -> Complex64
     | "complex64" -> Complex64
     | "complex128" -> Complex128
     | "void" -> Void

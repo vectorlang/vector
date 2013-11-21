@@ -30,13 +30,12 @@ let rec infer_type expr env =
       | CharLit(_) -> Char
       | ComplexLit(re, im) ->
           (match (infer_type re env), (infer_type im env) with
-            | (Float, Float) -> Complex
             | (Float32, Float32) -> Complex64
             | (Float64, Float64) -> Complex128
             | (t1, t2) -> raise (Type_mismatch "expected complex"))
       | FloatLit(_) -> Float64
       | Int64Lit(_) -> Int64
-      | IntLit(_) -> Int
+      | IntLit(_) -> Int32
       | StringLit(_) -> String
       | ArrayLit(exprs) ->
           let f expr = infer_type expr env in
@@ -50,7 +49,6 @@ let rec infer_type expr env =
           | Variable(i) -> Environment.get_var_type i env
           | ComplexAccess(expr1,ident) ->
               (match (infer_type expr1 env) with
-                | Complex -> Float
                 | Complex64 -> Float32
                 | Complex128 -> Float64
                 | _ -> raise Invalid_operation))
@@ -66,7 +64,7 @@ let rec infer_type expr env =
             let l = Lval(lval) in
             match_type [infer_type l env; infer_type expr env]
       | FunctionCall(i, _) -> (match i with
-          | Ident("len") -> Int
+          | Ident("len") -> Int32
           | Ident("printf") | Ident("inline") -> Void
           | _ -> let (_,dtype,_) = Environment.get_func_info i env in dtype)
 
@@ -89,19 +87,13 @@ let rec generate_datatype datatype env =
       | UInt8 -> Environment.combine env [Verbatim("uint8_t")]
       | Int16 -> Environment.combine env [Verbatim("int16_t")]
       | UInt16 -> Environment.combine env [Verbatim("uint16_t")]
-      | Int -> Environment.combine env [Verbatim("int32_t")]
       | Int32 -> Environment.combine env [Verbatim("int32_t")]
-      | UInt -> Environment.combine env [Verbatim("uint32_t")]
       | UInt32 -> Environment.combine env [Verbatim("uint32_t")]
       | Int64 -> Environment.combine env [Verbatim("int64_t")]
       | UInt64 -> Environment.combine env [Verbatim("uint64_t")]
-      | Double -> Environment.combine env [Verbatim("double")]
-      | Float -> Environment.combine env [Verbatim("float")]
       | Float32 -> Environment.combine env [Verbatim("float")]
       | Float64 -> Environment.combine env [Verbatim("double")]
 
-
-      | Complex -> Environment.combine env [Verbatim("cuFloatComplex")]
       | Complex64 -> Environment.combine env [Verbatim("cuFloatComplex")]
       | Complex128 -> Environment.combine env [Verbatim("cuDoubleComplex")]
 
@@ -146,9 +138,9 @@ and generate_expr expr env =
     Binop(e1,op,e2) ->
       let datatype = (infer_type e1 env) in
       (match datatype with
-        | Complex | Complex64 | Complex128 ->
+        | Complex64 | Complex128 ->
             let func = match op with
-             | Add -> "cuCadd"
+              | Add -> "cuCadd"
               | Sub -> "cuCsub"
               | Mul -> "cuCmul"
               | Div -> "cuCdiv"
@@ -228,7 +220,7 @@ and generate_expr expr env =
       Environment.combine env [Verbatim(string_of_float f)]
   | ComplexLit(re, im) as lit ->
       let make_func = (match (infer_type lit env) with
-        | Complex | Complex64 -> "make_cuFloatComplex"
+        | Complex64 -> "make_cuFloatComplex"
         | Complex128 -> "make_cuDoubleComplex"
         | t -> raise (Type_mismatch "Mismatch in ComplexLit")) in
       Environment.combine env [
@@ -288,7 +280,7 @@ and generate_expr expr env =
                 | _ -> raise (Type_mismatch "cannot compute length"))
             | expr1 :: expr2 :: [] ->
                 (match (infer_type expr1 env), (infer_type expr2 env) with
-                  | (ArrayType(_), Int) -> [
+                  | (ArrayType(_), Int32) -> [
                       Verbatim("(");
                       Generator(generate_expr expr1);
                       Verbatim(").length(");
