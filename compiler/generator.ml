@@ -64,8 +64,8 @@ let rec infer_type expr env =
             let l = Lval(lval) in
             match_type [infer_type l env; infer_type expr env]
       | FunctionCall(i, _) -> (match i with
-          | Ident("len") -> Int32
-          | Ident("printf") | Ident("inline") -> Void
+          | Ident("len") | Ident("random") -> Int32
+          | Ident("printf") | Ident("inline") | Ident("assert") -> Void
           | _ -> let (_,dtype,_) = Environment.get_func_info i env in dtype)
 
       | HigherOrderFunctionCall(hof, f, expr) ->
@@ -289,7 +289,21 @@ and generate_expr expr env =
                   ]
                   | _ -> raise (Type_mismatch
                       "len() with two arguments must have types array and int"))
+            | _ -> raise (Type_mismatch "incorrect number of parameters"))
+        | Ident("assert") -> (match es with
+            | expr :: [] -> (match infer_type expr env with
+                | Bool -> [
+                    Verbatim("if (!(");
+                    Generator(generate_expr expr);
+                    Verbatim(")) {printf(\"Assertion failed: ");
+                    Generator(generate_expr expr);
+                    Verbatim("\"); exit(EXIT_FAILURE); }");
+                ]
+                | _ -> raise (Type_mismatch "Cannot assert on non-boolean expression"))
             | _ -> raise (Type_mismatch "too many parameters"))
+        | Ident("random") -> (match es with
+            | [] -> [ Verbatim("random()") ]
+            | _ -> raise (Type_mismatch "Too many argument to random"))
         | _ -> [
             Generator(generate_ident i);
             Verbatim("(");
