@@ -1,3 +1,5 @@
+exception Invalid_type of string
+
 type binop = Add | Sub | Mul | Div | Mod
     | Lshift | Rshift
     | Less | LessEq | Greater | GreaterEq | Eq | NotEq
@@ -21,6 +23,7 @@ type datatype =
   | Complex | Complex64
   | Complex128
   | String
+  | Void
   | ArrayType of datatype
 
 type ident =
@@ -75,3 +78,26 @@ type statement =
   | ReturnStatement of expr
   | VoidReturnStatement
   | SyncStatement
+
+let type_of_string = function
+    | "bool" -> Bool
+    | "char" -> Char
+    | "int8" -> Int8
+    | "uint8" -> UInt8
+    | "int16" -> Int16
+    | "uint16" -> UInt16
+    | "int" -> Int
+    | "int32" -> Int32
+    | "uint" -> UInt
+    | "uint32" -> UInt32
+    | "int64" -> Int64
+    | "uint64" -> UInt64
+    | "double" -> Double
+    | "float" -> Float
+    | "float32" -> Float32
+    | "float64" -> Float64
+    | "complex" -> Complex
+    | "complex64" -> Complex64
+    | "complex128" -> Complex128
+    | "void" -> Void
+    | dtype -> raise (Invalid_type dtype)

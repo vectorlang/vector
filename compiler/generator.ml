@@ -79,7 +79,7 @@ let generate_ident ident env =
   match ident with
     Ident(s) -> Environment.combine env [Verbatim(s)]
 
-let generate_datatype datatype env =
+let rec generate_datatype datatype env =
     match datatype with
       | Bool -> Environment.combine env [Verbatim("bool")]
       | Char -> Environment.combine env [Verbatim("char")]
@@ -105,7 +105,18 @@ let generate_datatype datatype env =
 
       | String -> Environment.combine env [Verbatim("char *")]
 
+      | ArrayType(t) -> Environment.combine env [
+            Verbatim("VectorArray<");
+            Generator(generate_datatype t);
+            Verbatim(">")
+        ]
+
       | _ -> raise Unknown_type
+
+let generate_rettype dtype env =
+    match dtype with
+      | Void -> "void", env
+      | _ -> generate_datatype dtype env
 
 let rec generate_lvalue lval env =
   match lval with
@@ -330,24 +341,14 @@ and generate_decl decl env =
   match decl with
    | AssigningDecl(ident,e) ->
        let datatype = (infer_type e env) in
-       Environment.update_scope ident datatype (match datatype with
-          | ArrayType(f) ->
-              Environment.combine env [
-                Verbatim("VectorArray<");
-                Generator(generate_datatype f);
-                Verbatim("> ");
-                Generator(generate_ident ident);
-                Verbatim(" = ");
-                Generator(generate_expr e);
-              ]
-          | _ ->
-              Environment.combine env [
-                Generator(generate_datatype datatype);
-                Verbatim(" ");
-                Generator(generate_ident ident);
-                Verbatim(" = ");
-                Generator(generate_expr e)
-              ])
+       Environment.update_scope ident datatype
+          (Environment.combine env [
+            Generator(generate_datatype datatype);
+            Verbatim(" ");
+            Generator(generate_ident ident);
+            Verbatim(" = ");
+            Generator(generate_expr e)
+          ])
    | PrimitiveDecl(d,i) ->
        Environment.update_scope i d (Environment.combine env [
          Generator(generate_datatype d);
@@ -525,7 +526,7 @@ and generate_statement_list statement_list env =
 
 and generate_function (returntype, ident, params, statements) env =
          Environment.combine env [
-           Generator(generate_datatype returntype);
+           Generator(generate_rettype returntype);
            Verbatim(" ");
            Generator(generate_ident ident);
            Verbatim("(");

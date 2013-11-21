@@ -47,28 +47,8 @@ ident:
     IDENT { Ident($1) }
 
 datatype:
-    TYPE { match $1 with
-     | "bool" -> Bool
-     | "char" -> Char
-     | "int8" -> Int8
-     | "uint8" -> UInt8
-     | "int16" -> Int16
-     | "uint16" -> UInt16
-     | "int" -> Int
-     | "int32" -> Int32
-     | "uint" -> UInt
-     | "uint32" -> UInt32
-     | "int64" -> Int64
-     | "uint64" -> UInt64
-     | "double" -> Double
-     | "float" -> Float
-     | "float32" -> Float32
-     | "float64" -> Float64
-     | "complex" -> Complex
-     | "complex64" -> Complex64
-     | "complex128" -> Complex128
-     | _ -> raise Not_found
-    }
+    TYPE { type_of_string $1 }
+  | TYPE LSQUARE RSQUARE { ArrayType(type_of_string $1) }
 
 lvalue:
   | ident { Variable($1) }

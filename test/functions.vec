@@ -1,3 +1,8 @@
+void print_int(int d)
+{
+    printf("%d\n", d);
+}
+
 int add(int a, int b)
 {
     return a + b;
@@ -7,13 +12,12 @@ int vec_main()
 {
     j := add(3, 4);
 
-
-    printf("%d\n", j);
+    print_int(j);
 
     {
         d := j;
         j := d + 3;
-        printf("%d\n", j);
+        print_int(j);
     }
 
     return 0;
