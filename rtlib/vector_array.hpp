@@ -14,14 +14,23 @@ struct array_ctrl {
 };
 
 template <class T>
+struct device_info {
+	T *values;
+	size_t *dims;
+	size_t ndims;
+};
+
+template <class T>
 class VectorArray {
 	private:
 		T *values;
 		T *d_values;
 		size_t ndims;
 		size_t *dims;
+		size_t *d_dims;
 		size_t nelems;
 		struct array_ctrl *ctrl;
+		struct device_info<T> *dev_info;
 		size_t bsize();
 		void incRef();
 		void decRef();
@@ -40,6 +49,7 @@ class VectorArray {
 		void copyToDevice(size_t n = 0);
 		void copyFromDevice(size_t n = 0);
 		T *devPtr();
+		struct device_info<T> *devInfo();
 		void markDeviceDirty(void);
 };
 
@@ -48,8 +58,10 @@ VectorArray<T>::VectorArray()
 {
 	this->ndims = 0;
 	this->dims = NULL;
+	this->d_dims = NULL;
 	this->values = NULL;
 	this->d_values = NULL;
+	this->dev_info = NULL;
 	this->nelems = 0;
 	this->ctrl = (struct array_ctrl *) malloc(sizeof(struct array_ctrl));
 	this->ctrl->refcount = 1;
@@ -63,6 +75,7 @@ VectorArray<T>::VectorArray(size_t ndims, ...)
 	size_t i;
 	va_list dim_list;
 	cudaError_t err;
+	struct device_info<T> h_dev_info;
 
 	va_start(dim_list, ndims);
 
@@ -84,6 +97,21 @@ VectorArray<T>::VectorArray(size_t ndims, ...)
 	this->values = (T *) calloc(this->nelems, sizeof(T));
 	err = cudaMalloc(&this->d_values, bsize());
 	checkError(err);
+
+	err = cudaMalloc(&this->d_dims, sizeof(size_t) * ndims);
+	checkError(err);
+	err = cudaMemcpy(this->d_dims, this->dims, sizeof(size_t) * ndims,
+			cudaMemcpyHostToDevice);
+	checkError(err);
+
+	h_dev_info.ndims = ndims;
+	h_dev_info.dims = this->d_dims;
+	h_dev_info.values = this->d_values;
+	err = cudaMalloc(&this->dev_info, sizeof(h_dev_info));
+	checkError(err);
+	err = cudaMemcpy(this->dev_info, &h_dev_info, sizeof(h_dev_info),
+			cudaMemcpyHostToDevice);
+	checkError(err);
 }
 
 template <class T>
@@ -91,10 +119,12 @@ VectorArray<T>::VectorArray(const VectorArray<T> &orig)
 {
 	this->ndims = orig.ndims;
 	this->dims = orig.dims;
+	this->d_dims = orig.d_dims;
 	this->nelems = orig.nelems;
 	this->ctrl = orig.ctrl;
 	this->values = orig.values;
 	this->d_values = orig.d_values;
+	this->dev_info = orig.dev_info;
 
 	incRef();
 }
@@ -130,10 +160,12 @@ VectorArray<T>& VectorArray<T>::operator= (const VectorArray<T>& orig)
 
 	this->ndims = orig.ndims;
 	this->dims = orig.dims;
+	this->d_dims = orig.d_dims;
 	this->nelems = orig.nelems;
 	this->ctrl = orig.ctrl;
 	this->values = orig.values;
 	this->d_values = orig.d_values;
+	this->dev_info = orig.dev_info;
 
 	incRef();
 
@@ -154,10 +186,14 @@ void VectorArray<T>::decRef(void)
 	free(this->ctrl);
 	if (this->dims != NULL)
 		free(this->dims);
+	if (this->d_dims != NULL)
+		cudaFree(this->d_dims);
 	if (this->values != NULL)
 		free(this->values);
 	if (this->d_values != NULL)
 		cudaFree(this->d_values);
+	if (this->dev_info != NULL)
+		cudaFree(this->dev_info);
 }
 
 template <class T>
@@ -256,6 +292,13 @@ T *VectorArray<T>::devPtr()
 	if (this->ctrl->h_dirty)
 		copyToDevice();
 	return this->d_values;
+}
+
+template <class T>
+struct device_info<T> *VectorArray<T>::devInfo()
+{
+	devPtr();
+	return this->dev_info;
 }
 
 template <class T>
