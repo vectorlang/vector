@@ -2,6 +2,7 @@ open Ast
 open Complex
 open Environment
 open Symgen
+open Detect
 
 module StringMap = Map.Make(String);;
 
@@ -500,11 +501,7 @@ let rec generate_statement statement env =
           ]
       | PforStatement(is, s) ->
           Environment.combine env [
-            Verbatim("pfor (");
-            NewScopeGenerator(generate_iterator_list is);
-            Verbatim(") {\n");
-            NewScopeGenerator(generate_statement s);
-            Verbatim("}")
+            NewScopeGenerator(generate_pfor_statement is s)
           ]
       | FunctionDecl(device, return_type, identifier, arg_list, body_sequence) ->
           let str, env = Environment.combine env [
@@ -737,6 +734,92 @@ and generate_for_statement (iterators, statements) env =
     Verbatim("}\n");
     Verbatim("}\n");
   ]
+and generate_pfor_statement iters stmt env =
+    let rec get_array_ident_array ident_array index = function
+      | ArrayIterator(_, expr) :: tl ->
+            ident_array.(index) <- Symgen.gensym ();
+            get_array_ident_array ident_array (index + 1) tl
+      | _ :: tl -> get_array_ident_array ident_array (index + 1) tl
+      | [] -> ident_array in
+    let niters = List.length iters in
+    let array_ident_array =
+        get_array_ident_array (Array.make niters "") 0 iters in
+    let gen_struct_mem iter_arr index mem_name expr env =
+        if (infer_type expr env) == Int32 then
+            Environment.combine env [
+                Verbatim(iter_arr ^ "[" ^ string_of_int index ^ "]."
+                            ^ mem_name ^ " = ");
+                Generator(generate_expr expr);
+                Verbatim(";\n")
+            ]
+        else raise (Type_mismatch "Iterator control must have type int32") in
+    let rec gen_iter_struct iter_arr index iters env =
+        match iters with
+          | RangeIterator(_, Range(start_expr, stop_expr, inc_expr)) :: tl ->
+                Environment.combine env [
+                    Generator(gen_struct_mem iter_arr index "start" start_expr);
+                    Generator(gen_struct_mem iter_arr index "stop" stop_expr);
+                    Generator(gen_struct_mem iter_arr index "inc" inc_expr);
+                    Generator(gen_iter_struct iter_arr (index + 1) tl)
+                ]
+          | ArrayIterator(_, array_expr) :: tl ->
+                let array_sym = Ident(array_ident_array.(index)) in
+                Environment.combine env [
+                    Generator(generate_decl (AssigningDecl(
+                        array_sym, array_expr)));
+                    Verbatim(";\n");
+                    Generator(gen_struct_mem iter_arr index "start" (IntLit(0l)));
+                    Generator(gen_struct_mem iter_arr index "stop"
+                        (FunctionCall(Ident("len"),
+                            [Lval(Variable(array_sym))])));
+                    Generator(gen_struct_mem iter_arr index "inc" (IntLit(1l)));
+                    Generator(gen_iter_struct iter_arr (index + 1) tl)
+                ]
+          | [] -> "", env in
+    let rec get_array_ident_list cur_list ident_array index n =
+        if index < n then
+            match ident_array.(index) with
+              | "" -> get_array_ident_list cur_list ident_array (index + 1) n
+              | id -> get_array_ident_list (Ident(id) :: cur_list) ident_array
+                            (index + 1) n
+        else cur_list in
+    let generate_kernel_arg env id =
+        let Ident(s) = id in
+        match get_var_type id env with
+          | ArrayType(_) -> s ^ ".devInfo()"
+          | _ -> s in
+    let generate_ident_list ident_list env =
+        let ident_str = String.concat ", " (List.map 
+                            (generate_kernel_arg env) ident_list) in
+        if ident_str = "" then "", env else (", " ^ ident_str), env in
+    let generate_output_markings output_list =
+        String.concat "" (List.map (function Ident(s) ->
+                                    s ^ ".markDeviceDirty();\n") output_list) in
+    let iter_arr = Symgen.gensym () and
+        iter_devptr = Symgen.gensym () and
+        total_iters = Symgen.gensym () and
+        kernel_name = Symgen.gensym () and
+        gpu_inputs, gpu_outputs = detect_statement stmt env and
+        array_ident_list = get_array_ident_list [] array_ident_array 0 niters in
+    Environment.combine env [
+        Verbatim("{\nstruct range_iter " ^ iter_arr ^
+            "[" ^ string_of_int niters ^ "];\n");
+        Generator(gen_iter_struct iter_arr 0 iters);
+        Verbatim("fillin_iters(" ^ iter_arr ^ ", " ^
+                    string_of_int niters ^ ");\n");
+        Verbatim("struct range_iter *" ^ iter_devptr ^
+                    " = device_iter(" ^ iter_arr ^ ", " ^
+                    string_of_int niters ^ ");\n");
+        Verbatim("size_t " ^ total_iters ^ " = total_iterations(" ^
+                    iter_arr ^ ", " ^ string_of_int niters ^ ");\n");
+        Verbatim(kernel_name ^ "<<<ceil_div(" ^ total_iters ^ 
+                    ", BLOCK_SIZE), BLOCK_SIZE>>>(" ^ iter_devptr ^ ", " ^
+                    string_of_int niters ^ ", " ^ total_iters);
+        Generator(generate_ident_list
+            (gpu_outputs @ gpu_inputs @ array_ident_list));
+        Verbatim(");\n" ^ generate_output_markings gpu_outputs);
+        Verbatim("cudaFree(" ^ iter_devptr ^ ");\n}\n")
+    ]
 
 let generate_toplevel tree =
     let env = Environment.create in

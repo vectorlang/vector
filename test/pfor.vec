@@ -1,0 +1,14 @@
+int vec_main()
+{
+    int arr[2048];
+    int arr2[2048];
+
+    pfor (i in 0:len(arr)) {
+        arr[i] = i;
+    }
+    pfor (i in 0:len(arr)) {
+        arr2[i] = arr[i] * 2;
+    }
+
+    return 0;
+}
