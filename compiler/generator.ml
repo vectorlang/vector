@@ -735,6 +735,7 @@ and generate_for_statement (iterators, statements) env =
     Verbatim("}\n");
   ]
 and generate_pfor_statement iters stmt env =
+    (* generate intermediate symbols for array iterators *)
     let rec get_array_ident_array ident_array index = function
       | ArrayIterator(_, expr) :: tl ->
             ident_array.(index) <- Symgen.gensym ();
@@ -744,6 +745,7 @@ and generate_pfor_statement iters stmt env =
     let niters = List.length iters in
     let array_ident_array =
         get_array_ident_array (Array.make niters "") 0 iters in
+    (* setup an array of iterator structs *)
     let gen_struct_mem iter_arr index mem_name expr env =
         if (infer_type expr env) == Int32 then
             Environment.combine env [
@@ -753,6 +755,7 @@ and generate_pfor_statement iters stmt env =
                 Verbatim(";\n")
             ]
         else raise (Type_mismatch "Iterator control must have type int32") in
+    (* assign start, stop, and inc for each iterator *)
     let rec gen_iter_struct iter_arr index iters env =
         match iters with
           | RangeIterator(_, Range(start_expr, stop_expr, inc_expr)) :: tl ->
@@ -776,21 +779,26 @@ and generate_pfor_statement iters stmt env =
                     Generator(gen_iter_struct iter_arr (index + 1) tl)
                 ]
           | [] -> "", env in
+    (* turn the array into a list *)
     let rec get_array_ident_list cur_list ident_array index n =
         if index < n then
             match ident_array.(index) with
+                (* empty strings are from range iters, so ignore them *)
               | "" -> get_array_ident_list cur_list ident_array (index + 1) n
               | id -> get_array_ident_list (Ident(id) :: cur_list) ident_array
                             (index + 1) n
         else cur_list in
+    (* array arguments must have their device info pointer passed in
+     * everything else can be passed in as-is *)
     let generate_kernel_arg env id =
         let Ident(s) = id in
         match get_var_type id env with
           | ArrayType(_) -> s ^ ".devInfo()"
           | _ -> s in
     let generate_ident_list ident_list env =
-        let ident_str = String.concat ", " (List.map 
+        let ident_str = String.concat ", " (List.map
                             (generate_kernel_arg env) ident_list) in
+        (* put a leading comma if non-empty, otherwise just return "" *)
         if ident_str = "" then "", env else (", " ^ ident_str), env in
     let generate_output_markings output_list =
         String.concat "" (List.map (function Ident(s) ->
@@ -812,7 +820,7 @@ and generate_pfor_statement iters stmt env =
                     string_of_int niters ^ ");\n");
         Verbatim("size_t " ^ total_iters ^ " = total_iterations(" ^
                     iter_arr ^ ", " ^ string_of_int niters ^ ");\n");
-        Verbatim(kernel_name ^ "<<<ceil_div(" ^ total_iters ^ 
+        Verbatim(kernel_name ^ "<<<ceil_div(" ^ total_iters ^
                     ", BLOCK_SIZE), BLOCK_SIZE>>>(" ^ iter_devptr ^ ", " ^
                     string_of_int niters ^ ", " ^ total_iters);
         Generator(generate_ident_list
