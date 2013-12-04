@@ -53,7 +53,7 @@ struct range_iter *device_iter(struct range_iter *iters, size_t n)
 			cudaMemcpyHostToDevice);
 	checkError(err);
 
-	return err;
+	return d_iters;
 }
 
 #endif
