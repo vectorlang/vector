@@ -1,7 +1,7 @@
 int vec_main()
 {
-    int arr[2048];
-    int arr2[1024, 2];
+    int arr[2000];
+    int arr2[1000, 2];
 
     pfor (i in 0:len(arr)) {
         arr[i] = i;

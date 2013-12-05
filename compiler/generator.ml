@@ -1052,12 +1052,13 @@ let generate_pfor_kernels env =
             Generator(generate_nonempty_decl_list pfor.pfor_arguments);
             Verbatim("){\n")
         ]) @ [
-            Verbatim("size_t " ^ index_var ^ 
+            Verbatim("size_t " ^ index_var ^
                     " = threadIdx.x + blockIdx.x * blockDim.x;\n");
+            Verbatim("if (" ^ index_var ^ " < " ^ total_iters ^ "){\n");
             Generator(gen_iter_var_decls iter_arr index_var 0
                         pfor.pfor_iterators);
             Generator(generate_statement pfor.pfor_statement);
-            Verbatim("}\n");
+            Verbatim("}\n}\n");
         ]) in
     let rec generate_kernels str = function
       | [] -> str
