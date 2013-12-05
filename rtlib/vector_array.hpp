@@ -21,6 +21,18 @@ struct device_info {
 };
 
 template <class T>
+__device__ size_t get_mid_index(struct device_info<T> *info, size_t ind, size_t dim)
+{
+	size_t stride = 1;
+	size_t i;
+
+	for (i = dim + 1; i < info->ndims; i++)
+		stride *= info->dims[i];
+
+	return ind * stride;
+}
+
+template <class T>
 class VectorArray {
 	private:
 		T *values;

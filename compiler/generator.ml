@@ -114,26 +114,58 @@ let generate_rettype dtype env =
       | _ -> generate_datatype dtype env
 
 let rec generate_lvalue modify lval env =
+    let rec generate_array_index array_id dim exprs env =
+        let generate_mid_index array_id dim expr env =
+            let typ = match (Environment.get_var_type array_id env) with
+              | ArrayType(typ) -> typ
+              | _ -> raise (Type_mismatch "Cannot index into non-array") in
+            Environment.combine env [
+                Verbatim("get_mid_index<");
+                Generator(generate_datatype typ);
+                Verbatim(">(");
+                Generator(generate_ident array_id);
+                Verbatim(", ");
+                Generator(generate_expr expr);
+                Verbatim(", " ^ string_of_int dim ^ ")");
+            ] in
+    match exprs with
+      | [] -> raise Invalid_operation
+      | [expr] ->
+            generate_mid_index array_id dim expr env
+      | expr :: tail ->
+            Environment.combine env [
+                Generator(generate_mid_index array_id dim expr);
+                Verbatim("+");
+                Generator(generate_array_index array_id (dim + 1) tail)
+            ] in
   match lval with
-   | Variable(i) ->
-       Environment.combine env [Generator(generate_ident i)]
-   | ArrayElem(ident, es) ->
-       Environment.combine env [
-         Generator(generate_ident ident);
-         Verbatim(".elem(" ^ (if modify then "true" else "false") ^ ", ");
-         Generator(generate_expr_list es);
-         Verbatim(")")
-       ]
-    | ComplexAccess(expr, ident) -> (
-        let _op = match ident with
-          Ident("re") -> ".x"
-        | Ident("im") -> ".y"
-        | _ -> raise Not_found in
-          Environment.combine env [
-            Generator(generate_expr expr);
-            Verbatim(_op)
-          ]
-      )
+    | Variable(i) ->
+        Environment.combine env [Generator(generate_ident i)]
+    | ArrayElem(ident, es) ->
+        if env.on_gpu then
+            Environment.combine env [
+                Generator(generate_ident ident);
+                Verbatim("->values[");
+                Generator(generate_array_index ident 0 es);
+                Verbatim("]")
+            ]
+        else
+            Environment.combine env [
+              Generator(generate_ident ident);
+              Verbatim(".elem(" ^ (if modify then "true" else "false") ^ ", ");
+              Generator(generate_expr_list es);
+              Verbatim(")")
+            ]
+     | ComplexAccess(expr, ident) -> (
+         let _op = match ident with
+           Ident("re") -> ".x"
+         | Ident("im") -> ".y"
+         | _ -> raise Not_found in
+           Environment.combine env [
+             Generator(generate_expr expr);
+             Verbatim(_op)
+           ]
+       )
 and generate_expr expr env =
   match expr with
     Binop(e1,op,e2) ->
@@ -367,40 +399,49 @@ and generate_nonempty_expr_list expr_list env =
    | [] -> raise Empty_list
 and generate_decl decl env =
   match decl with
-   | AssigningDecl(ident,e) ->
-       let datatype = (infer_type e env) in
-       Environment.update_scope ident datatype
-          (Environment.combine env [
-            Generator(generate_datatype datatype);
-            Verbatim(" ");
-            Generator(generate_ident ident);
-            Verbatim(" = ");
-            Generator(generate_expr e)
-          ])
-   | PrimitiveDecl(d,i) ->
-       Environment.update_scope i d (Environment.combine env [
-         Generator(generate_datatype d);
-         Verbatim(" ");
-         Generator(generate_ident i)
-       ])
-   | ArrayDecl(d,i,es) ->
-       Environment.update_scope i (ArrayType(d)) (match es with
-          | [] -> Environment.combine env [
-              Verbatim("VectorArray<");
-              Generator(generate_datatype d);
-              Verbatim("> ");
-              Generator(generate_ident i);
-          ]
-          | _ ->
-              Environment.combine env [
-                Verbatim("VectorArray<");
-                Generator(generate_datatype d);
-                Verbatim("> ");
-                Generator(generate_ident i);
-                Verbatim("(" ^ string_of_int (List.length es) ^ ", ");
-                Generator(generate_expr_list es);
-                Verbatim(")")
-              ])
+    | AssigningDecl(ident,e) ->
+        let datatype = (infer_type e env) in
+        Environment.update_scope ident datatype
+            (Environment.combine env [
+              Generator(generate_datatype datatype);
+              Verbatim(" ");
+              Generator(generate_ident ident);
+              Verbatim(" = ");
+              Generator(generate_expr e)
+            ])
+    | PrimitiveDecl(d,i) ->
+        Environment.update_scope i d (Environment.combine env [
+          Generator(generate_datatype d);
+          Verbatim(" ");
+          Generator(generate_ident i)
+        ])
+    | ArrayDecl(d,i,es) ->
+        Environment.update_scope i (ArrayType(d))
+            (if env.on_gpu then (match es with
+              | [] -> Environment.combine env [
+                  Verbatim("device_info<");
+                  Generator(generate_datatype d);
+                  Verbatim("> *");
+                  Generator(generate_ident i);
+              ]
+              | _ -> raise Not_allowed_on_gpu)
+            else (match es with
+              | [] -> Environment.combine env [
+                  Verbatim("VectorArray<");
+                  Generator(generate_datatype d);
+                  Verbatim("> ");
+                  Generator(generate_ident i);
+              ]
+              | _ ->
+                  Environment.combine env [
+                    Verbatim("VectorArray<");
+                    Generator(generate_datatype d);
+                    Verbatim("> ");
+                    Generator(generate_ident i);
+                    Verbatim("(" ^ string_of_int (List.length es) ^ ", ");
+                    Generator(generate_expr_list es);
+                    Verbatim(")")
+                  ]))
 
 let generate_range range env =
   match range with
@@ -989,7 +1030,7 @@ let generate_pfor_kernels env =
                 Environment.combine env [
                     Verbatim("size_t ");
                     Generator(generate_ident id);
-                    Verbatim(" = get_index(&" ^ iter_arr ^ "[" ^
+                    Verbatim(" = get_index_gpu(&" ^ iter_arr ^ "[" ^
                              string_of_int iter_index ^ "], " ^ index_var ^ ");\n");
                     Generator(gen_iter_var_decls iter_arr index_var
                                 (iter_index + 1) tail)
@@ -1000,7 +1041,7 @@ let generate_pfor_kernels env =
             total_iters = Symgen.gensym () and
             index_var = Symgen.gensym () in
         Environment.combine env ([
-            Verbatim("void " ^ pfor.pfor_kernel_name ^ "(");
+            Verbatim("__global__ void " ^ pfor.pfor_kernel_name ^ "(");
             Verbatim("struct range_iter *" ^ iter_arr ^ ", ");
             Verbatim("size_t " ^ niters ^ ", ");
             Verbatim("size_t " ^ total_iters)
@@ -1009,6 +1050,8 @@ let generate_pfor_kernels env =
             Generator(generate_nonempty_decl_list pfor.pfor_arguments);
             Verbatim("){\n")
         ]) @ [
+            Verbatim("size_t " ^ index_var ^ 
+                    " = threadIdx.x + blockIdx.x * blockDim.x;\n");
             Generator(gen_iter_var_decls iter_arr index_var 0
                         pfor.pfor_iterators);
             Generator(generate_statement pfor.pfor_statement);
@@ -1017,8 +1060,9 @@ let generate_pfor_kernels env =
     let rec generate_kernels str = function
       | [] -> str
       | pfor :: tail ->
-            let str, _ = Environment.combine env
-                [NewScopeGenerator(gen_kernel pfor)] in str in
+            let newstr, _ = Environment.combine env
+                [NewScopeGenerator(gen_kernel pfor)] in
+            generate_kernels (str ^ newstr) tail in
     generate_kernels "" env.pfor_kernels ;;
 
 let _ =

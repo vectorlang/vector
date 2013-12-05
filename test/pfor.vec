@@ -10,5 +10,14 @@ int vec_main()
         arr2[i] = arr[i] * 2;
     }
 
+    for (i in 0:len(arr)) {
+        if (!(arr[i] == i && arr2[i] == 2 * i)) {
+            printf("incorrect\n");
+            return -1;
+        }
+    }
+
+    printf("correct\n");
+
     return 0;
 }
