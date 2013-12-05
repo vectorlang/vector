@@ -385,7 +385,12 @@ and generate_decl decl env =
        ])
    | ArrayDecl(d,i,es) ->
        Environment.update_scope i (ArrayType(d)) (match es with
-          | [] -> "", env
+          | [] -> Environment.combine env [
+              Verbatim("VectorArray<");
+              Generator(generate_datatype d);
+              Verbatim("> ");
+              Generator(generate_ident i);
+          ]
           | _ ->
               Environment.combine env [
                 Verbatim("VectorArray<");
