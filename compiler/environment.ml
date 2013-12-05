@@ -49,6 +49,7 @@ type pfor_kernel = {
     pfor_kernel_name: string;
     pfor_iterators: iterator list;
     pfor_arguments: (ident * datatype) list;
+    pfor_statement: statement;
 };;
 
 type 'a env = {
@@ -162,6 +163,20 @@ let update_global_funcs function_type kernel_invoke_sym function_name hof kernel
 
   (str, update_env new_kernel_funcs new_global_funcs env.func_type_map 
       env.scope_stack env.pfor_kernels env.on_gpu)
+
+let update_pfor_kernels kernel_name iterators arguments statement (str, env) =
+    let new_pfor_kernels = {
+        pfor_kernel_name = kernel_name;
+        pfor_iterators = iterators;
+        pfor_arguments = arguments;
+        pfor_statement = statement;
+    } :: env.pfor_kernels in
+    (str, update_env env.kernel_invocation_functions env.kernel_functions
+            env.func_type_map env.scope_stack new_pfor_kernels env.on_gpu)
+
+let set_on_gpu env =
+    update_env env.kernel_invocation_functions env.kernel_functions
+        env.func_type_map env.scope_stack env.pfor_kernels true
 
 let set_func_type ident device returntype arg_list env =
   let new_func_type_map = FunctionMap.add ident (device, returntype, arg_list) env.func_type_map in

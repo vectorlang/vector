@@ -809,25 +809,29 @@ and generate_pfor_statement iters stmt env =
         kernel_name = Symgen.gensym () and
         gpu_inputs, gpu_outputs = detect_statement stmt env and
         array_ident_list = get_array_ident_list [] array_ident_array 0 niters in
-    Environment.combine env [
-        Verbatim("{\nstruct range_iter " ^ iter_arr ^
-            "[" ^ string_of_int niters ^ "];\n");
-        Generator(gen_iter_struct iter_arr 0 iters);
-        Verbatim("fillin_iters(" ^ iter_arr ^ ", " ^
-                    string_of_int niters ^ ");\n");
-        Verbatim("struct range_iter *" ^ iter_devptr ^
-                    " = device_iter(" ^ iter_arr ^ ", " ^
-                    string_of_int niters ^ ");\n");
-        Verbatim("size_t " ^ total_iters ^ " = total_iterations(" ^
-                    iter_arr ^ ", " ^ string_of_int niters ^ ");\n");
-        Verbatim(kernel_name ^ "<<<ceil_div(" ^ total_iters ^
-                    ", BLOCK_SIZE), BLOCK_SIZE>>>(" ^ iter_devptr ^ ", " ^
-                    string_of_int niters ^ ", " ^ total_iters);
-        Generator(generate_ident_list
-            (gpu_outputs @ gpu_inputs @ array_ident_list));
-        Verbatim(");\n" ^ generate_output_markings gpu_outputs);
-        Verbatim("cudaFree(" ^ iter_devptr ^ ");\n}\n")
-    ]
+    let full_ident_list = (gpu_outputs @ gpu_inputs @ array_ident_list) in
+    let kernel_args = List.map
+        (fun id -> (id, Environment.get_var_type id env)) full_ident_list in
+    Environment.update_pfor_kernels kernel_name iters kernel_args stmt
+        (Environment.combine env [
+            Verbatim("{\nstruct range_iter " ^ iter_arr ^
+                "[" ^ string_of_int niters ^ "];\n");
+            Generator(gen_iter_struct iter_arr 0 iters);
+            Verbatim("fillin_iters(" ^ iter_arr ^ ", " ^
+                        string_of_int niters ^ ");\n");
+            Verbatim("struct range_iter *" ^ iter_devptr ^
+                        " = device_iter(" ^ iter_arr ^ ", " ^
+                        string_of_int niters ^ ");\n");
+            Verbatim("size_t " ^ total_iters ^ " = total_iterations(" ^
+                        iter_arr ^ ", " ^ string_of_int niters ^ ");\n");
+            Verbatim(kernel_name ^ "<<<ceil_div(" ^ total_iters ^
+                        ", BLOCK_SIZE), BLOCK_SIZE>>>(" ^ iter_devptr ^ ", " ^
+                        string_of_int niters ^ ", " ^ total_iters);
+            Generator(generate_ident_list
+                (gpu_outputs @ gpu_inputs @ array_ident_list));
+            Verbatim(");\n" ^ generate_output_markings gpu_outputs);
+            Verbatim("cudaFree(" ^ iter_devptr ^ ");\n}\n")
+        ])
 
 let generate_toplevel tree =
     let env = Environment.create in
