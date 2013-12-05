@@ -34,7 +34,7 @@ size_t get_index(struct range_iter *iter, size_t oned_ind)
 size_t total_iterations(struct range_iter *iter, size_t n)
 {
 	int total = 1;
-	int i;
+	size_t i;
 
 	for (i = 0; i < n; i++)
 		total *= iter[i].len;
