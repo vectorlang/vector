@@ -27,7 +27,7 @@ if GetOption('8400gs'):
     rtlib = 'cudart'
     cuda_lib = '/opt/cuda/lib64'
     cuda_arch = 'sm_11'
-    ccflags += " -DBLOCK_SIZE=512"
+    ccflags += " -DBLOCK_SIZE=256"
 
 env['LINK'] = env['CXX']
 env.Append(LIBS = [rtlib, 'm'])
