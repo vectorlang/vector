@@ -815,8 +815,11 @@ and generate_pfor_statement iters stmt env =
         gpu_inputs, gpu_outputs = detect_statement stmt env and
         array_ident_list = get_array_ident_list [] array_ident_array 0 niters in
     let full_ident_list = (gpu_outputs @ gpu_inputs @ array_ident_list) in
-    let kernel_args = List.map
-        (fun id -> (id, Environment.get_var_type id env)) full_ident_list in
+    let gen_kernel_decl id =
+        match Environment.get_var_type id env with
+          | ArrayType(typ) -> ArrayDecl(typ, id, [])
+          | typ -> PrimitiveDecl(typ, id) in
+    let kernel_args = List.map gen_kernel_decl full_ident_list in
     Environment.update_pfor_kernels kernel_name iters kernel_args stmt
         (Environment.combine env [
             Verbatim("{\nstruct range_iter " ^ iter_arr ^
@@ -832,8 +835,7 @@ and generate_pfor_statement iters stmt env =
             Verbatim(kernel_name ^ "<<<ceil_div(" ^ total_iters ^
                         ", BLOCK_SIZE), BLOCK_SIZE>>>(" ^ iter_devptr ^ ", " ^
                         string_of_int niters ^ ", " ^ total_iters);
-            Generator(generate_ident_list
-                (gpu_outputs @ gpu_inputs @ array_ident_list));
+            Generator(generate_ident_list full_ident_list);
             Verbatim(");\n" ^ generate_output_markings gpu_outputs);
             Verbatim("cudaFree(" ^ iter_devptr ^ ");\n}\n")
         ])
@@ -976,6 +978,49 @@ let generate_device_forward_declarations env =
 
   generate_funcs kernel_funcs ""
 
+let generate_pfor_kernels env =
+    let env = Environment.set_on_gpu env in
+    let rec gen_iter_var_decls iter_arr index_var iter_index iterators env =
+        match iterators with
+          | [] -> "", env
+          | ArrayIterator(Ident(id), expr) :: tail -> raise Not_implemented
+          | RangeIterator(id, _) :: tail ->
+                let _, env = Environment.update_scope id Int32 ("", env) in
+                Environment.combine env [
+                    Verbatim("size_t ");
+                    Generator(generate_ident id);
+                    Verbatim(" = get_index(&" ^ iter_arr ^ "[" ^
+                             string_of_int iter_index ^ "], " ^ index_var ^ ");\n");
+                    Generator(gen_iter_var_decls iter_arr index_var
+                                (iter_index + 1) tail)
+                ] in
+    let rec gen_kernel pfor env =
+        let iter_arr = Symgen.gensym () and
+            niters = Symgen.gensym () and
+            total_iters = Symgen.gensym () and
+            index_var = Symgen.gensym () in
+        Environment.combine env ([
+            Verbatim("void " ^ pfor.pfor_kernel_name ^ "(");
+            Verbatim("struct range_iter *" ^ iter_arr ^ ", ");
+            Verbatim("size_t " ^ niters ^ ", ");
+            Verbatim("size_t " ^ total_iters)
+        ] @ (if pfor.pfor_arguments = [] then [Verbatim("){\n")] else [
+            Verbatim(", ");
+            Generator(generate_nonempty_decl_list pfor.pfor_arguments);
+            Verbatim("){\n")
+        ]) @ [
+            Generator(gen_iter_var_decls iter_arr index_var 0
+                        pfor.pfor_iterators);
+            Generator(generate_statement pfor.pfor_statement);
+            Verbatim("}\n");
+        ]) in
+    let rec generate_kernels str = function
+      | [] -> str
+      | pfor :: tail ->
+            let str, _ = Environment.combine env
+                [NewScopeGenerator(gen_kernel pfor)] in str in
+    generate_kernels "" env.pfor_kernels ;;
+
 let _ =
   let lexbuf = Lexing.from_channel stdin in
   let tree = Parser.top_level Scanner.token lexbuf in
@@ -983,6 +1028,7 @@ let _ =
   let forward_declarations = generate_device_forward_declarations env in
   let kernel_invocations = generate_kernel_invocation_functions env in
   let kernel_functions  = generate_kernel_functions env in
+  let pfor_kernels = generate_pfor_kernels env in
   let header =  "#include <stdio.h>\n\
                  #include <stdlib.h>\n\
                  #include <stdint.h>\n\
@@ -991,4 +1037,5 @@ let _ =
   print_string forward_declarations;
   print_string kernel_functions;
   print_string kernel_invocations;
+  print_string pfor_kernels;
   print_string code

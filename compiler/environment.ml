@@ -48,7 +48,7 @@ type kernel_function = {
 type pfor_kernel = {
     pfor_kernel_name: string;
     pfor_iterators: iterator list;
-    pfor_arguments: (ident * datatype) list;
+    pfor_arguments: decl list;
     pfor_statement: statement;
 };;
 
