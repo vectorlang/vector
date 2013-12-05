@@ -309,7 +309,7 @@ and generate_expr expr env =
             let rec validate_type_list types expressions env =
                 match (types, expressions) with
                   | typ :: ttail, expr :: etail ->
-                        if (typ == infer_type expr env) then
+                        if (typ = infer_type expr env) then
                             validate_type_list ttail etail env
                         else false
                   | [], [] -> true
