@@ -31,7 +31,7 @@ inline size_t get_index_cpu(struct range_iter *iter, size_t oned_ind)
 	return iter->start + (oned_ind % iter->mod) / iter->div * iter->inc;
 }
 
-__device__ inline size_t get_index_gpu(struct range_iter *iter, size_t oned_ind)
+__device__ size_t get_index_gpu(struct range_iter *iter, size_t oned_ind)
 {
 	return iter->start + (oned_ind % iter->mod) / iter->div * iter->inc;
 }
