@@ -877,7 +877,9 @@ and generate_pfor_statement iters stmt env =
                         ", BLOCK_SIZE), BLOCK_SIZE>>>(" ^ iter_devptr ^ ", " ^
                         string_of_int niters ^ ", " ^ total_iters);
             Generator(generate_ident_list full_ident_list);
-            Verbatim(");\n" ^ generate_output_markings gpu_outputs);
+            Verbatim(");\ncudaDeviceSynchronize();
+                        checkError(cudaGetLastError());");
+            Verbatim(generate_output_markings gpu_outputs);
             Verbatim("cudaFree(" ^ iter_devptr ^ ");\n}\n")
         ])
 
