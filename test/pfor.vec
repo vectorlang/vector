@@ -1,17 +1,17 @@
 int vec_main()
 {
     int arr[2048];
-    int arr2[2048];
+    int arr2[1024, 2];
 
     pfor (i in 0:len(arr)) {
         arr[i] = i;
     }
-    pfor (i in 0:len(arr)) {
-        arr2[i] = arr[i] * 2;
+    pfor (i in 0:len(arr2, 0), j in 0:len(arr2, 1)) {
+        arr2[i, j] = arr[2 * i + j] * 2;
     }
 
     for (i in 0:len(arr)) {
-        if (!(arr[i] == i && arr2[i] == 2 * i)) {
+        if (!(arr[i] == i && arr2[i >> 1, i % 2] == 2 * i)) {
             printf("incorrect\n");
             return -1;
         }
