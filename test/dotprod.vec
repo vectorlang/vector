@@ -1,0 +1,31 @@
+__device__ int add(int a, int b)
+{
+    return a + b;
+}
+
+int vec_main()
+{
+    int x[2048];
+    int y[2048];
+    int prod[2048];
+    expected := 0;
+
+    for (i in 0:2048) {
+        x[i] = random();
+        y[i] = random();
+    }
+
+    pfor (i in 0:2048)
+        prod[i] = x[i] * y[i];
+
+    dp := @reduce(add, prod);
+
+    for (i in 0:2048)
+        expected += (x[i] * y[i]);
+
+    if (dp == expected)
+        printf("correct\n");
+    else printf("incorrect\n");
+
+    return 0;
+}
