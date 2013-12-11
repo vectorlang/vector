@@ -2,6 +2,7 @@ open Ast
 open Complex
 open Environment
 open Symgen
+open Detect
 
 module StringMap = Map.Make(String);;
 
@@ -113,26 +114,58 @@ let generate_rettype dtype env =
       | _ -> generate_datatype dtype env
 
 let rec generate_lvalue modify lval env =
+    let rec generate_array_index array_id dim exprs env =
+        let generate_mid_index array_id dim expr env =
+            let typ = match (Environment.get_var_type array_id env) with
+              | ArrayType(typ) -> typ
+              | _ -> raise (Type_mismatch "Cannot index into non-array") in
+            Environment.combine env [
+                Verbatim("get_mid_index<");
+                Generator(generate_datatype typ);
+                Verbatim(">(");
+                Generator(generate_ident array_id);
+                Verbatim(", ");
+                Generator(generate_expr expr);
+                Verbatim(", " ^ string_of_int dim ^ ")");
+            ] in
+    match exprs with
+      | [] -> raise Invalid_operation
+      | [expr] ->
+            generate_mid_index array_id dim expr env
+      | expr :: tail ->
+            Environment.combine env [
+                Generator(generate_mid_index array_id dim expr);
+                Verbatim("+");
+                Generator(generate_array_index array_id (dim + 1) tail)
+            ] in
   match lval with
-   | Variable(i) ->
-       Environment.combine env [Generator(generate_ident i)]
-   | ArrayElem(ident, es) ->
-       Environment.combine env [
-         Generator(generate_ident ident);
-         Verbatim(".elem(" ^ (if modify then "true" else "false") ^ ", ");
-         Generator(generate_expr_list es);
-         Verbatim(")")
-       ]
-    | ComplexAccess(expr, ident) -> (
-        let _op = match ident with
-          Ident("re") -> ".x"
-        | Ident("im") -> ".y"
-        | _ -> raise Not_found in
-          Environment.combine env [
-            Generator(generate_expr expr);
-            Verbatim(_op)
-          ]
-      )
+    | Variable(i) ->
+        Environment.combine env [Generator(generate_ident i)]
+    | ArrayElem(ident, es) ->
+        if env.on_gpu then
+            Environment.combine env [
+                Generator(generate_ident ident);
+                Verbatim("->values[");
+                Generator(generate_array_index ident 0 es);
+                Verbatim("]")
+            ]
+        else
+            Environment.combine env [
+              Generator(generate_ident ident);
+              Verbatim(".elem(" ^ (if modify then "true" else "false") ^ ", ");
+              Generator(generate_expr_list es);
+              Verbatim(")")
+            ]
+     | ComplexAccess(expr, ident) -> (
+         let _op = match ident with
+           Ident("re") -> ".x"
+         | Ident("im") -> ".y"
+         | _ -> raise Not_found in
+           Environment.combine env [
+             Generator(generate_expr expr);
+             Verbatim(_op)
+           ]
+       )
 and generate_expr expr env =
   match expr with
     Binop(e1,op,e2) ->
@@ -308,7 +341,7 @@ and generate_expr expr env =
             let rec validate_type_list types expressions env =
                 match (types, expressions) with
                   | typ :: ttail, expr :: etail ->
-                        if (typ == infer_type expr env) then
+                        if (typ = infer_type expr env) then
                             validate_type_list ttail etail env
                         else false
                   | [], [] -> true
@@ -366,35 +399,49 @@ and generate_nonempty_expr_list expr_list env =
    | [] -> raise Empty_list
 and generate_decl decl env =
   match decl with
-   | AssigningDecl(ident,e) ->
-       let datatype = (infer_type e env) in
-       Environment.update_scope ident datatype
-          (Environment.combine env [
-            Generator(generate_datatype datatype);
-            Verbatim(" ");
-            Generator(generate_ident ident);
-            Verbatim(" = ");
-            Generator(generate_expr e)
-          ])
-   | PrimitiveDecl(d,i) ->
-       Environment.update_scope i d (Environment.combine env [
-         Generator(generate_datatype d);
-         Verbatim(" ");
-         Generator(generate_ident i)
-       ])
-   | ArrayDecl(d,i,es) ->
-       Environment.update_scope i (ArrayType(d)) (match es with
-          | [] -> "", env
-          | _ ->
-              Environment.combine env [
-                Verbatim("VectorArray<");
-                Generator(generate_datatype d);
-                Verbatim("> ");
-                Generator(generate_ident i);
-                Verbatim("(" ^ string_of_int (List.length es) ^ ", ");
-                Generator(generate_expr_list es);
-                Verbatim(")")
-              ])
+    | AssigningDecl(ident,e) ->
+        let datatype = (infer_type e env) in
+        Environment.update_scope ident datatype
+            (Environment.combine env [
+              Generator(generate_datatype datatype);
+              Verbatim(" ");
+              Generator(generate_ident ident);
+              Verbatim(" = ");
+              Generator(generate_expr e)
+            ])
+    | PrimitiveDecl(d,i) ->
+        Environment.update_scope i d (Environment.combine env [
+          Generator(generate_datatype d);
+          Verbatim(" ");
+          Generator(generate_ident i)
+        ])
+    | ArrayDecl(d,i,es) ->
+        Environment.update_scope i (ArrayType(d))
+            (if env.on_gpu then (match es with
+              | [] -> Environment.combine env [
+                  Verbatim("device_info<");
+                  Generator(generate_datatype d);
+                  Verbatim("> *");
+                  Generator(generate_ident i);
+              ]
+              | _ -> raise Not_allowed_on_gpu)
+            else (match es with
+              | [] -> Environment.combine env [
+                  Verbatim("VectorArray<");
+                  Generator(generate_datatype d);
+                  Verbatim("> ");
+                  Generator(generate_ident i);
+              ]
+              | _ ->
+                  Environment.combine env [
+                    Verbatim("VectorArray<");
+                    Generator(generate_datatype d);
+                    Verbatim("> ");
+                    Generator(generate_ident i);
+                    Verbatim("(" ^ string_of_int (List.length es) ^ ", ");
+                    Generator(generate_expr_list es);
+                    Verbatim(")")
+                  ]))
 
 let generate_range range env =
   match range with
@@ -500,11 +547,7 @@ let rec generate_statement statement env =
           ]
       | PforStatement(is, s) ->
           Environment.combine env [
-            Verbatim("pfor (");
-            NewScopeGenerator(generate_iterator_list is);
-            Verbatim(") {\n");
-            NewScopeGenerator(generate_statement s);
-            Verbatim("}")
+            NewScopeGenerator(generate_pfor_statement is s)
           ]
       | FunctionDecl(device, return_type, identifier, arg_list, body_sequence) ->
           let str, env = Environment.combine env [
@@ -737,6 +780,109 @@ and generate_for_statement (iterators, statements) env =
     Verbatim("}\n");
     Verbatim("}\n");
   ]
+and generate_pfor_statement iters stmt env =
+    (* generate intermediate symbols for array iterators *)
+    let rec get_array_ident_array ident_array index = function
+      | ArrayIterator(_, expr) :: tl ->
+            ident_array.(index) <- Symgen.gensym ();
+            get_array_ident_array ident_array (index + 1) tl
+      | _ :: tl -> get_array_ident_array ident_array (index + 1) tl
+      | [] -> ident_array in
+    let niters = List.length iters in
+    let array_ident_array =
+        get_array_ident_array (Array.make niters "") 0 iters in
+    (* setup an array of iterator structs *)
+    let gen_struct_mem iter_arr index mem_name expr env =
+        if (infer_type expr env) == Int32 then
+            Environment.combine env [
+                Verbatim(iter_arr ^ "[" ^ string_of_int index ^ "]."
+                            ^ mem_name ^ " = ");
+                Generator(generate_expr expr);
+                Verbatim(";\n")
+            ]
+        else raise (Type_mismatch "Iterator control must have type int32") in
+    (* assign start, stop, and inc for each iterator *)
+    let rec gen_iter_struct iter_arr index iters env =
+        match iters with
+          | RangeIterator(_, Range(start_expr, stop_expr, inc_expr)) :: tl ->
+                Environment.combine env [
+                    Generator(gen_struct_mem iter_arr index "start" start_expr);
+                    Generator(gen_struct_mem iter_arr index "stop" stop_expr);
+                    Generator(gen_struct_mem iter_arr index "inc" inc_expr);
+                    Generator(gen_iter_struct iter_arr (index + 1) tl)
+                ]
+          | ArrayIterator(_, array_expr) :: tl ->
+                let array_sym = Ident(array_ident_array.(index)) in
+                Environment.combine env [
+                    Generator(generate_decl (AssigningDecl(
+                        array_sym, array_expr)));
+                    Verbatim(";\n");
+                    Generator(gen_struct_mem iter_arr index "start" (IntLit(0l)));
+                    Generator(gen_struct_mem iter_arr index "stop"
+                        (FunctionCall(Ident("len"),
+                            [Lval(Variable(array_sym))])));
+                    Generator(gen_struct_mem iter_arr index "inc" (IntLit(1l)));
+                    Generator(gen_iter_struct iter_arr (index + 1) tl)
+                ]
+          | [] -> "", env in
+    (* turn the array into a list *)
+    let rec get_array_ident_list cur_list ident_array index n =
+        if index < n then
+            match ident_array.(index) with
+                (* empty strings are from range iters, so ignore them *)
+              | "" -> get_array_ident_list cur_list ident_array (index + 1) n
+              | id -> get_array_ident_list (Ident(id) :: cur_list) ident_array
+                            (index + 1) n
+        else cur_list in
+    (* array arguments must have their device info pointer passed in
+     * everything else can be passed in as-is *)
+    let generate_kernel_arg env id =
+        let Ident(s) = id in
+        match get_var_type id env with
+          | ArrayType(_) -> s ^ ".devInfo()"
+          | _ -> s in
+    let generate_ident_list ident_list env =
+        let ident_str = String.concat ", " (List.map
+                            (generate_kernel_arg env) ident_list) in
+        (* put a leading comma if non-empty, otherwise just return "" *)
+        if ident_str = "" then "", env else (", " ^ ident_str), env in
+    let generate_output_markings output_list =
+        String.concat "" (List.map (function Ident(s) ->
+                                    s ^ ".markDeviceDirty();\n") output_list) in
+    let iter_arr = Symgen.gensym () and
+        iter_devptr = Symgen.gensym () and
+        total_iters = Symgen.gensym () and
+        kernel_name = Symgen.gensym () and
+        gpu_inputs, gpu_outputs = detect stmt env and
+        array_ident_list = get_array_ident_list [] array_ident_array 0 niters in
+    let full_ident_list =
+        Detect.dedup (gpu_outputs @ gpu_inputs @ array_ident_list) in
+    let gen_kernel_decl id =
+        match Environment.get_var_type id env with
+          | ArrayType(typ) -> ArrayDecl(typ, id, [])
+          | typ -> PrimitiveDecl(typ, id) in
+    let kernel_args = List.map gen_kernel_decl full_ident_list in
+    Environment.update_pfor_kernels kernel_name iters kernel_args stmt
+        (Environment.combine env [
+            Verbatim("{\nstruct range_iter " ^ iter_arr ^
+                "[" ^ string_of_int niters ^ "];\n");
+            Generator(gen_iter_struct iter_arr 0 iters);
+            Verbatim("fillin_iters(" ^ iter_arr ^ ", " ^
+                        string_of_int niters ^ ");\n");
+            Verbatim("struct range_iter *" ^ iter_devptr ^
+                        " = device_iter(" ^ iter_arr ^ ", " ^
+                        string_of_int niters ^ ");\n");
+            Verbatim("size_t " ^ total_iters ^ " = total_iterations(" ^
+                        iter_arr ^ ", " ^ string_of_int niters ^ ");\n");
+            Verbatim(kernel_name ^ "<<<ceil_div(" ^ total_iters ^
+                        ", BLOCK_SIZE), BLOCK_SIZE>>>(" ^ iter_devptr ^ ", " ^
+                        string_of_int niters ^ ", " ^ total_iters);
+            Generator(generate_ident_list full_ident_list);
+            Verbatim(");\ncudaDeviceSynchronize();
+                        checkError(cudaGetLastError());\n");
+            Verbatim(generate_output_markings gpu_outputs);
+            Verbatim("cudaFree(" ^ iter_devptr ^ ");\n}\n")
+        ])
 
 let generate_toplevel tree =
     let env = Environment.create in
@@ -876,6 +1022,53 @@ let generate_device_forward_declarations env =
 
   generate_funcs kernel_funcs ""
 
+let generate_pfor_kernels env =
+    let env = Environment.set_on_gpu env in
+    let rec gen_iter_var_decls iter_arr index_var iter_index iterators env =
+        match iterators with
+          | [] -> "", env
+          | ArrayIterator(Ident(id), expr) :: tail -> raise Not_implemented
+          | RangeIterator(id, _) :: tail ->
+                let _, env = Environment.update_scope id Int32 ("", env) in
+                Environment.combine env [
+                    Verbatim("size_t ");
+                    Generator(generate_ident id);
+                    Verbatim(" = get_index_gpu(&" ^ iter_arr ^ "[" ^
+                             string_of_int iter_index ^ "], " ^ index_var ^ ");\n");
+                    Generator(gen_iter_var_decls iter_arr index_var
+                                (iter_index + 1) tail)
+                ] in
+    let rec gen_kernel pfor env =
+        let iter_arr = Symgen.gensym () and
+            niters = Symgen.gensym () and
+            total_iters = Symgen.gensym () and
+            index_var = Symgen.gensym () in
+        Environment.combine env ([
+            Verbatim("__global__ void " ^ pfor.pfor_kernel_name ^ "(");
+            Verbatim("struct range_iter *" ^ iter_arr ^ ", ");
+            Verbatim("size_t " ^ niters ^ ", ");
+            Verbatim("size_t " ^ total_iters)
+        ] @ (if pfor.pfor_arguments = [] then [Verbatim("){\n")] else [
+            Verbatim(", ");
+            Generator(generate_nonempty_decl_list pfor.pfor_arguments);
+            Verbatim("){\n")
+        ]) @ [
+            Verbatim("size_t " ^ index_var ^
+                    " = threadIdx.x + blockIdx.x * blockDim.x;\n");
+            Verbatim("if (" ^ index_var ^ " < " ^ total_iters ^ "){\n");
+            Generator(gen_iter_var_decls iter_arr index_var 0
+                        pfor.pfor_iterators);
+            Generator(generate_statement pfor.pfor_statement);
+            Verbatim("}\n}\n");
+        ]) in
+    let rec generate_kernels str = function
+      | [] -> str
+      | pfor :: tail ->
+            let newstr, _ = Environment.combine env
+                [NewScopeGenerator(gen_kernel pfor)] in
+            generate_kernels (str ^ newstr) tail in
+    generate_kernels "" env.pfor_kernels ;;
+
 let _ =
   let lexbuf = Lexing.from_channel stdin in
   let tree = Parser.top_level Scanner.token lexbuf in
@@ -883,6 +1076,7 @@ let _ =
   let forward_declarations = generate_device_forward_declarations env in
   let kernel_invocations = generate_kernel_invocation_functions env in
   let kernel_functions  = generate_kernel_functions env in
+  let pfor_kernels = generate_pfor_kernels env in
   let header =  "#include <stdio.h>\n\
                  #include <stdlib.h>\n\
                  #include <stdint.h>\n\
@@ -891,4 +1085,5 @@ let _ =
   print_string forward_declarations;
   print_string kernel_functions;
   print_string kernel_invocations;
+  print_string pfor_kernels;
   print_string code

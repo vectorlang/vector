@@ -10,6 +10,12 @@ int[] gen2d_array()
     return arr1;
 }
 
+void print_array(int8 arr[])
+{
+    for (num in arr)
+        printf("%d\n", num);
+}
+
 int vec_main()
 {
     arr1 := gen2d_array();
@@ -27,12 +33,7 @@ int vec_main()
     }
 
     arr2 := {int8(arr1[0, 0]), int8(arr1[0,1])};
-
-    i = 0;
-    while (i < 2) {
-        printf("%d\n", arr2[i]);
-        i++;
-    }
+    print_array(arr2);
 
     return 0;
 }

@@ -1,0 +1,22 @@
+int vec_main()
+{
+    int arr[1000, 2];
+    scale := 2;
+
+    pfor (i in 0:len(arr, 0), j in 0:len(arr, 1))
+        arr[i, j] = 2 * i + j;
+
+    pfor (i in 0:len(arr, 0), j in 0:len(arr, 1))
+        arr[i, j] = scale * arr[i, j];
+
+    for (i in 0:len(arr, 0), j in 0:len(arr, 1)) {
+        if (arr[i, j] != (4 * i + 2 * j)) {
+            printf("incorrect\n");
+            return -1;
+        }
+    }
+
+    printf("correct\n");
+
+    return 0;
+}
