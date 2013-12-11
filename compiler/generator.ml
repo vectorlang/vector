@@ -855,7 +855,8 @@ and generate_pfor_statement iters stmt env =
         kernel_name = Symgen.gensym () and
         gpu_inputs, gpu_outputs = detect stmt env and
         array_ident_list = get_array_ident_list [] array_ident_array 0 niters in
-    let full_ident_list = (gpu_outputs @ gpu_inputs @ array_ident_list) in
+    let full_ident_list =
+        Detect.dedup (gpu_outputs @ gpu_inputs @ array_ident_list) in
     let gen_kernel_decl id =
         match Environment.get_var_type id env with
           | ArrayType(typ) -> ArrayDecl(typ, id, [])

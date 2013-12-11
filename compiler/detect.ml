@@ -100,3 +100,7 @@ and detect_range range env =
 let detect stmt env =
     let gpu_inputs, gpu_outputs = detect_statement stmt env in
     (IdentSet.elements gpu_inputs, IdentSet.elements gpu_outputs)
+
+let dedup lst =
+    IdentSet.elements (List.fold_left 
+        (fun set itm -> IdentSet.add itm set) IdentSet.empty lst)
