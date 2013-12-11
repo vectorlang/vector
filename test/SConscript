@@ -43,12 +43,10 @@ env.Append(BUILDERS = {'CudaGen' : cuda_gen,
 # Add the name of your example to this list to get it compiled
 test_cases = ['hello', 'reduce', 'control_flow', 'arrays', 'functions', 'float',
               'complex', 'map', 'logic', 'inline', 'strings', 'length', 'pfor']
-cuda_test_cases = ['dotprod', 'vecmult']
 headers = ['libvector', 'vector_utils', 'vector_array', 'vector_iter']
 
-for test_case in test_cases + cuda_test_cases:
-    if test_case in test_cases:
-        env.CudaGen(test_case + '.cu', [test_case + '.vec'])
+for test_case in test_cases:
+    env.CudaGen(test_case + '.cu', [test_case + '.vec'])
     env.CudaObject(test_case + '.o', [test_case + '.cu'] +
         ['../rtlib/' + h + '.hpp' for h in headers])
     env.Program(test_case, test_case + '.o')
