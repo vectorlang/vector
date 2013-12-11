@@ -1,17 +1,16 @@
 int vec_main()
 {
-    int arr[2000];
-    int arr2[1000, 2];
+    int arr[1000, 2];
+    scale := 2;
 
-    pfor (i in 0:len(arr)) {
-        arr[i] = i;
-    }
-    pfor (i in 0:len(arr2, 0), j in 0:len(arr2, 1)) {
-        arr2[i, j] = arr[2 * i + j] * 2;
-    }
+    pfor (i in 0:len(arr, 0), j in 0:len(arr, 1))
+        arr[i, j] = 2 * i + j;
 
-    for (i in 0:len(arr)) {
-        if (!(arr[i] == i && arr2[i >> 1, i % 2] == 2 * i)) {
+    pfor (i in 0:len(arr, 0), j in 0:len(arr, 1))
+        arr[i, j] = scale * arr[i, j];
+
+    for (i in 0:len(arr, 0), j in 0:len(arr, 1)) {
+        if (arr[i, j] != (4 * i + 2 * j)) {
             printf("incorrect\n");
             return -1;
         }
