@@ -1023,23 +1023,17 @@ let generate_kernel_functions env =
   generate_funcs kernel_funcs ""
 
 let generate_device_forward_declarations env =
-  let kernel_funcs, func_map = env.kernel_functions, env.func_type_map in
-  let rec generate_funcs funcs str =
-    match funcs with
-    | [] -> str
-    | head :: tail ->
-        let device,_, arg_list = Environment.get_func_info
-            (Ident (head.function_name)) env in
-        let arg_str_list = List.map (fun x ->
-          let new_str, _ = generate_datatype x env in new_str) arg_list in
-        let arg_str = String.concat "," arg_str_list in
-        let new_str =
-          if device then str ^ "\n__device__ " ^ head.function_type ^ " " ^
-        head.function_name ^ "(" ^ arg_str ^  ");\n"
-          else "" in
-        generate_funcs tail new_str in
-
-  generate_funcs kernel_funcs ""
+    let gen_type_list types =
+        if types = [] then "void"
+        else String.concat ", "
+            (List.map
+                (fun typ -> fst (generate_datatype typ env)) types) in
+    let gen_fdecl_if_needed (Ident(id)) (device, rettype, argtypes) genstr =
+        if device then
+            genstr ^ "__device__ " ^ fst (generate_rettype rettype env) ^ " " ^
+            id ^ "(" ^ (gen_type_list argtypes) ^ ");\n"
+        else genstr in
+    FunctionMap.fold gen_fdecl_if_needed env.func_type_map ""
 
 let generate_pfor_kernels env =
     let env = Environment.set_on_gpu env in
