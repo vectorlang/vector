@@ -1,4 +1,4 @@
-int mandelbrot(int xi, int yi, int xn, int yn,
+__device__ int mandelbrot(int xi, int yi, int xn, int yn,
     float left, float right, float top, float bottom)
 {
     iter := 0;
@@ -42,7 +42,7 @@ int vec_main()
     bottom := float(-1.0);
 
 
-    for (yi in 0:img_height, xi in 0:img_width) {
+    pfor (yi in 0:img_height, xi in 0:img_width) {
         shades[yi, xi] = mandelbrot(xi, yi, img_width, img_height,
                             left, right, top, bottom);
     }
