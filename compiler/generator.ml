@@ -68,7 +68,10 @@ let rec infer_type expr env =
           | Ident("len") | Ident("random") -> Int32
           | Ident("printf") | Ident("inline") | Ident("assert") -> Void
           | Ident("abs") -> (match es with
-              | [expr] -> infer_type expr env
+              | [expr] -> (match infer_type expr env with
+                  | Complex64 -> Float32
+                  | Complex128 -> Float64
+                  | t -> t)
               | _ -> raise (Type_mismatch "Wrong number of arguments to abs()"))
           | _ -> let (_,dtype,_) = Environment.get_func_info i env in dtype)
 
