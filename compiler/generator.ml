@@ -64,9 +64,12 @@ let rec infer_type expr env =
       | Assign(lval, expr) ->
             let l = Lval(lval) in
             match_type [infer_type l env; infer_type expr env]
-      | FunctionCall(i, _) -> (match i with
+      | FunctionCall(i, es) -> (match i with
           | Ident("len") | Ident("random") -> Int32
           | Ident("printf") | Ident("inline") | Ident("assert") -> Void
+          | Ident("abs") -> (match es with
+              | [expr] -> infer_type expr env
+              | _ -> raise (Type_mismatch "Wrong number of arguments to abs()"))
           | _ -> let (_,dtype,_) = Environment.get_func_info i env in dtype)
 
       | HigherOrderFunctionCall(hof, f, expr) ->
@@ -337,6 +340,19 @@ and generate_expr expr env =
         | Ident("random") -> (match es with
             | [] -> [ Verbatim("random()") ]
             | _ -> raise (Type_mismatch "Too many argument to random"))
+        | Ident("abs") -> (match es with
+            | [expr] ->
+                let absfunc = (match infer_type expr env with
+                  | Int8 | Int16 | Int32 | Int64 | Float32 | Float64 -> "abs"
+                  | Complex64 -> "cuCabsf"
+                  | Complex128 -> "cuCabs"
+                  | _ -> raise (Type_mismatch "abs() takes only numbers")) in
+                [
+                    Verbatim(absfunc ^ "(");
+                    Generator(generate_expr expr);
+                    Verbatim(")");
+                ]
+            | _ -> raise (Type_mismatch "Wrong number of arguments to abs()"))
         | _ -> let _, _, arg_list = Environment.get_func_info i env in
             let rec validate_type_list types expressions env =
                 match (types, expressions) with

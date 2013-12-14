@@ -15,6 +15,7 @@ int vec_main()
     printf("%0.1f + %0.1fj\n", i.re, i.im);
     printf("%0.1f + %0.1fj\n", j.re, j.im);
     printf("%0.1f + %0.1fj\n", k.re, k.im);
+    printf("%0.1f\n", abs(j));
 
     return 0;
 }

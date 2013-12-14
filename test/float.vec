@@ -7,7 +7,7 @@ int vec_main()
 {
     j := divide(3., 4.);
 
-    printf("%0.2f\n", j);
+    printf("%0.2f\n", abs(j));
 
     return 0;
 }
