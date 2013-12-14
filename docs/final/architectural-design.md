@@ -58,7 +58,7 @@ in Ocaml with the following fields:
 *  `on_gpu`
 
 In CUDA, the way we run functions on the GPU is through functions called
-kernels.  Kernels are special functions, specified with the directive `__device__`
+kernels.  Kernels are special functions, specified with the directive `__global__`
 and have special requirements.  Kernels are invoked from code running on the CPU
 through specifying the number of blocks and threads we need to run for that function,
 and the function name.  A typical kernel invocation looks like this:
