@@ -36,16 +36,16 @@ fname=$1
 fname_noext="${fname%.*}"
 
 echo "./compiler/generator < $fname > ${fname_noext}.cu"
-./compiler/generator < "$fname" > "${fname_noext}.cu"
+./compiler/generator < "$fname" > "${fname_noext}.cu" || exit 1
 
 if [ "$action" != "generate" ]; then
     echo "nvcc -c $NVCC_FLAGS ${fname_noext}.cu -o ${fname_noext}.o"
-    nvcc -c $NVCC_FLAGS "${fname_noext}.cu" -o "${fname_noext}.o"
+    nvcc -c $NVCC_FLAGS "${fname_noext}.cu" -o "${fname_noext}.o" || exit 1
 fi
 
 if [ "$action" == "link" ]; then
     echo "g++ $LD_FLAGS ${fname_noext}.o -o ${fname_noext}"
-    g++ $LD_FLAGS "${fname_noext}.o" -o "${fname_noext}"
+    g++ $LD_FLAGS "${fname_noext}.o" -o "${fname_noext}" || exit 1
 fi
 
 if [ "$action" != "generate" ]; then
