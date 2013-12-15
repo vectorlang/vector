@@ -50,7 +50,6 @@ The following identifiers are reserved for language keywords
 `for`
 `pfor`
 `return`
-`sync`
 
 ### Constants
 
@@ -662,8 +661,6 @@ are implemented in C.
 
 > > | *jump-statement*
 
-> > | *sync-statement*
-
 Statements in Vector are executed in sequence except as described as part of
 compound statements, selection statements, iteration statements, and jump
 statements.
@@ -784,14 +781,6 @@ A return statement returns control of execution to the caller of the current
 function. If the statement has an expression, the expression is evaluated (with
 side effects) and the result is returned to the caller.
 
-### Synchronization Statements
-
-> *sync-statement* ::= `sync` `;`
-
-The `sync` statement is used inside `pfor` statements for synchronization.
-When a thread in a `pfor` reaches a `sync`, it will wait at that point until
-all other threads reach the `sync` statement before continuing.
-
 ## External Declarations
 
 ## Scope
@@ -801,15 +790,6 @@ statement (see "Compound Statements" section). Most frequently, a block is a
 section of code contained by a function, conditional, or looping construct. Each
 nested block creates a new scope, and variables declared in the new scope
 supersede variables declared in higher scopes.
-
-## Include Statements
-
-> *include-statement* ::= `include` *string-literal*  `;`
-
-The `include` statement allows a Vector program to include code from other
-files. It take a file name as a string literal and includes code from that file.
-The file could either be another Vector program or a C/C++ header file, and
-the file extension is optional.
 
 ## Grammar
 
@@ -834,8 +814,6 @@ the file extension is optional.
 > > *statement statement-seq*
 
 > > | &lt;epsilon&gt;
-
-> *include-statement* ::= `include` *string-literal* `;`
 
 > *datatype* ::=
 
