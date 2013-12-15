@@ -1,5 +1,3 @@
-include "assert.h";
-
 int vec_main()
 {
     assert(3 == 3);
