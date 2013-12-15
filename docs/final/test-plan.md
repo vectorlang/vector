@@ -53,9 +53,23 @@ new test case. Then, add `.vec` and `.out` for the test case.
 Waiting until we have better example programs to implement this. Should include
 generated source.
 
-### Test Suites Used
+### Tests Used
 
-Waiting until we have a complete test suite.
+* **arrays.vec** ensures that arrays can both be written to and read from 
+* **complex.vec** ensures that our native support for complex numbers works correctly
+* **dotprod.vec** performs the dot product of two vectors on the GPU
+* **float.vec** ensures that floating point arithmetic works
+* **functions.vec** ensures that calling functions works correctly
+* **hello.vec** ensures that basic print commands work
+* **map.vec** tests the higher-order function `map`
+* **reduce.vec** tests the higher-order function `reduce`
+* **control_flow.vec** ensures that Vector's main control structures--`for`, 
+`while`, and `if` work correctly
+* **length.vec** ensures that the native function `length` works on arrays.
+* **pfor.vec** ensures that our parallel structure `pfor` works.
+* **strings.vec** ensures that string printing operations workk
+* **inline.vec** ensures that our `inline` macro for injecting CUDA code works
+* **logic.vec** ensures that boolean logic works correctly
 
 ### Responsibilities
 
