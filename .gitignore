@@ -33,3 +33,7 @@
 /test/strings
 /test/vecmult
 /test/pfor
+/test/time
+/bench/mandelbrot-bench
+/bench/mandelbrot-cpu
+/bench/mandelbrot-gpu
