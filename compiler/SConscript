@@ -1,7 +1,6 @@
-import os
 import subprocess as sp
 
-env = Environment(ENV=os.environ)
+Import('env')
 
 AddOption('--ocamlc', dest='ocamlc', default='ocamlc',
           help = 'Ocaml compiler to use')

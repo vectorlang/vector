@@ -1,6 +1,4 @@
-import os
-
-env = Environment(ENV=os.environ)
+Import('env')
 
 cuda_gen = Builder(action='./compiler/generator < $SOURCE > $TARGET')
 cuda_object = Builder(action='$NVCC -c $NVCC_FLAGS $SOURCE -o $TARGET')
