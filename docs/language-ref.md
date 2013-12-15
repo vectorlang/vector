@@ -483,6 +483,23 @@ A function may call itself.
 The result of evaluating the function call is the value returned by the function
 called.
 
+Vector provides the following builtin functions
+
+ * `len(arr[, dim])` - Returns the length of an array. By default, it returns
+    the total size of the array. If an optional second parameter is passed in,
+    `len` returns the length along the given dimension of an array.
+    Therefore, for a 2D array `arr` with 3 rows and 2 columns, `len(arr) == 6`,
+    `len(arr, 0) == 3`, and `len(arr, 1) == 2`.
+ * `random()` - Generates a random integer.
+ * `printf(string_lit[, ...])` - prints to standard output, formatting is
+    identical to C's printf function
+ * `inline(cuda_code)` - takes a string literal of cuda code and passes it
+    verbatim to the CUDA output
+ * `assert(condition)` - checks if a condition is true and exits with error
+    if it is not
+ * `abs` - takes the absolute value of scalar numeric arguments and the
+    magnitude of complex arguments
+
 ### Higher-Order Functions
 
 > *higher-order-function-call* ::=
