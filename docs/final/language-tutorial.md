@@ -171,7 +171,7 @@ Here's an example:
       return 0;
     }
 
-In this example the when `@map` is called, it returns an array of the squares of
+In this example the when `map` is called, it returns an array of the squares of
 the elements of the input array.
 
 ####2.9.2 reduce
@@ -183,9 +183,9 @@ of the array, obtaining a new array containing half the number of the values of 
 and then by performing the same operation on this new array, and continuing
 until a single value has been obtained.
 
-The return value of the function passed to `@reduce` must be of the same type
+The return value of the function passed to `reduce` must be of the same type
 as the elements of the input array, and the types of the arguments of the function
-passed to `@reduce` must also be of the same type.  Here's an example:
+passed to `reduce` must also be of the same type.  Here's an example:
 
     __device__ int add(int x, int y){
       return x + y;
@@ -196,7 +196,7 @@ passed to `@reduce` must also be of the same type.  Here's an example:
       return 0;
     }
 
-In this example, `@reduce` returns the sum of the input array.
+In this example, `reduce` returns the sum of the input array.
 
 ####2.9.3 pfor
 
