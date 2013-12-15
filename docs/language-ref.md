@@ -497,8 +497,10 @@ Vector provides the following builtin functions
     verbatim to the CUDA output
  * `assert(condition)` - checks if a condition is true and exits with error
     if it is not
- * `abs` - takes the absolute value of scalar numeric arguments and the
-    magnitude of complex arguments
+ * `abs(number)` - takes the absolute value of scalar numeric arguments and
+    the magnitude of complex arguments
+ * `time()` - returns the current system time as a float64 representing the
+    fractional number of seconds since the beginning of the epoch
 
 ### Higher-Order Functions
 
