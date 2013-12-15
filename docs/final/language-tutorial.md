@@ -166,12 +166,12 @@ Here's an example:
      return x * x;
     }
 
-    int another_function(int inputs[]) {
+    int[] another_function(int inputs[]) {
       squares := @map(square, inputs);
-      return 0;
+      return squares;
     }
 
-In this example the when `map` is called, it returns an array of the squares of
+In this example `another_function` returns an array of the squares of
 the elements of the input array.
 
 ####2.9.2 reduce
@@ -193,10 +193,10 @@ passed to `reduce` must also be of the same type.  Here's an example:
 
     int another_function(int inputs[]){
       sum := @reduce(add, arr);
-      return 0;
+      return sum;
     }
 
-In this example, `reduce` returns the sum of the input array.
+In this example, `another_function` returns the sum of the input array.
 
 ####2.9.3 pfor
 
