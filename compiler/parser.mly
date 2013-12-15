@@ -1,7 +1,6 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LCURLY RCURLY LSQUARE RSQUARE
-%token INCLUDE
 %token DOT COMMA SC COLON AT
 %token EQUAL DECL_EQUAL
 %token PLUS_EQUALS MINUS_EQUALS TIMES_EQUALS DIVIDE_EQUALS MODULO_EQUALS
@@ -11,7 +10,7 @@
 %token PLUS MINUS TIMES DIVIDE MODULO
 %token LOGNOT BITNOT DEC INC
 %token IF ELSE WHILE FOR PFOR IN
-%token RETURN VOID SYNC
+%token RETURN
 %token DEVICE
 %token HASH
 %token EOF
@@ -21,8 +20,7 @@
 %token <string> IDENT TYPE STRING_LITERAL
 %token <char> CHAR_LITERAL
 
-%left SC
-%right DECL_EQUAL EQUAL PLUS_EQUALS MINUS_EQUALS TIMES_EQUALS DIVIDE_EQUALS MODULO_EQUALS LSHIFT_EQUALS RSHIFT_EQUALS BITOR_EQUALS BITAND_EQUALS BITXOR_EQUALS
+%right EQUAL PLUS_EQUALS MINUS_EQUALS TIMES_EQUALS DIVIDE_EQUALS MODULO_EQUALS LSHIFT_EQUALS RSHIFT_EQUALS BITOR_EQUALS BITAND_EQUALS BITXOR_EQUALS
 %right DOT
 %left LOGOR
 %left LOGAND
@@ -34,8 +32,7 @@
 %left LSHIFT RSHIFT
 %left PLUS MINUS
 %left TIMES DIVIDE MODULO
-%right UMINUS LOGNOT BITNOT DEC INC
-%nonassoc LPAREN RPAREN LSQUARE RSQUARE
+%right UMINUS LOGNOT BITNOT
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -143,7 +140,6 @@ statement:
   | RETURN expr SC { ReturnStatement($2) }
   | RETURN SC { VoidReturnStatement }
 
-  | SYNC SC { SyncStatement }
 
 iterator_list:
   | iterator COMMA iterator_list { $1 :: $3 }
@@ -169,7 +165,6 @@ top_level_statement:
   | DEVICE datatype ident LPAREN param_list RPAREN SC
       { ForwardDecl(true, $2, $3, $5) }
   | decl { Declaration($1) }
-  | INCLUDE STRING_LITERAL SC { IncludeStatement($2) }
 
 param:
   | datatype ident { PrimitiveDecl($1, $2) }

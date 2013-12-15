@@ -67,7 +67,6 @@ type statement =
     CompoundStatement of statement list
   | Declaration of decl
   | Expression of expr
-  | IncludeStatement of string
   | EmptyStatement
   | IfStatement of expr * statement * statement
   | WhileStatement of expr * statement
@@ -77,7 +76,6 @@ type statement =
   | ForwardDecl of bool * datatype * ident * decl list
   | ReturnStatement of expr
   | VoidReturnStatement
-  | SyncStatement
 
 let type_of_string = function
     | "bool" -> Bool

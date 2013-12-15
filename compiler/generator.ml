@@ -538,10 +538,6 @@ let rec generate_statement statement env =
             Generator(generate_expr e);
             Verbatim(";")
           ]
-      | IncludeStatement(s) ->
-          Environment.combine env [
-            Verbatim("#include <" ^ s ^ ">\n")
-          ]
       | EmptyStatement ->
           Environment.combine env [Verbatim(";")]
       | IfStatement(e, s1, s2) ->
@@ -608,8 +604,6 @@ let rec generate_statement statement env =
           ]
       | VoidReturnStatement ->
           Environment.combine env [Verbatim("return;")]
-      | SyncStatement ->
-          Environment.combine env [Verbatim("sync;")]
 
 and generate_statement_list statement_list env =
     match statement_list with
