@@ -148,6 +148,55 @@ Notice that in the above declaration, the type of result is inferred from the re
 
 The coolest parts about Vector are the parallel processing components which abstract away some of the details that may have confused users when programming in CUDA. Three of the most heavily used programming patterns for GPU processing, (map, reduce, parallel for) have been implemented in Vector.
 
-2.9.1 map
+####2.9.1 map
 
+Higher-order functions `map` and `reduce` in Vector are called with a `@` character
+function at the beginning, but besides designation appear and are called like normal
+functions.  `map` takes as an argument a function of a single
+argument, and an array.  The function that gets passed to `map` must be designated
+with the `__device__` directive, as this function is run on the GPU.  The map
+operation then applies the function passed in to every element of the array,
+and returns a new array with the results.  Note that the argument type of the function
+passed must be equivalent to the type of the elements of the array, but the
+return type can be different.
+
+Here's an example:
+
+    __device__ float square(float x) {
+     return x * x;
+    }
+
+    int another_function(int inputs[]) {
+      squares := @map(square, inputs);
+      return 0;
+    }
+
+In this example the when `@map` is called, it returns an array of the squares of
+the elements of the input array.
+
+####2.9.2 reduce
+
+The higher-order function `reduce` takes as arguments a function that takes
+two arguments and an array.  Reduce then applies the function to combine the elements
+of the array.  It does this by first applying the function to pairs of elements
+of the array, obtaining a new array containing half the number of the values of the original,
+and then by performing the same operation on this new array, and continuing
+until a single value has been obtained.
+
+The return value of the function passed to `@reduce` must be of the same type
+as the elements of the input array, and the types of the arguments of the function
+passed to `@reduce` must also be of the same type.  Here's an example:
+
+    __device__ int add(int x, int y){
+      return x + y;
+    }
+
+    int another_function(int inputs[]){
+      sum := @reduce(add, arr);
+      return 0;
+    }
+
+In this example, `@reduce` returns the sum of the input array.
+
+####2.9.3 pfor
 
