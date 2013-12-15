@@ -1,0 +1,10 @@
+Import('env')
+
+pandoc = Builder(action='pandoc $SOURCES -o $TARGET')
+
+env.Append(BUILDERS = {'Pandoc': pandoc})
+
+env.Pandoc('final-report.html', ['proposal.md', 'language-tutorial.md',
+                                 'language-ref.md', 'project-plan.md',
+                                 'architectural-design.md', 'test-plan.md'])
+env.Pandoc('final-report.pdf', 'final-report.html')
