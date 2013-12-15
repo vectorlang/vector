@@ -50,8 +50,50 @@ new test case. Then, add `.vec` and `.out` for the test case.
 
 ### Representative Programs
 
-Waiting until we have better example programs to implement this. Should include
-generated source.
+An example of a non-trivial program in vector is calculation of the
+mandelbrot set.
+
+    __device__ int mandelbrot(int xi, int yi, int xn, int yn,
+        float left, float right, float top, float bottom)
+    {
+        iter := 0;
+
+        x0 := left + (right - left) / float(xn) * float(xi);
+        y0 := bottom + (top - bottom) / float(yn) * float(yi);
+        z0 := #(x0, y0);
+        z := #(float(0), float(0));
+
+        while (iter < 256 && abs(z) < 2) {
+            z = z * z + z0;
+            iter++;
+        }
+
+        return iter;
+    }
+
+    int vec_main()
+    {
+        img_height := 256;
+        img_width := 384;
+
+        int shades[img_height, img_width];
+
+        left := float(-2.0);
+        right := float(1.0);
+        top := float(1.0);
+        bottom := float(-1.0);
+
+
+        pfor (yi in 0:img_height, xi in 0:img_width) {
+            shades[yi, xi] = mandelbrot(xi, yi, img_width, img_height,
+                                left, right, top, bottom);
+        }
+
+        return 0;
+    }
+
+The program launches a pfor thread for each pixel of the image which computes
+the number of iterations til convergence for that point on the complex plane.
 
 ### Tests Used
 
@@ -71,7 +113,45 @@ generated source.
 * **inline.vec** ensures that our `inline` macro for injecting CUDA code works
 * **logic.vec** ensures that boolean logic works correctly
 
+### Benchmarks
+
+We benchmarked the performance of vector code on the CPU and GPU using the
+mandelbrot example shown earlier. For the GPU, we used the same code as above.
+For the CPU, we used similar code, except the pfor statement was replaced
+with a for statement, and the inner `mandelbrot` function was no longer a
+device function. By measuring how long it took to complete the computation
+for increasing image sizes using the `time` builtin function, we were able to
+compare how CPU and GPU code scaled with increasing workloads.
+
+The benchmarks were performed on a desktop computer with a 2.5 GHz AMD Phenom
+processor and a NVIDIA GeForce 8400 GS GPU. The results are as follows
+
+#### CPU Results
+
+<table>
+    <tr><th>Width</th><th>Height</th><th>Time 1</th><th>Time 2</th><th>Time 3</th></tr>
+    <tr><td>640</td><td>480</td><td>5.16</td><td>5.16</td><td>5.16</td></tr>
+    <tr><td>800</td><td>600</td><td>8.06</td><td>8.07</td><td>8.07</td></tr>
+    <tr><td>1024</td><td>768</td><td>13.22</td><td>13.22</td><td>13.22</td></tr>
+    <tr><td>1152</td><td>864</td><td>16.72</td><td>16.73</td><td>16.74</td></tr>
+    <tr><td>1280</td><td>960</td><td>20.64</td><td>20.66</td><td>20.65</td></tr>
+</table>
+
+#### GPU Results
+
+<table>
+    <tr><th>Width</th><th>Height</th><th>Time 1</th><th>Time 2</th><th>Time 3</th></tr>
+    <tr><td>640</td><td>480</td><td>0.19</td><td>0.19</td><td>0.19</td></tr>
+    <tr><td>800</td><td>600</td><td>0.28</td><td>0.28</td><td>0.28</td></tr>
+    <tr><td>1024</td><td>768</td><td>0.47</td><td>0.46</td><td>0.46</td></tr>
+    <tr><td>1152</td><td>864</td><td>0.53</td><td>0.53</td><td>0.53</td></tr>
+    <tr><td>1280</td><td>960</td><td>0.61</td><td>0.61</td><td>0.61</td></tr>
+</table>
+
+![Benchmark Results](benchmark-result-plot.png)
+
 ### Responsibilities
 
 Zachary was responsible for the initial configuration of the test suites. The
 implementers of language features were responsible for their own test suites.
+Howie wrote the Mandelbrot example and benchmarks.
