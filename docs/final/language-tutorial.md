@@ -1,6 +1,6 @@
 ##2. Language tutorial
 
-	Much of the Vector language is very similar to C. Therefore, to keep this tutorial short, we focus mainly on the differences between Vector and C. We assume readers have a basic understanding of C.
+Much of the Vector language is very similar to C. Therefore, to keep this tutorial short, we focus mainly on the differences between Vector and C. We assume readers have a basic understanding of C.
 
 ###2.1 Environment Settings
 
@@ -8,7 +8,7 @@ To compile and run Vector Language programs, you must have a CUDA compiler and a
 
 ###2.2 Building the Compiler
 
-	Compilation of the Vector compiler requires OCaml (version 4.0.0 or higher,  including ocamllex and ocamlyacc) and the SCons build system, which requires Python2.  Simply type ‘scons’ in the build directory and the compiler binary will be named ‘generator’ and located in the ‘compiler’ subdirectory. 
+Compilation of the Vector compiler requires OCaml (version 4.0.0 or higher,  including ocamllex and ocamlyacc) and the SCons build system, which requires Python2.  Simply type ‘scons’ in the build directory and the compiler binary will be named ‘generator’ and located in the ‘compiler’ subdirectory. 
 
 ###2.3 Hello World
 
@@ -104,7 +104,7 @@ The Vector language supports standard conditional statements and looping constru
 
 The for-statement is a looping construct more similar to that found in Python. It loops over iterators, which can either be ranges or array elements. A single for loop can loop over multiple iterators simultaneously.
 
-Ranges are specified in the format a:b:c, where a is the initial value, b is the upper bound (non-inclusive), and c is the amount by which we increment on each iteration. c can be omitted, or it can be negative. a, b, and c need not be integer literals; they may also be expressions. Also, using multiple iterators separated by a comma will produce code equivalent to two nested loops. Example:
+Ranges are specified in the format a : b : c, where a is the initial value, b is the upper bound (non-inclusive), and c is the amount by which we increment on each iteration. c can be omitted, or it can be negative. a, b, and c need not be integer literals; they may also be expressions. Also, using multiple iterators separated by a comma will produce code equivalent to two nested loops. Example:
 
 	for (i in 0:5:2, j in 0:4) {
 		// some code
