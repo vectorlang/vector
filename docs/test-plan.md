@@ -148,7 +148,7 @@ processor and a NVIDIA GeForce 8400 GS GPU. The results are as follows
     <tr><td>1280</td><td>960</td><td>0.61</td><td>0.61</td><td>0.61</td></tr>
 </table>
 
-![Benchmark Results](benchmark-result-plot.png)
+![Benchmark Results](docs/benchmark-result-plot.png)
 
 ### Responsibilities
 

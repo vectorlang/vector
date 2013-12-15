@@ -1,5 +1,5 @@
 # Vector: A High-Level Programming Language for the GPU
-_Howard Mao (<zm2169@columbia.edu>), Zachary Newman (<zjn2101@columbia.edu>), Sidharth Shanker (<sps2133@columbia.edu>), Jonathan Yu (<jy2432@columbia.edu>)_
+*Harry Lee (hhl2114), Howard Mao (zm2169), Zachary Newman (zjn2101), Sidharth Shanker (sps2133), Jonathan Yu (jy2432)*
 
 ## Introduction
 
@@ -130,10 +130,3 @@ The equivalent CUDA program would look like this.
 
         return 0;
     }
-
-## References
-
-[1] GPU Ocelot project: <http://gpuocelot.gatech.edu/>
-
-[GPU Ocelot]: http://gpuocelot.gatech.edu/
-
