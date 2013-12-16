@@ -1,10 +1,13 @@
 Import('env')
 
-pandoc = Builder(action='pandoc $SOURCES -o $TARGET')
+pandoc_html = Builder(action='pandoc $SOURCES -o $TARGET')
+pandoc_pdf = Builder(action='pandoc --template=docs/template.tex $SOURCE -o $TARGET')
 
-env.Append(BUILDERS = {'Pandoc': pandoc})
+env.Append(BUILDERS = {'PandocHTML': pandoc_html, 'PandocPDF': pandoc_pdf})
+env.Append(TEMPLATE = "docs/template.tex")
 
-env.Pandoc('final-report.html', ['proposal.md', 'language-tutorial.md',
-                                 'language-ref.md', 'project-plan.md',
-                                 'architectural-design.md', 'test-plan.md'])
-env.Pandoc('final-report.pdf', 'final-report.html')
+env.PandocHTML('final-report.html',
+        ['proposal.md', 'language-tutorial.md', 'language-ref.md',
+         'project-plan.md', 'architectural-design.md', 'test-plan.md'])
+
+env.PandocPDF('final-report.pdf', ['final-report.html', 'template.tex'])
