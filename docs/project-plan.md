@@ -14,6 +14,28 @@ As mentioned in the development process description, each member contributed to 
 
 ###4.5 Style Guide
 
+#### Ocaml coding style
+
+ * Indentations should be four spaces
+ * Exception to rule above is pattern matchings, which should be two spaces,
+   followed by the pipe character, another space, and then the pattern
+ * For `match` statements, the first pattern should begin with a pipe
+   character. This rule also holds for other statements that use the pipe,
+   such as `type`. The rule can be ignored if the statement is all on one line.
+ * No trailing whitespace at the end of lines
+ * Lines should not be much longer that 80 characters
+
+#### C++ coding style
+
+ * Indentations should be tabs (hard tabs). Tabs are taken to be equivalent
+   in width to 8 spaces.
+ * The opening curly brace of a compound statement (like `if` or `for`), should
+   be at the end of the first line. The closing brace should go on a
+   separate line.
+ * Braces in function declarations are different. Opening brace should be
+   on separate line.
+ * Lines should not be much longer than 80 characters
+
 ###4.6 Project Timeline
 | Date   			 | Milestone 		 | 
 |:-------------|:------------- | 
