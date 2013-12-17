@@ -146,7 +146,8 @@ let get_func_info ident env =
 let is_func_declared ident env =
   FunctionMap.mem ident env.func_type_map
 
-let update_global_funcs function_type kernel_invoke_sym function_name hof kernel_sym (str, env) =
+let update_global_funcs function_type kernel_invoke_sym function_name
+    hof kernel_sym (str, env) =
   let new_kernel_funcs = {
     kernel_invoke_sym = kernel_invoke_sym;
     higher_order_func = hof; 
@@ -179,7 +180,8 @@ let set_on_gpu env =
         env.func_type_map env.scope_stack env.pfor_kernels true
 
 let set_func_type ident device returntype arg_list env =
-  let new_func_type_map = FunctionMap.add ident (device, returntype, arg_list) env.func_type_map in
+  let new_func_type_map =
+      FunctionMap.add ident (device, returntype, arg_list) env.func_type_map in
   update_env env.kernel_invocation_functions env.kernel_functions
     new_func_type_map env.scope_stack env.pfor_kernels env.on_gpu
 

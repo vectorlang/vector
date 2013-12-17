@@ -78,9 +78,10 @@ let rec infer_type expr env =
 
       | HigherOrderFunctionCall(hof, f, expr) ->
           (match(hof) with
-            | Ident("map") -> ArrayType(let (_,dtype,_) = Environment.get_func_info f env
-                  in dtype)
-            | Ident("reduce") -> let (_,dtype,_) = Environment.get_func_info f env in dtype
+            | Ident("map") -> ArrayType(let (_,dtype,_) =
+                  Environment.get_func_info f env in dtype)
+            | Ident("reduce") -> let (_,dtype,_) =
+                  Environment.get_func_info f env in dtype
             | _ -> raise Invalid_operation)
 
 let generate_ident ident env =
@@ -675,7 +676,8 @@ and generate_for_statement (iterators, statements) env =
       (iterator, len_sym, mod_sym, div_sym, output_sym, start_sym, inc_sym)
     in
 
-    List.fold_left (fun m i -> StringMap.add (iter_name i) (get_iter_properties i) (m)) (StringMap.empty) (iterators)
+    List.fold_left (fun m i -> StringMap.add (iter_name i)
+                    (get_iter_properties i) (m)) (StringMap.empty) (iterators)
   in
 
   (* generate code to calculate the length of each iterator
@@ -723,7 +725,8 @@ and generate_for_statement (iterators, statements) env =
   let iter_mod_initializers =
     let iter_initializer iterator acc =
       let name = iter_name iterator in
-      let mod_ident, div_ident, len_ident = match (StringMap.find name iter_map) with (_,l,m,d,_,_,_) -> m,d,l in
+      let (_, len_ident, mod_ident, div_ident, _, _, _) =
+          StringMap.find name iter_map in
       match acc with
         [] -> [
           Declaration(AssigningDecl(mod_ident, Lval(Variable(len_ident))));
@@ -731,7 +734,9 @@ and generate_for_statement (iterators, statements) env =
         ]
       | Declaration(AssigningDecl(prev_mod_ident, _)) :: _ -> (
           List.append [
-            Declaration(AssigningDecl(mod_ident, Binop(Lval(Variable(len_ident)), Mul, Lval(Variable(prev_mod_ident)))));
+            Declaration(AssigningDecl(mod_ident, Binop(
+                Lval(Variable(len_ident)), Mul,
+                Lval(Variable(prev_mod_ident)))));
             Declaration(AssigningDecl(div_ident, Lval(Variable(prev_mod_ident))));
           ] acc)
       | _ -> [] (* TODO: how do we represent impossible outcomes? *)
@@ -769,7 +774,8 @@ and generate_for_statement (iterators, statements) env =
         let mod_sym, div_sym, output_sym, _, _ = iter_properties s in
         (* TODO: we really should store the result of e in a variable, to
          * avoid evaluating it more than once *)
-        Declaration(AssigningDecl(output_sym, Lval(ArrayElem(ident,[idx mod_sym div_sym])))))
+        Declaration(AssigningDecl(output_sym,
+            Lval(ArrayElem(ident,[idx mod_sym div_sym])))))
     | RangeIterator(Ident(s),_) -> (
         let mod_sym, div_sym, output_sym, start_sym, inc_sym = iter_properties s in
         let offset = Binop(idx mod_sym div_sym, Mul, Lval(Variable(inc_sym))) in
@@ -788,7 +794,8 @@ and generate_for_statement (iterators, statements) env =
     Generator(generate_statement_list iter_mod_initializers);
     Generator(generate_statement_list bounds_initializers);
     Verbatim("for (; ");
-    Generator(generate_expr (Binop(Lval(Variable(iter_ptr_ident)), Less, Lval(Variable(iter_max_ident)))));
+    Generator(generate_expr (Binop(Lval(Variable(iter_ptr_ident)), Less,
+        Lval(Variable(iter_max_ident)))));
     Verbatim("; ");
     Generator(generate_expr (PostOp(Variable(iter_ptr_ident), Inc)));
     Verbatim(") {\n");
@@ -915,12 +922,14 @@ let generate_kernel_invocation_functions env =
     | head :: tail ->
         (match head.higher_order_func with
           | Ident("map") ->
-            let new_str = str ^ "\nVectorArray<" ^ head.func_type ^ "> " ^ head.kernel_invoke_sym ^ "(" ^
+            let new_str = str ^ "\nVectorArray<" ^ head.func_type ^ "> " ^
+                head.kernel_invoke_sym ^ "(" ^
             "VectorArray<" ^ head.func_type ^ "> input){
               int inputSize = input.size();
               VectorArray<" ^ head.func_type ^ " > output = input.dim_copy();
               " ^ head.kernel_sym ^
-              "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>(output.devPtr(), input.devPtr(), inputSize);
+              "<<<ceil_div(inputSize,BLOCK_SIZE),BLOCK_SIZE>>>" ^
+              "(output.devPtr(), input.devPtr(), inputSize);
               cudaDeviceSynchronize();
               checkError(cudaGetLastError());
               output.markDeviceDirty();
@@ -940,7 +949,9 @@ let generate_kernel_invocation_functions env =
                   VectorArray<" ^ head.func_type ^ "> tempa(1, num_blocks);
                   VectorArray<" ^ head.func_type ^ "> tempb(1, num_blocks);
 
-                  " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), arr.devPtr(), n);
+                  " ^ head.kernel_sym ^
+                  "<<<num_blocks, BLOCK_SIZE, shared_size>>>" ^
+                  "(tempa.devPtr(), arr.devPtr(), n);
                   cudaDeviceSynchronize();
                   checkError(cudaGetLastError());
                   tempa.markDeviceDirty();
@@ -949,10 +960,14 @@ let generate_kernel_invocation_functions env =
                   while (n > 1) {
                       num_blocks = ceil_div(n, BLOCK_SIZE);
                       if (atob) {
-                          " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempb.devPtr(), tempa.devPtr(), n);
+                          " ^ head.kernel_sym ^
+                          "<<<num_blocks, BLOCK_SIZE, shared_size>>>" ^
+                          "(tempb.devPtr(), tempa.devPtr(), n);
                           tempb.markDeviceDirty();
                       } else {
-                          " ^ head.kernel_sym ^ "<<<num_blocks, BLOCK_SIZE, shared_size>>>(tempa.devPtr(), tempb.devPtr(), n);
+                          " ^ head.kernel_sym ^
+                          "<<<num_blocks, BLOCK_SIZE, shared_size>>>" ^
+                          "(tempa.devPtr(), tempb.devPtr(), n);
                           tempa.markDeviceDirty();
                       }
                       cudaDeviceSynchronize();
