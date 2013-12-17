@@ -200,3 +200,4 @@ In this example, `reduce` returns the sum of the input array.
 
 ####2.9.3 pfor
 
+Although not exactly a higher order function like map and reduce, pfor is another feature of Vector that abstracts away some of the complexities in GPU programming. It works exactly the same 
