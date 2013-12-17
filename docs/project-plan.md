@@ -1,12 +1,22 @@
-## Project Plan
+##4. Project Plan
 
 ### Identify process used for planning, specification, development and testing
+### 4.1 Planning Process
+As a group, we planned the project iteratively and stuck to a feature-driven development rather than a component-driven process. That is, for each step of the process, the group discussed the desired (yet feasible at that point in time) feature requirements during the weekly meetings and divided up the work amongst members. Thus, while there were certain long-term milestone established such as "implementing the parser" the team stuck closely with the short-term goals concerning features. A more detailed description of the process is outlined in the 'Project Timeline' section.
 
 ### Include a one-page programming style guide used by the team
 
 ### Show your project timeline
 
 ### Identify roles and responsibilities of each team member
+| Team Member   			| Responsibilities           | 
+|:------------- 			|:------------- | 
+| Howard Mao (team leader)| Compiler Frontend, Runtime Library, Code generation 		| 
+| Zachary Newman					| Compiler Frontend, Code generation, Test suite creation |
+| Sidharth Shankar			  | Compiler Frontend, Code generation								      |
+| Jonathan Yu 					  | Code generation, Semantic Checking								      |
+| Harry Lee   						| Code generation, Documentation  												|
+
 
 ### Describe the software development environment used (tools and languages)
 

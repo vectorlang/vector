@@ -200,4 +200,13 @@ In this example, `another_function` returns the sum of the input array.
 
 ####2.9.3 pfor
 
-Although not exactly a higher order function like map and reduce, pfor is another feature of Vector that abstracts away some of the complexities in GPU programming. It works exactly the same 
+Although not exactly a higher order function like map and reduce, pfor is another feature of Vector that abstracts away some of the complexities in GPU programming. It works exactly the same as the regular for statement except that the computation will be performed on the GPU - hence, the syntax remains identitcal to the regular for. Here is a simple example of the pfor:
+
+void pfor_example()
+{
+    int arr[1000, 2];
+    scale := 2;
+
+    pfor (i in 0:len(arr, 0), j in 0:len(arr, 1))
+        arr[i, j] = 2 * i + j;
+}
