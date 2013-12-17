@@ -1,16 +1,17 @@
 exception Invalid_type of string
 
-type binop = Add | Sub | Mul | Div | Mod
-    | Lshift | Rshift
-    | Less | LessEq | Greater | GreaterEq | Eq | NotEq
-    | BitAnd | BitXor | BitOr | LogAnd | LogOr
+type binop =
+  | Add | Sub | Mul | Div | Mod
+  | Lshift | Rshift
+  | Less | LessEq | Greater | GreaterEq | Eq | NotEq
+  | BitAnd | BitXor | BitOr | LogAnd | LogOr
 
 type unop = Neg | LogNot | BitNot
 
 type postop = Dec | Inc
 
 type datatype =
-    Bool | Char | Int8
+  | Bool | Char | Int8
   | UInt8
   | Int16
   | UInt16
@@ -26,15 +27,14 @@ type datatype =
   | Void
   | ArrayType of datatype
 
-type ident =
-    Ident of string
+type ident = Ident of string
 
 type lvalue =
   | Variable of ident
   | ArrayElem of ident * expr list
-  | ComplexAccess of expr * ident 
+  | ComplexAccess of expr * ident
 and expr =
-    Binop of expr * binop * expr
+  | Binop of expr * binop * expr
   | AssignOp of lvalue * binop * expr
   | Unop of unop * expr
   | PostOp of lvalue * postop
@@ -52,19 +52,18 @@ and expr =
   | Lval of lvalue
 
 type decl =
-    AssigningDecl of ident * expr
+  | AssigningDecl of ident * expr
   | PrimitiveDecl of datatype * ident
   | ArrayDecl of datatype * ident * expr list
 
-type range =
-    Range of expr * expr * expr
+type range = Range of expr * expr * expr
 
 type iterator =
-    RangeIterator of ident * range
+  | RangeIterator of ident * range
   | ArrayIterator of ident * expr
 
 type statement =
-    CompoundStatement of statement list
+  | CompoundStatement of statement list
   | Declaration of decl
   | Expression of expr
   | EmptyStatement
@@ -78,24 +77,24 @@ type statement =
   | VoidReturnStatement
 
 let type_of_string = function
-    | "bool" -> Bool
-    | "char" -> Char
-    | "int8" -> Int8
-    | "uint8" -> UInt8
-    | "int16" -> Int16
-    | "uint16" -> UInt16
-    | "int" -> Int32
-    | "int32" -> Int32
-    | "uint" -> UInt32
-    | "uint32" -> UInt32
-    | "int64" -> Int64
-    | "uint64" -> UInt64
-    | "double" -> Float64
-    | "float" -> Float32
-    | "float32" -> Float32
-    | "float64" -> Float64
-    | "complex" -> Complex64
-    | "complex64" -> Complex64
-    | "complex128" -> Complex128
-    | "void" -> Void
-    | dtype -> raise (Invalid_type dtype)
+  | "bool" -> Bool
+  | "char" -> Char
+  | "int8" -> Int8
+  | "uint8" -> UInt8
+  | "int16" -> Int16
+  | "uint16" -> UInt16
+  | "int" -> Int32
+  | "int32" -> Int32
+  | "uint" -> UInt32
+  | "uint32" -> UInt32
+  | "int64" -> Int64
+  | "uint64" -> UInt64
+  | "double" -> Float64
+  | "float" -> Float32
+  | "float32" -> Float32
+  | "float64" -> Float64
+  | "complex" -> Complex64
+  | "complex64" -> Complex64
+  | "complex128" -> Complex128
+  | "void" -> Void
+  | dtype -> raise (Invalid_type dtype)
