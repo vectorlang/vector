@@ -128,25 +128,23 @@ processor and a NVIDIA GeForce 8400 GS GPU. The results are as follows
 
 #### CPU Results
 
-<table>
-    <tr><th>Width</th><th>Height</th><th>Time 1</th><th>Time 2</th><th>Time 3</th></tr>
-    <tr><td>640</td><td>480</td><td>5.16</td><td>5.16</td><td>5.16</td></tr>
-    <tr><td>800</td><td>600</td><td>8.06</td><td>8.07</td><td>8.07</td></tr>
-    <tr><td>1024</td><td>768</td><td>13.22</td><td>13.22</td><td>13.22</td></tr>
-    <tr><td>1152</td><td>864</td><td>16.72</td><td>16.73</td><td>16.74</td></tr>
-    <tr><td>1280</td><td>960</td><td>20.64</td><td>20.66</td><td>20.65</td></tr>
-</table>
+| Width | Height | Time 1 | Time 2 | Time 3 |
+|:------|:-------|:-------|:-------|:-------|
+| 640   | 480    | 5.16   | 5.16   | 5.16   |
+| 800   | 600    | 8.06   | 8.07   | 8.07   |
+| 1024  | 768    | 13.22  | 13.22  | 13.22  |
+| 1152  | 864    | 16.72  | 16.73  | 16.74  |
+| 1280  | 960    | 20.64  | 20.66  | 20.65  |
 
 #### GPU Results
 
-<table>
-    <tr><th>Width</th><th>Height</th><th>Time 1</th><th>Time 2</th><th>Time 3</th></tr>
-    <tr><td>640</td><td>480</td><td>0.19</td><td>0.19</td><td>0.19</td></tr>
-    <tr><td>800</td><td>600</td><td>0.28</td><td>0.28</td><td>0.28</td></tr>
-    <tr><td>1024</td><td>768</td><td>0.47</td><td>0.46</td><td>0.46</td></tr>
-    <tr><td>1152</td><td>864</td><td>0.53</td><td>0.53</td><td>0.53</td></tr>
-    <tr><td>1280</td><td>960</td><td>0.61</td><td>0.61</td><td>0.61</td></tr>
-</table>
+| Width | Height | Time 1 | Time 2 | Time 3 |
+|:------|:-------|:-------|:-------|:-------|
+| 640   | 480    | 0.19   | 0.19   | 0.19   |
+| 800   | 600    | 0.28   | 0.28   | 0.28   |
+| 1024  | 768    | 0.47   | 0.46   | 0.46   |
+| 1152  | 864    | 0.53   | 0.53   | 0.53   |
+| 1280  | 960    | 0.61   | 0.61   | 0.61   |
 
 ![Benchmark Results](docs/benchmark-result-plot.png)
 
