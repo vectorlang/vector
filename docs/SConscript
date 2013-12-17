@@ -6,8 +6,6 @@ pandoc_pdf = Builder(action='pandoc --template=docs/template.tex $SOURCE -o $TAR
 env.Append(BUILDERS = {'Pandoc': pandoc})
 env.Append(PDFLAGS = '-V "geometry=margin=1in"')
 
-env.Pandoc('final-report.html',
+env.Pandoc('final-report.pdf',
         ['proposal.md', 'language-tutorial.md', 'language-ref.md',
          'project-plan.md', 'architectural-design.md', 'test-plan.md'])
-
-env.Pandoc('final-report.pdf', 'final-report.html')
