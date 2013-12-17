@@ -31,8 +31,8 @@ void print_pgm(int shades[], int width, int height)
 
 int vec_main()
 {
-    img_height := 256;
-    img_width := 384;
+    img_height := 512;
+    img_width := 768;
 
     int shades[img_height, img_width];
 
