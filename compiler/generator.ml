@@ -67,6 +67,7 @@ let rec infer_type expr env =
       | FunctionCall(i, es) -> (match i with
           | Ident("len") | Ident("random") -> Int32
           | Ident("printf") | Ident("inline") | Ident("assert") -> Void
+          | Ident("time") -> Float64
           | Ident("abs") -> (match es with
               | [expr] -> (match infer_type expr env with
                   | Complex64 -> Float32
@@ -356,6 +357,9 @@ and generate_expr expr env =
                     Verbatim(")");
                 ]
             | _ -> raise (Type_mismatch "Wrong number of arguments to abs()"))
+        | Ident("time") -> (match es with
+            | [] -> [ Verbatim("get_time()") ]
+            | _ -> raise (Type_mismatch "time() takes no arguments"))
         | _ -> let _, _, arg_list = Environment.get_func_info i env in
             let rec validate_type_list types expressions env =
                 match (types, expressions) with

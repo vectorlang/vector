@@ -1,0 +1,17 @@
+int vec_main()
+{
+    time1 := time();
+    useless := 0;
+
+    // add some arbitrary delay
+    for (i in 0:100000)
+        useless ^= (i | random());
+
+    time2 := time();
+
+    assert(time2 - time1 > 0.0);
+
+    printf("correct\n");
+
+    return 0;
+}

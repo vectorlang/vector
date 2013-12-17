@@ -1,0 +1,107 @@
+left := float(-2.0);
+right := float(1.0);
+top := float(1.0);
+bottom := float(-1.0);
+ntrials := 3;
+
+int mandelbrot_cpu(int xi, int yi, int xn, int yn,
+    float left, float right, float top, float bottom)
+{
+    iter := 0;
+
+    x0 := left + (right - left) / float(xn) * float(xi);
+    y0 := bottom + (top - bottom) / float(yn) * float(yi);
+    z0 := #(x0, y0);
+    z := #(float(0), float(0));
+
+    while (iter < 256 && abs(z) < 2) {
+        z = z * z + z0;
+        iter++;
+    }
+
+    return iter;
+}
+
+__device__ int mandelbrot_gpu(int xi, int yi, int xn, int yn,
+    float left, float right, float top, float bottom)
+{
+    iter := 0;
+
+    x0 := left + (right - left) / float(xn) * float(xi);
+    y0 := bottom + (top - bottom) / float(yn) * float(yi);
+    z0 := #(x0, y0);
+    z := #(float(0), float(0));
+
+    while (iter < 256 && abs(z) < 2) {
+        z = z * z + z0;
+        iter++;
+    }
+
+    return iter;
+}
+
+void bench_cpu(int img_width, int img_height, int ntrials)
+{
+    int shades[img_height, img_width];
+    float64 runtimes[ntrials];
+    float64 start;
+    float64 finish;
+
+    for (trial in :ntrials)
+    {
+        start = time();
+        for (yi in 0:img_height, xi in 0:img_width) {
+            shades[yi, xi] = mandelbrot_cpu(xi, yi, img_width, img_height,
+                                left, right, top, bottom);
+        }
+        finish = time();
+        runtimes[trial] = finish - start;
+    }
+
+    printf("CPU %dx%d: ", img_width, img_height);
+
+    for (rt in runtimes)
+        printf("%.2f ", rt);
+    printf("\n");
+}
+
+void bench_gpu(int img_width, int img_height, int ntrials)
+{
+    int shades[img_height, img_width];
+    float64 runtimes[ntrials];
+    float64 start;
+    float64 finish;
+
+    for (trial in :ntrials)
+    {
+        start = time();
+        pfor (yi in 0:img_height, xi in 0:img_width) {
+            shades[yi, xi] = mandelbrot_gpu(xi, yi, img_width, img_height,
+                                left, right, top, bottom);
+        }
+        finish = time();
+        runtimes[trial] = finish - start;
+    }
+
+    printf("GPU %dx%d: ", img_width, img_height);
+
+    for (rt in runtimes)
+        printf("%.2f ", rt);
+    printf("\n");
+}
+
+int vec_main()
+{
+    img_heights := {480, 600, 768, 864, 960};
+    img_widths := {640, 800, 1024, 1152, 1280};
+
+    printf("Benchmarking CPU\n");
+    for (i in 0:len(img_heights))
+        bench_cpu(img_widths[i], img_heights[i], ntrials);
+
+    printf("Benchmarking GPU\n");
+    for (i in 0:len(img_heights))
+        bench_gpu(img_widths[i], img_heights[i], ntrials);
+
+    return 0;
+}

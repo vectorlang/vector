@@ -1,0 +1,10 @@
+Import('env')
+
+programs = ['mandelbrot-bench', 'mandelbrot-cpu', 'mandelbrot-gpu']
+headers = ['libvector', 'vector_utils', 'vector_array', 'vector_iter']
+
+for prog in programs:
+    env.CudaGen(prog + '.cu', [prog + '.vec'])
+    env.CudaObject(prog + '.o', [prog + '.cu'] +
+        ['../rtlib/' + h + '.hpp' for h in headers])
+    env.Program(prog, prog + '.o')
