@@ -1,9 +1,9 @@
-## Test Plan
+##6. Test Plan
 
 The test suite for Vector consisted of simple regression tests for language
 features, as well as longer tests to demonstrate target programs in the language.
 
-### Rationale
+###6.1 Rationale
 
 We omitted unit tests, trusting the OCaml type checker to detect major bugs
 (such as missing cases in pattern matching). Edge cases were simple to write in
@@ -16,9 +16,9 @@ test-driven development, as the test suite can be run with tests that use
 unimplemented language features, simply failing until those features are
 implemented.
 
-### Mechanism
+###6.2 Mechanism
 
-#### Components
+####6.2.1 Components
 
 The components of the "Project Plan" section relevant to the test plan are
 
@@ -30,7 +30,7 @@ The components of the "Project Plan" section relevant to the test plan are
 
 * **gpuocelot** to run PTX bytecode on the virtual x86 machines
 
-#### Implementation
+####6.2.2 Implementation
 
 We created a `test` folder in the Vector source repository with an `SConscript`
 file implementing the build procedure. Within a Vagrant virtual machine, run
@@ -48,7 +48,7 @@ file implementing the build procedure. Within a Vagrant virtual machine, run
 Add a base filename to the `test_cases` list in the `SConscript` file to add a
 new test case. Then, add `.vec` and `.out` for the test case.
 
-### Representative Programs
+###6.3 Representative Programs
 
 An example of a non-trivial program in vector is calculation of the
 mandelbrot set.
@@ -95,7 +95,7 @@ mandelbrot set.
 The program launches a pfor thread for each pixel of the image which computes
 the number of iterations til convergence for that point on the complex plane.
 
-### Tests Used
+###6.4 Tests Used
 
 * **arrays.vec** ensures that arrays can both be written to and read from 
 * **complex.vec** ensures that our native support for complex numbers works correctly
@@ -113,7 +113,7 @@ the number of iterations til convergence for that point on the complex plane.
 * **inline.vec** ensures that our `inline` macro for injecting CUDA code works
 * **logic.vec** ensures that boolean logic works correctly
 
-### Benchmarks
+###6.5 Benchmarks
 
 We benchmarked the performance of vector code on the CPU and GPU using the
 mandelbrot example shown earlier. For the GPU, we used the same code as above.
@@ -150,7 +150,7 @@ processor and a NVIDIA GeForce 8400 GS GPU. The results are as follows
 
 ![Benchmark Results](docs/benchmark-result-plot.png)
 
-### Responsibilities
+###6.6 Responsibilities
 
 Zachary was responsible for the initial configuration of the test suites. The
 implementers of language features were responsible for their own test suites.
