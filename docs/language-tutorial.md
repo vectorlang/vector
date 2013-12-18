@@ -22,9 +22,9 @@ The Vector language will be very familiar to users who have prior experience wit
 
 vec_main, a special function that takes no arguments, is the entry point of your program and the first code that will be executed. The printf function is identical to the C implementation included in stdio.h. The vec_main function should return 0 for non-exceptional conditions.
 
-To compile the above code, save the file as hello.vec and type 
+To compile the above code, save the file as hello.vec and run the command
 
-$ generator < hello.vec > hello.cu
+	generator < hello.vec > hello.cu
 
 The generator reads the Vector code and outputs CUDA code. (Input is on stdin and output is on stdout). The output of the compiler looks like the following:
 
@@ -50,20 +50,20 @@ Test the program and make sure it prints “Hello, World!”. Congratulations, y
 
 Variables can be considered named areas of memory that hold values that can be read and written. Only primitive types are supported; primitives in Vector (which include the various floating point and integral types, in various sizes) can be declared as follows:
 
-> type_name variable_name;
+	 type_name variable_name;
 
 Alternatively, assignment and declaration can be performed in a single statement (the assigning declaration) using the ‘:=’ operator. For example,
 
-> a := 42;
+	 a := 42;
 
 Declares a variable named a, and assigns 42 to it. This is exactly equivalent to
 
-> int a;
-> a = 42;
+	 int a;
+	 a = 42;
 
 Note that with assigning declarations it is not necessary to explicitly declare the type of the variable. This will be inferred from the type of the right hand side. In this case the integral literal is assumed to have type ‘int’. To give it another type, simply cast the right hand side to the desired type. For example, 
 
-> a := float(42);
+	 a := float(42);
 
 will declare a variable named a as a single precision floating point with a value equivalent to 42. For more information on the available types, the type system and type inference, please consult the Language Reference Manual.
 
@@ -71,13 +71,13 @@ will declare a variable named a as a single precision floating point with a valu
 
 As a language designed primarily for parallel computation, Vector and Vector programs rely heavily on arrays. Arrays in Vector can be multidimensional. For example, to declare a 3 x 4 x 5 array of ints, use 
 
-> int a[3, 4, 5];
+	 int a[3, 4, 5];
 
 To access an element of the array, a similar syntax is used. For instance, 
 
-> a[i, j, k]
+	 a[i, j, k]
 
-is equivalent to a[i][j][k] in C-like languages. 
+is equivalent to `a[i][j][k]` in C-like languages. 
 
 ###2.6 Operators
 
@@ -140,7 +140,7 @@ Function declarations and definitions in Vector are identical to those in C, and
 
 Which declares and defines a function f which adds two integers and returns the resulting integers. To call the function, use:
 
-> result := f(2,4);
+	 result := f(2,4);
 
 Notice that in the above declaration, the type of result is inferred from the return type of f. As in C, functions can have type void if they perform operations but return no result.
 
