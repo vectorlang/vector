@@ -39,6 +39,8 @@ we tested using [GPU Ocelot][], an emulator for Nvidia GPUs that runs PTX
 * abstracts grid and block sizing for kernels
 * handles higher-dimensional kernel indices (CUDA handles at most 3)
 
+\pagebreak
+
 ###1.2 Sample Program
 
     __device__ int add(int x, int y) { return x + y; }
