@@ -11,6 +11,7 @@ exception Empty_list
 exception Type_mismatch of string
 exception Not_implemented (* this should go away *)
 exception Invalid_operation
+exception Syntax_error of int * int * string
 
 let rec infer_type expr env =
     let f type1 type2 =
@@ -168,7 +169,7 @@ let rec generate_lvalue modify lval env =
          let _op = match ident with
            Ident("re") -> ".x"
          | Ident("im") -> ".y"
-         | _ -> raise Not_found in
+         | Ident(sym) -> raise (Symbol_not_found sym) in
            Environment.combine env [
              Generator(generate_expr expr);
              Verbatim(_op)
@@ -1099,20 +1100,28 @@ let generate_pfor_kernels env =
     generate_kernels "" env.pfor_kernels ;;
 
 let _ =
-  let lexbuf = Lexing.from_channel stdin in
-  let tree = Parser.top_level Scanner.token lexbuf in
-  let code, env = generate_toplevel tree in
-  let forward_declarations = generate_device_forward_declarations env in
-  let kernel_invocations = generate_kernel_invocation_functions env in
-  let kernel_functions  = generate_kernel_functions env in
-  let pfor_kernels = generate_pfor_kernels env in
-  let header =  "#include <stdio.h>\n\
-                 #include <stdlib.h>\n\
-                 #include <stdint.h>\n\
-                 #include <libvector.hpp>\n\n" in
-  print_string header;
-  print_string forward_declarations;
-  print_string kernel_functions;
-  print_string kernel_invocations;
-  print_string pfor_kernels;
-  print_string code
+    let lexbuf = Lexing.from_channel stdin in
+    let tree = try
+        Parser.top_level Scanner.token lexbuf
+    with except ->
+        let curr = lexbuf.Lexing.lex_curr_p in
+        let line = curr.Lexing.pos_lnum in
+        let col = curr.Lexing.pos_cnum in
+        let tok = Lexing.lexeme lexbuf in
+        raise (Syntax_error (line, col, tok))
+    in
+    let code, env = generate_toplevel tree in
+    let forward_declarations = generate_device_forward_declarations env in
+    let kernel_invocations = generate_kernel_invocation_functions env in
+    let kernel_functions  = generate_kernel_functions env in
+    let pfor_kernels = generate_pfor_kernels env in
+    let header =  "#include <stdio.h>\n\
+                   #include <stdlib.h>\n\
+                   #include <stdint.h>\n\
+                   #include <libvector.hpp>\n\n" in
+    print_string header;
+    print_string forward_declarations;
+    print_string kernel_functions;
+    print_string kernel_invocations;
+    print_string pfor_kernels;
+    print_string code

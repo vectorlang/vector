@@ -17,6 +17,7 @@ exception Already_declared
 exception Invalid_environment
 exception Invalid_operation
 exception Not_implemented
+exception Symbol_not_found of string
 
 (* Kernel invocation functions are functions that invoke the kernel. The
  * kernel_invoke_sym refers to the function name of this kernel invocation
@@ -100,7 +101,7 @@ let var_in_scope ident env =
 let get_var_type ident env =
   let rec check_scope scopes =
     match scopes with
-     | [] -> raise Not_found
+     | [] -> let Ident(sym) = ident in raise (Symbol_not_found sym)
      | scope :: tail ->
          if VariableMap.mem ident scope then
            VariableMap.find ident scope
