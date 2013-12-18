@@ -1,7 +1,9 @@
 # Vector: A High-Level Programming Language for the GPU
 *Harry Lee (hhl2114), Howard Mao (zm2169), Zachary Newman (zjn2101), Sidharth Shanker (sps2133), Jonathan Yu (jy2432)*
 
-## Introduction
+##1. Proposal
+
+###1.1 Introduction
 
 As the single-core performance of CPUs plateaus and becomes constrained by power consumption, more and more high-performance computing (HPC) must be done in parallel in order to see any performance increases. The current state of the art in HPC systems is using GPUs for compute-heavy tasks, due to the intrinsic parallelism of GPU architectures. However, programming GPUs remains difficult due to a lack of language tools. Currently, the only mature GPU computing languages are low level languages, such as OpenCL and CUDA, which expose a lot of the incidental complexity of GPU hardware to the GPU programmer.
 
@@ -9,7 +11,7 @@ We propose *Vector*, a high-level programming language for the GPU. In Vector, G
 
 Our strategy for implementing this language is to generate CUDA code, which can then be compiled and run on Nvidia GPUs. We choose to generate CUDA rather than the more platform-independent OpenCL due to our greater familiarity with CUDA. Also, most HPC systems use Nvidia Tesla GPUs. For development, we will test using [GPU Ocelot][], an emulator for Nvidia GPUs that runs PTX (the intermediate representation for CUDA) on the CPU.
 
-## Language Features
+###1.2 Language Features
 
 * basic type inference for assignments
 * parallel for (`pfor`) loops: generate a CUDA `kernel` (or multiple `kernel`s) for CUDA to compile into PTX and run on the GPU on lots of data
@@ -21,7 +23,7 @@ Our strategy for implementing this language is to generate CUDA code, which can 
 * abstracts grid and block sizing for kernels
 * handles higher-dimensional kernel indices (CUDA handles at most 3)
 
-## Sample Program
+###1.3 Sample Program
 
     /*
      * Compute the dot product of two vectors
