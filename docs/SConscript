@@ -16,6 +16,6 @@ source_file_paths = ['../compiler/' + sf for sf in compiler_source_files] + [
 
 env.Appendix('appendix-a.md', source_file_paths)
 env.Pandoc('final-report.pdf',
-        ['proposal.md', 'language-tutorial.md', 'language-ref.md',
+        ['introduction.md', 'language-tutorial.md', 'language-ref.md',
          'project-plan.md', 'architectural-design.md', 'test-plan.md',
-         'appendix-a.md'])
+         'lessons-learned.md', 'appendix-a.md'])
