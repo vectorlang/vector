@@ -570,10 +570,12 @@ let rec generate_statement statement env =
             NewScopeGenerator(generate_pfor_statement is s)
           ]
       | FunctionDecl(device, return_type, identifier, arg_list, body_sequence) ->
+          let env = if device then set_on_gpu env else env in
           let str, env = Environment.combine env [
               NewScopeGenerator(generate_function device return_type
                                 identifier arg_list body_sequence)
             ] in
+          let env = if device then clear_on_gpu env else env in
           let types = List.map (function x ->
             match x with
             |PrimitiveDecl(t, id) -> t
@@ -988,6 +990,7 @@ let generate_kernel_invocation_functions env =
   generate_functions env.kernel_invocation_functions " "
 
 let generate_kernel_functions env =
+  let env = set_on_gpu env in
   let kernel_funcs = env.kernel_functions in
   let rec generate_funcs funcs str =
     (match funcs with

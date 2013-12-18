@@ -179,6 +179,10 @@ let set_on_gpu env =
     update_env env.kernel_invocation_functions env.kernel_functions
         env.func_type_map env.scope_stack env.pfor_kernels true
 
+let clear_on_gpu env =
+    update_env env.kernel_invocation_functions env.kernel_functions
+        env.func_type_map env.scope_stack env.pfor_kernels false
+
 let set_func_type ident device returntype arg_list env =
   let new_func_type_map =
       FunctionMap.add ident (device, returntype, arg_list) env.func_type_map in
