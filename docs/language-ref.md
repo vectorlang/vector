@@ -1,4 +1,4 @@
-## Vector Language Manual
+##3. Vector Language Manual
 
 ### Lexical Conventions
 
