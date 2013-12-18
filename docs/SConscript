@@ -1,9 +1,12 @@
 Import('env')
 
 build_appendix = Builder(action='docs/build-appendix.sh $SOURCES > $TARGET')
+concat_sections = Builder(action='docs/concat-sections.sh $SOURCES > $TARGET')
 pandoc = Builder(action='pandoc $PDFLAGS $SOURCES -o $TARGET')
 
-env.Append(BUILDERS = {'Pandoc': pandoc, 'Appendix': build_appendix})
+env.Append(BUILDERS = {'Pandoc': pandoc,
+                       'Appendix': build_appendix,
+                       'Concat': concat_sections})
 env.Append(PDFLAGS = '-V "geometry=margin=1in"')
 
 compiler_source_files = ['scanner.mll', 'parser.mly', 'ast.ml', 'symgen.ml',
@@ -15,7 +18,8 @@ source_file_paths = ['../compiler/' + sf for sf in compiler_source_files] + [
                      '../rtlib/' + sf for sf in rtlib_source_files]
 
 env.Appendix('appendix-a.md', source_file_paths)
-env.Pandoc('final-report.pdf',
+env.Concat('final-report.md',
         ['introduction.md', 'language-tutorial.md', 'language-ref.md',
          'project-plan.md', 'architectural-design.md', 'test-plan.md',
          'lessons-learned.md', 'appendix-a.md'])
+env.Pandoc('final-report.pdf', 'final-report.md')
