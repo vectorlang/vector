@@ -187,12 +187,12 @@ The return value of the function passed to `reduce` must be of the same type
 as the elements of the input array, and the types of the arguments of the function
 passed to `reduce` must also be of the same type.  Here's an example:
 
-    __device__ int add(int x, int y){
+    __device__ int add(int x, int y) {
       return x + y;
     }
 
-    int another_function(int inputs[]){
-      sum := @reduce(add, arr);
+    int another_function(int inputs[]) {
+      sum := @reduce(add, inputs);
       return sum;
     }
 
@@ -202,11 +202,10 @@ In this example, `another_function` returns the sum of the input array.
 
 Although not exactly a higher order function like map and reduce, pfor is another feature of Vector that abstracts away some of the complexities in GPU programming. It works exactly the same as the regular for statement except that the computation will be performed on the GPU - hence, the syntax remains identitcal to the regular for. Here is a simple example of the pfor:
 
-void pfor_example()
-{
-    int arr[1000, 2];
-    scale := 2;
+    void pfor_example()
+    {
+        int arr[1000, 2];
 
-    pfor (i in 0:len(arr, 0), j in 0:len(arr, 1))
-        arr[i, j] = 2 * i + j;
-}
+        pfor (i in 0:len(arr, 0), j in 0:len(arr, 1))
+            arr[i, j] = 2 * i + j;
+    }
