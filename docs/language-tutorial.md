@@ -56,7 +56,7 @@ Alternatively, assignment and declaration can be performed in a single statement
 
 	 a := 42;
 
-Declares a variable named a, and assigns 42 to it. This is exactly equivalent to
+declares a variable named a, and assigns 42 to it. This is exactly equivalent to
 
 	 int a;
 	 a = 42;
@@ -126,7 +126,7 @@ We also support iterating over arrays, with the basic syntax (where arr is the n
 		// some code
 	}
 
-Iteration over multidimensional arrays uses the array as if it were single dimensional. That is, for a two dimensional array, we would iterator over every element in the first row, then every element in the second row, etc.
+Iteration over multidimensional arrays uses the array as if it were single dimensional. That is, for a two dimensional array, we would iterate over every element in the first row, then every element in the second row, etc.
 
 Range iterators and array iterators can be combined in the same for statement, with the same “nested” effect as described above. This covers most typical use cases of the for statement in other languages; if finer-grained control is required, a while loop can be used instead.
 
