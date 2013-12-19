@@ -1,19 +1,19 @@
 ##3. Vector Language Manual
 
-### Lexical Conventions
+###3.1 Lexical Conventions
 
-#### Comments
+####3.1.1 Comments
 
 The characters `/*` introduce a comment, and the first `*/` ends the comment.
 Single-line comments are also supported and denoted with `//` at the beginning
 of a line.
 
-#### Identifiers
+####3.1.2 Identifiers
 An identifier is a sequence of letters and digits; the first character must be
 alphabetic. The underscore `_` counts as alphabetic. Identifiers are
 case-sensitive.
 
-#### Keywords
+####3.1.3 Keywords
 
 The following identifiers are reserved for language keywords
 
@@ -46,15 +46,15 @@ The following identifiers are reserved for language keywords
 `pfor`
 `return`
 
-#### Constants
+####3.1.4 Constants
 
 Vector has the following constants:
 
-##### Integer Constants
+#####3.1.4.1 Integer Constants
 
 An integer constant is a sequence of digits.
 
-##### Character Constants
+#####3.1.4.2 Character Constants
 
 A character constant is a single character enclosed in single quotes `' '`.
 Single quotes must be preceded by a backslash `\`. The `\` character, along with
@@ -73,19 +73,19 @@ escaped character is used, the integer code for the first character is stored
 in the lower-order byte and the integer code for the second character is stored
 in the higher-order byte.
 
-##### String Constants
+#####3.1.4.3 String Constants
 
 String constants consist of a series of characters delimited by quotation marks
 `""`.
 
-##### Floating Constants
+#####3.1.4.4 Floating Constants
 
 Floating constants consist of an integer part, a decimal point, a fraction part,
 an `e` and a signed exponent. If decimal point is not included, then the `e`
 and signed exponent must be included, otherwise, they are optional.
 
 
-### Syntax Notation
+###3.2 Syntax Notation
 
 In this manual, a `typewriter` typeface indicates literal words and characters.
 An *italic* typeface indicates a category with special meaning. Lists are
@@ -94,7 +94,7 @@ line of a bulleted list separated by commas, they are equivalent.
 &lt;epsilon&gt; is used to indicate the empty string.
 Backus-Naur Form is used to express the grammar of Vector.
 
-### Types
+###3.3 Types
 
 > *type-specifier* ::=
 
@@ -103,14 +103,14 @@ Backus-Naur Form is used to express the grammar of Vector.
 Each identifier is associated with a type that determines how it is interpreted.
 A void type has no value.
 
-#### Primitive Types
+####3.3.1 Primitive Types
 
 > *primitive-type* ::= *integer-type* | *floating-point-type* | *complex-type*
 
 Vector supports three categories of primitive types: integers, floating
 point numbers, and complex numbers.
 
-##### Integer Types
+#####3.3.1.1 Integer Types
 
 Integer types are given by the following literals:
 
@@ -126,7 +126,7 @@ Integer types are given by the following literals:
 The types starting with `u` are unsigned types. The number at the end of a
 type name indicates the size of that type and equivalent types in bits.
 
-##### Floating Point Types
+#####3.3.1.2 Floating Point Types
 
 Floating-point types are given by the following literals:
 
@@ -136,7 +136,7 @@ Floating-point types are given by the following literals:
 These two types correspond to IEEE single-precision and double-precision
 floating point numbers, respectively, as defined in [IEEE 754][].
 
-##### Complex Number Types
+#####3.3.1.3 Complex Number Types
 
 Complex number types are given by the following literals:
 
@@ -151,13 +151,13 @@ or assigned by appending `.re` or `.im` to the identifier.
     b := a.re // b is 3.1
     a.im = 1.2 // a is now ##(3.1, 1.2)
 
-##### String Types
+#####3.3.1.4 String Types
 
 String types are given by the following literal:
 
  * `string`
 
-#### Array Types
+####3.3.2 Array Types
 
 > *array-type* ::= *primitive-type* `[]`
 
@@ -182,12 +182,12 @@ So `a[1, 2]` will access row 1, column 2 of the two-dimensional array `a`.
 Arrays can be initialized using comma-seperated list delimited by curly braces
 `{}`.
 
-#### Function Types
+####3.3.3 Function Types
 
 Functions take in zero or more variables of primitive or array types and
 optionally return a variable of primitive or array type.
 
-### Objects and LValues
+###3.4 Objects and LValues
 
 An object is a named region in memory whose value can be read and modified. An
 LValue is an expression referring to an object. It has a value, and a
@@ -208,9 +208,7 @@ LValues are named because they can appear on the left side of an assignment (or
 also on the right), whereas RValues can appear only on the right side. All
 expressions in Vector are either RValues or LValues.
 
-### Conversions
-
-##### Scalar types
+###3.5 Conversions
 
 Any scalar type can be converted to another scalar type.  For any conversion
 from a narrower to a wider type, for example from a `int16` to `int32`, or from
@@ -233,7 +231,7 @@ the upper 8 bits of the resulting int object.
 
 > *explicit-cast* ::= *primitive-type-specifier* `(` *identifier* `)`
 
-### Expressions
+###3.6 Expressions
 
 > *expression* ::=
 
@@ -267,7 +265,7 @@ the upper 8 bits of the resulting int object.
 
 > > | *higher-order-function-call*
 
-#### Primary Expressions
+####3.6.1 Primary Expressions
 
 Primary expressions consist of constants, identifiers, or expressions in
 parentheses.
@@ -280,7 +278,7 @@ parentheses.
 
 > > | `(`*expression*`)`
 
-#### Postfix Expressions
+####3.6.2 Postfix Expressions
 
 The operators in postfix expressions group left to right.
 
@@ -290,9 +288,9 @@ The operators in postfix expressions group left to right.
 
 > > | *expression*`--`
 
-#### Operators
+####3.6.3 Operators
 
-##### Unary Operators
+#####3.6.3.1 Unary Operators
 
 > *unary-expression* ::=
 
@@ -306,7 +304,7 @@ For the case that the value is 0, the value returned is also 0.
 The `!` operator returns 1 if its operand is 0 and returns 0 otherwise.
 The `~` operator returns the one's complement of its operand.
 
-##### Multiplicative Operators
+#####3.6.3.2 Multiplicative Operators
 
 Multiplicative operators include `*`, `/`, and `%`, and group to the right.
 There are two operands and both must have arithmetic types.
@@ -322,7 +320,7 @@ There are two operands and both must have arithmetic types.
 The `*` operator denotes multiplication, the `/` operation gives the quotient,
 and the `%` operator gives the remainder after a division of the two operands.
 
-##### Additive Operators
+#####3.6.3.3 Additive Operators
 
 The additive operators include `+` and `-` group, and they group left-to-right.
 If the operands have arithmetic types, then the appropriate arithmetic operation
@@ -338,7 +336,7 @@ is performed.
 The `+` operator gives the sum of the two operands, and the `-` operator gives
 the difference.
 
-##### Shift Operators
+#####3.6.3.4 Shift Operators
 
 The shift operators include *<<* and *>>*.  These operators group left to right,
 and each operator must be of an integral type.
@@ -352,7 +350,7 @@ and each operator must be of an integral type.
 The value of shift expression *E1 << E2* is interpreted as *E1* left-shifted
 by *E2* bits, and *E1 >> E2* is interpreted as *E1* right-shifted *E2* bits.
 
-##### Relational Operators
+#####3.6.3.5 Relational Operators
 
 Relational operators group left-to-right.
 
@@ -372,7 +370,7 @@ The operator `>` denotes the greater-than operation, `<` denotes less-than,
 Each of these operators returns 0 if false and 1 if true, and this result
 is always of type `int`.
 
-##### Equality Operators
+#####3.6.3.6 Equality Operators
 
 > *equality-expression* :==
 
@@ -385,7 +383,7 @@ not-equal-to.  These both return 1 if true and 0 if false, and this value
 is of type `int`.  These operators have lower precedence than relational
 operators.
 
-##### Bitwise Logical Expressions
+#####3.6.3.7 Bitwise Logical Expressions
 
 > *logical-bitwise-expression* ::=
 
@@ -406,7 +404,7 @@ bitwise-inclusive-or operation applied to the two operands.
 
 These operations require both operands to have integral types.
 
-##### Short-Circuit Logical Expressions
+#####3.6.3.8 Short-Circuit Logical Expressions
 
 > *logical-expression* ::=
 
@@ -427,7 +425,7 @@ operand is not evaluated. For `||`, if the left operand evaluates
 to something other than 0, the expression returns 1 and the right operand is
 not evaluated.
 
-#### Operator Precedence and Associativity
+####3.6.4 Operator Precedence and Associativity
 
 For binary operators, it is necessary to specify operator precedence and
 associativity in order to avoid ambiguity. The precedence of operators
@@ -448,7 +446,7 @@ in vector from highest to lowest precedence is as follows.
 All of these operators are associated left-to-right, with the exception of
 the last row (the assignment operators) which are associated right-to-left.
 
-#### Function Calls
+####3.6.5 Function Calls
 
 > *function-call* ::= *identifier* `(` *argument-list* `)` | *identifier* `()`
 
@@ -497,7 +495,7 @@ Vector provides the following builtin functions
  * `time()` - returns the current system time as a float64 representing the
     fractional number of seconds since the beginning of the epoch
 
-#### Higher-Order Functions
+####3.6.6 Higher-Order Functions
 
 > *higher-order-function-call* ::=
 
@@ -538,7 +536,7 @@ This code takes the sum of the array. There is no guarantee on the order in
 which items in the array are reduced. Therefore, the reducing function
 must be associative and commutative or the result with be non-deterministic.
 
-#### Assignment
+####3.6.7 Assignment
 
 > *assignment* ::= *identifier* `=` *expression*
 
@@ -550,7 +548,7 @@ was assigned, so they can be chained. For instance
 
 Assigns the variables a and b to the value 3.
 
-##### Compound Assignment
+####3.6.8 Compound Assignment
 
 > *compound-assignment* ::=
 
@@ -578,7 +576,7 @@ Compound assignments perform an operation with the identifier and expression
 given as operands and then assign the variable specified by the identifier to
 the result.  For example `a += 5` is equivalent to `a = a + 5`.
 
-### Declarations
+###3.7 Declarations
 
 > *declaration* ::=
 
@@ -591,7 +589,7 @@ the result.  For example `a += 5` is equivalent to `a = a + 5`.
 A declaration specifies the type of an identifier; it may or may not allocate
 memory for the identifier.
 
-#### Primitive Type Declarations
+####3.7.1 Primitive Type Declarations
 
 > *primitive-declaration* ::=
 
@@ -607,7 +605,7 @@ identifier with its initial value set to the result of the expression.
 The type of the identifier will be inferenced from the expression.
 If you wish to specify the exact type of the identifier, use an explicit cast.
 
-#### Array Declarations
+####3.7.2 Array Declarations
 
 > *array-declaration* ::= *primitive-type-specifier* *identifier* `[];`
 
@@ -628,7 +626,7 @@ of the expression must be an unsigned integer.
 The third syntax inferences the type of the array from the expression and
 is identical to the initializing declaration for primitives.
 
-#### Function Declarations
+####3.7.3 Function Declarations
 
 > *function-declaration* ::=
 
@@ -651,7 +649,7 @@ commas. Only the non-initializing primitive declarations and non-sizing array
 declarations are allowed. The identifiers specified by the parameter list are
 available in the function body.
 
-#### Forward Declarations
+####3.7.4 Forward Declarations
 
 > *forward-declaration* ::=
 > *type-specifier* *identifier* `(` *parameter-list* `);`
@@ -661,7 +659,7 @@ of having a compound statement implementing the function, it is terminated by
 a semicolon. Forward declarations are mainly used for declaring functions that
 are implemented in C.
 
-### Statements
+###3.8 Statements
 
 > *statement* ::= *expression-statement*
 
@@ -679,19 +677,19 @@ Statements in Vector are executed in sequence except as described as part of
 compound statements, selection statements, iteration statements, and jump
 statements.
 
-#### Expression Statements
+####3.8.1 Expression Statements
 
 > *expression-statement* ::= *expression* `;`
 
 An expression statement is an expression with its value discarded followed by
 a semicolon. The side effects of the expression still occur.
 
-#### Declarations
+####3.8.2 Declarations
 
 Declarations are also considered statements. The only caveat is that
 nested function declarations are not allowed.
 
-#### Compound Statements
+####3.8.3 Compound Statements
 
 > *compound-statement* ::= `{` *statement-list* `}`
 
@@ -704,7 +702,7 @@ the statements in its statement list are executed in order. Blocks allow the
 grouping of multiple statements, especially where only one is expected. In
 addition, scoping is based on blocks; see the "Scope" section for more details.
 
-#### Selection Statements
+####3.8.4 Selection Statements
 
 > *selection-statement* ::=
 
@@ -725,7 +723,7 @@ If statements can be nested (as in `else if`). If there is ambiguity in which
 `if` an `else` corresponds to, the ambiguity is always resolved to the closest
 non-matched `if`.
 
-#### Iteration Statements
+####3.8.5 Iteration Statements
 
 > *iteration-statement* ::= `while` *expression* *statement*
 
@@ -787,7 +785,7 @@ Will result in the output
 A pfor statement is identical to the for statement, except the iterations of
 the for statement all happen in parallel on the GPU.
 
-#### Jump Statements
+####3.8.6 Jump Statements
 
 > *jump-statement* ::= `return` *expression* `;` | `return` `;`
 
@@ -795,9 +793,7 @@ A return statement returns control of execution to the caller of the current
 function. If the statement has an expression, the expression is evaluated (with
 side effects) and the result is returned to the caller.
 
-### External Declarations
-
-### Scope
+###3.9 Scope
 
 Vector uses block-level scoping. A block is another name for a compound
 statement (see "Compound Statements" section). Most frequently, a block is a
