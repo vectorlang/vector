@@ -3,7 +3,9 @@
 guess_language () {
     case $1 in
         *.ml|*.mll|*.mly) echo ocaml;;
-        *.hpp|*.cpp|*.cu) echo cpp;;
+        *.hpp|*.cpp|*.cu|*.vec) echo cpp;;
+        *.sh) echo shell;;
+        SConstruct|*SConscript) echo python;;
     esac
 }
 
@@ -14,8 +16,7 @@ section=1
 
 for infile in $@
 do
-    bname=$(basename $infile)
-    echo "###A.$section $bname"
+    echo "###A.$section $infile"
     echo
     echo "\`\`\`$(guess_language "$infile")"
     cat $infile
