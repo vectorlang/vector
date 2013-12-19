@@ -32,11 +32,12 @@ let rec detect_statement stmt env =
             [detect_expr expr env; detect_statement stmt env]
       | ForStatement(iter_list, stmt) -> combine_detect_tuples
             [detect_iter_list iter_list env; detect_statement stmt env]
+      | EmptyStatement -> (IdentSet.empty, IdentSet.empty)
       | _ -> raise Not_allowed_on_gpu
 and detect_decl decl env =
     match decl with
       | AssigningDecl(ident, expr) -> detect_expr expr env
-      | _ -> raise Not_allowed_on_gpu
+      | _ -> (IdentSet.empty, IdentSet.empty)
 and detect_expr expr env =
     match expr with
       | Binop(expr1, _, expr2) -> combine_detect_tuples
