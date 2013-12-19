@@ -801,7 +801,19 @@ section of code contained by a function, conditional, or looping construct. Each
 nested block creates a new scope, and variables declared in the new scope
 supersede variables declared in higher scopes.
 
-### Grammar
+###3.10 Undefined behavior
+
+The following things are allowed by the vector compiler, but will produce
+code that will either not be recognized by the CUDA compiler or fail at
+runtime.
+
+ * Recursion in device functions
+ * Accessing global variables in device functions
+ * Manipulating strings in device functions or in the bodies of pfor statements
+ * Assigning to variables declared outside of a pfor statement inside the
+   pfor statement
+
+###3.11 Grammar
 
 > *top-level* ::=
 
