@@ -4,7 +4,7 @@ top := float(1.0);
 bottom := float(-1.0);
 ntrials := 3;
 
-int mandelbrot_cpu(int xi, int yi, int xn, int yn,
+uint8 mandelbrot_cpu(int xi, int yi, int xn, int yn,
     float left, float right, float top, float bottom)
 {
     iter := 0;
@@ -14,15 +14,15 @@ int mandelbrot_cpu(int xi, int yi, int xn, int yn,
     z0 := #(x0, y0);
     z := #(float(0), float(0));
 
-    while (iter < 256 && abs(z) < 2) {
+    while (iter < 255 && abs(z) < 2) {
         z = z * z + z0;
         iter++;
     }
 
-    return iter;
+    return uint8(iter);
 }
 
-__device__ int mandelbrot_gpu(int xi, int yi, int xn, int yn,
+__device__ uint8 mandelbrot_gpu(int xi, int yi, int xn, int yn,
     float left, float right, float top, float bottom)
 {
     iter := 0;
@@ -32,17 +32,17 @@ __device__ int mandelbrot_gpu(int xi, int yi, int xn, int yn,
     z0 := #(x0, y0);
     z := #(float(0), float(0));
 
-    while (iter < 256 && abs(z) < 2) {
+    while (iter < 255 && abs(z) < 2) {
         z = z * z + z0;
         iter++;
     }
 
-    return iter;
+    return uint8(iter);
 }
 
 void bench_cpu(int img_width, int img_height, int ntrials)
 {
-    int shades[img_height, img_width];
+    uint8 shades[img_height, img_width];
     float64 runtimes[ntrials];
     float64 start;
     float64 finish;
@@ -67,7 +67,7 @@ void bench_cpu(int img_width, int img_height, int ntrials)
 
 void bench_gpu(int img_width, int img_height, int ntrials)
 {
-    int shades[img_height, img_width];
+    uint8 shades[img_height, img_width];
     float64 runtimes[ntrials];
     float64 start;
     float64 finish;
