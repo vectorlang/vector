@@ -63,7 +63,7 @@ mandelbrot set.
         z0 := #(x0, y0);
         z := #(float(0), float(0));
 
-        while (iter < 256 && abs(z) < 2) {
+        while (iter < 255 && abs(z) < 2) {
             z = z * z + z0;
             iter++;
         }
