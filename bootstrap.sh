@@ -1,8 +1,11 @@
 #!/bin/sh
 
+apt-get -y install python-software-properties
+add-apt-repository -y ppa:avsm/ppa
+
 wget 'http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1204/i386/cuda-repo-ubuntu1204_5.5-0_i386.deb' --quiet
 dpkg -i cuda-repo-ubuntu1204_5.5-0_i386.deb
-add-apt-repository -y ppa:avsm/ppa
+
 apt-get -y update
 
 apt-get -y install cuda
