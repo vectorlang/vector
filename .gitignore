@@ -34,7 +34,8 @@
 /test/vecmult
 /test/pfor
 /test/time
-/bench/mandelbrot-bench
+/bench/mandelbrot-bench-cpu
+/bench/mandelbrot-bench-gpu
 /bench/mandelbrot-cpu
 /bench/mandelbrot-gpu
 /docs/appendix-a.md
