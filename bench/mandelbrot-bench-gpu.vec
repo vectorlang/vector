@@ -46,7 +46,7 @@ void bench_gpu(int img_width, int img_height, int ntrials)
     printf("GPU %dx%d: ", img_width, img_height);
 
     for (rt in runtimes)
-        printf("%.2f ", rt);
+        printf("%.4f ", rt);
     printf("\n");
 }
 

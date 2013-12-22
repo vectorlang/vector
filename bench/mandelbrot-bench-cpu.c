@@ -66,8 +66,8 @@ void benchmark(int width, int height, int ntrials)
 	printf("CPU %dx%d: ", width, height);
 
 	for (trial = 0; trial < ntrials; trial++)
-		printf("%.2f ", runtimes[trial]);
-	
+		printf("%.4f ", runtimes[trial]);
+
 	printf("\n");
 }
 
