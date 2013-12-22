@@ -1,5 +1,7 @@
 #!/bin/sh
 
+apt-get -y update
+
 apt-get -y install python-software-properties
 add-apt-repository -y ppa:avsm/ppa
 
