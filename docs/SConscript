@@ -16,13 +16,13 @@ rtlib_source_files = ['libvector.hpp', 'vector_array.hpp',
 test_cases = ['arrays', 'control_flow', 'float', 'hello', 'length', 'map',
               'reduce', 'time', 'complex', 'dotprod', 'functions', 'inline',
               'logic', 'pfor', 'strings']
-benchmarks = ['mandelbrot-bench', 'mandelbrot-cpu', 'mandelbrot-gpu']
+benchmarks = ['mandelbrot-bench-cpu.c', 'mandelbrot-bench-gpu.vec']
 sconscripts = ['compiler', 'test', 'bench']
 
 source_file_paths = ['../compiler/' + sf for sf in compiler_source_files] + [
                      '../rtlib/' + sf for sf in rtlib_source_files] + [
                      '../test/' + tc + '.vec' for tc in test_cases] + [
-                     '../bench/' + bm + '.vec' for bm in benchmarks] + [
+                     '../bench/' + bm for bm in benchmarks] + [
                      '../' + ss + '/SConscript' for ss in sconscripts] + [
                      '../SConstruct']
 

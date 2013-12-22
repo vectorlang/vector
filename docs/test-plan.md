@@ -117,34 +117,34 @@ the number of iterations til convergence for that point on the complex plane.
 
 We benchmarked the performance of vector code on the CPU and GPU using the
 mandelbrot example shown earlier. For the GPU, we used the same code as above.
-For the CPU, we used similar code, except the pfor statement was replaced
-with a for statement, and the inner `mandelbrot` function was no longer a
-device function. By measuring how long it took to complete the computation
+For the CPU, we used a similar program written in C.
+
+By measuring how long it took to complete the computation
 for increasing image sizes using the `time` builtin function, we were able to
 compare how CPU and GPU code scaled with increasing workloads.
 
-The benchmarks were performed on a desktop computer with a 2.5 GHz AMD Phenom
-processor and a NVIDIA GeForce 8400 GS GPU. The results are as follows
+The benchmarks were performed on Amazon EC2 G2 instance, with a Nvidia GK104GL
+GPU and a 2.60GHz Intel Xeon CPU.
 
 #### CPU Results
 
 | Width | Height | Time 1 | Time 2 | Time 3 |
 |:------|:-------|:-------|:-------|:-------|
-| 640   | 480    | 5.16   | 5.16   | 5.16   |
-| 800   | 600    | 8.06   | 8.07   | 8.07   |
-| 1024  | 768    | 13.22  | 13.22  | 13.22  |
-| 1152  | 864    | 16.72  | 16.73  | 16.74  |
-| 1280  | 960    | 20.64  | 20.66  | 20.65  |
+| 640   | 480    | 0.0094 | 0.0063 | 0.0063 |
+| 800   | 600    | 0.0092 | 0.0091 | 0.0091 |
+| 1024  | 768    | 0.0155 | 0.0157 | 0.0153 |
+| 1152  | 864    | 0.0206 | 0.0208 | 0.0204 |
+| 1280  | 960    | 0.0253 | 0.0252 | 0.0257 |
 
 #### GPU Results
 
 | Width | Height | Time 1 | Time 2 | Time 3 |
 |:------|:-------|:-------|:-------|:-------|
-| 640   | 480    | 0.19   | 0.19   | 0.19   |
-| 800   | 600    | 0.28   | 0.28   | 0.28   |
-| 1024  | 768    | 0.47   | 0.46   | 0.46   |
-| 1152  | 864    | 0.53   | 0.53   | 0.53   |
-| 1280  | 960    | 0.61   | 0.61   | 0.61   |
+| 640   | 480    | 0.001  | 0.0009 | 0.0009 |
+| 800   | 600    | 0.0014 | 0.0014 | 0.0014 |
+| 1024  | 768    | 0.0023 | 0.0023 | 0.0023 |
+| 1152  | 864    | 0.0029 | 0.0028 | 0.0028 |
+| 1280  | 960    | 0.0034 | 0.0034 | 0.0035 |
 
 ![Benchmark Results](docs/benchmark-result-plot.png)
 
